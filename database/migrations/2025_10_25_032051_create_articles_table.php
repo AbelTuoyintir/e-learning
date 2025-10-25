@@ -14,6 +14,7 @@ return new class extends Migration
       Schema::create('topic_articles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('topic_id')->constrained()->onDelete('cascade');
+            $table->string('file_path')->nullable();
             $table->text('content');
             $table->timestamps();
         });
