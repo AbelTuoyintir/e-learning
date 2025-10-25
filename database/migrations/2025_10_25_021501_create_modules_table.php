@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('course_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->text('description')->nullable();
             $table->integer('order')->default(0);
             $table->integer('duration_minutes')->default(0);
             $table->boolean('is_active')->default(true);

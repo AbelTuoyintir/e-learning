@@ -16,9 +16,6 @@ return new class extends Migration
             $table->foreignId('module_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->text('content')->nullable();
-            $table->enum('content_type', ['video', 'article', 'quiz', 'assignment'])->default('article');
-            $table->string('video_url')->nullable();
-            $table->text('article_content')->nullable();
             $table->integer('order')->default(0);
             $table->integer('duration_minutes')->default(0);
             $table->boolean('is_active')->default(true);

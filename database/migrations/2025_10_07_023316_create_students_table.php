@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('password');
             $table->string('phone')->nullable();
+            $table->enum('education_level', ['basic', 'jhs', 'shs', 'tertiary'])->default('basic');
+            $table->string('grade_level')->default('1'); // 1-6, JHS1-JHS3, SHS1-SHS3, 100-400
+            $table->string('subject')->nullable(); // mathematics, science, english, etc.
             $table->string('Program')->nullable();
             $table->timestamps();
         });
