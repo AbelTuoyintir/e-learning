@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\StudentLoginAlert; 
 
 class AuthController extends Controller
 {
@@ -15,7 +16,7 @@ class AuthController extends Controller
 
     public function studentLogin(Request $request)
     {
-        
+
 
         // Log incoming request attempt
         Log::info('Student login attempt started', [
@@ -23,7 +24,7 @@ class AuthController extends Controller
             'ip' => $request->ip(),
             'time' => now()->toDateTimeString(),
         ]);
-       
+
 
         // Validate credentials
         $credentials = $request->validate([
@@ -31,9 +32,14 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        // Attempt login
-        if (Auth::guard('student')->attempt($credentials)) {
+       if (Auth::guard('student')->attempt($credentials)) {
             $request->session()->regenerate();
+
+            // Get the authenticated student
+            $student = Auth::guard('student')->user();
+
+            // Send login notification
+            $student->notify(new StudentLoginAlert(now()->toDateTimeString(), $request->ip()));
 
             // Log successful login
             Log::info('Student login successful', [
@@ -41,10 +47,6 @@ class AuthController extends Controller
                 'ip' => $request->ip(),
                 'time' => now()->toDateTimeString(),
             ]);
-
-            //  log_activity('User tried to log in', ['email' => $request->email,' ',
-            //  'firstname'->$request->firstname,'lastname'=>$request->lastname]);
-            
 
             return redirect()->intended('/students/dashboard');
         }
