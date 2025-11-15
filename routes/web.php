@@ -5,6 +5,7 @@ use App\Http\Controllers\QuizController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\CourseController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -24,6 +25,13 @@ Route::delete('quiz/{id}', [QuizController::class, 'destroy'])->name('quizzes.de
 Route::get('course', [App\Http\Controllers\CourseController::class, 'index'])->name('courses.index');
 Route::post('course', [App\Http\Controllers\CourseController::class, 'store'])->name('courses.store');
 Route::get('/courses/filter-search', [CourseController::class, 'filterAndSearch'])->name('courses.filterSearch');
+Route::post('course/modules', [App\Http\Controllers\ModuleController::class, 'store'])->name('module.store');
+Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+Route::get('courses/{course}/show', [CourseController::class, 'show'])->name('courses.show');
+Route::get('/courses/{course}/modules', [CourseController::class, 'modules'])->name('courses.modules');
+Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+
 
 
 
@@ -83,4 +91,3 @@ Route::get('/students/scores',function(){
 Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
 Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
 
-Route::get('sms/message',[App\Http\Controlllers\BulkSMSController::class, 'bulk'])->name('sms');

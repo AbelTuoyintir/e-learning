@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;   // ✅ This must be the very first line (after <?php)
 
 use App\Models\Course;
+use App\Models\StudentCourses;
+use App\Models\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 class CourseController extends Controller
@@ -12,10 +14,14 @@ class CourseController extends Controller
         $courses= \App\Models\Course::where('status','active')->paginate(5);
         $totalCourses = \App\Models\Course::count();
         $totalPublishedCourses = \App\Models\Course::where('status', 'active')->count();
+        $modules = \App\Models\Module::with('course')->latest()->get();
+        $cour = Course::all();
         return view('course.courses',[
             'courses'=>$courses,
             'totalCourses'=>$totalCourses,
-            'totalPublishedCourses'=>$totalPublishedCourses
+            'totalPublishedCourses'=>$totalPublishedCourses,
+            'modules'=>$modules,
+            'cour'=>$cour,
         ]);
     }
 
@@ -27,7 +33,6 @@ class CourseController extends Controller
             'title' => 'required|string|max:255', // Fixed: changed from 'title' to 'name'
             'description' => 'nullable|string',
             'instructor' => 'nullable|string|max:255',
-            'duration' => 'nullable|integer',
             'category' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -106,7 +111,7 @@ public function enroll(Request $request)
 
         if ($existingEnrollment) {
             $message = 'You are already enrolled in this course.';
-            
+
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $message], 409);
             }
@@ -126,7 +131,7 @@ public function enroll(Request $request)
         ]);
 
         $successMessage = 'Course enrollment successful!';
-        
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -134,7 +139,7 @@ public function enroll(Request $request)
                 'enrollment_id' => $enrollment->id
             ]);
         }
-        
+
         return redirect()->back()->with('success', $successMessage);
 
     } catch (\Exception $e) {
@@ -144,11 +149,11 @@ public function enroll(Request $request)
         ]);
 
         $errorMessage = 'An unexpected error occurred during enrollment.';
-        
+
         if ($request->expectsJson()) {
             return response()->json(['success' => false, 'message' => $errorMessage], 500);
         }
-        
+
         return redirect()->back()->with('error', $errorMessage);
     }
 }
@@ -163,6 +168,50 @@ public function enrolledCourses(){
         'enrolledCourses' => $enrolledCourses,
     ]);
 }
+
+    // Show edit form
+    public function edit(Course $course)
+    {
+        $course =Course::find($course->id);
+        return view('course.edit', compact('course'));
+    }
+
+    // Update course
+    public function update(Request $request, Course $course): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            // Add other fields as needed
+        ]);
+
+        $course->update($validated);
+
+        return redirect()->route('courses.index')
+            ->with('success', 'Course updated successfully!');
+    }
+
+    // Show modules for a course
+    public function modules(Course $course)
+    {
+        $modules = $course->modules; // Assuming you have a modules relationship
+
+        return view('courses.modules', compact('course', 'modules'));
+    }
+
+    // Delete course
+    public function destroy(Course $course): RedirectResponse
+    {
+        $course->delete();
+
+        return redirect()->route('courses.index')
+            ->with('success', 'Course deleted successfully!');
+    }
+
+    public function show(Course $course){
+        $course->load('modules.topics');
+        return view('course.courseDetails', compact('course'));
+    }
 }
 
 

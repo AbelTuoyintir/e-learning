@@ -10,9 +10,14 @@
             <h1 class="text-3xl font-bold text-slate-800">Manage Courses</h1>
             <p class="text-slate-500 mt-1">Create, edit and organise courses for students</p>
         </div>
-        <button onclick="openCourseModal()" class="px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 shadow-lg hover:shadow-xl">
+        <div class="flex gap-3">
+            <button onclick="openCourseModal()" class="px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition flex items-center gap-2 shadow-lg hover:shadow-xl">
             <i class="fas fa-plus"></i> Add New Course
         </button>
+          <button onclick="openModuleModal()" class="px-5 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition flex items-center gap-2 shadow-lg hover:shadow-xl">
+                <i class="fas fa-layer-group"></i> Add Module
+            </button>
+        </div>
     </div>
 
     <!-- Stats Cards -->
@@ -115,15 +120,38 @@
                     </td>
                      <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="Edit">
+                            <!-- Edit Button -->
+                            <a href="{{ route('courses.edit', $course->id) }}"
+                            class="p-2 text-blue-600 hover:bg-slate-100 rounded-lg transition"
+                            title="Edit">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="Duplicate">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            </a>
+
+                            <!-- View Modules Button -->
+                            <a href="{{ route('courses.modules', $course->id) }}"
+                            class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
+                            title="View Modules">
+                                <i class="fas fa-layer-group"></i>
+                            </a>
+
+
+                            <a href="{{ route('courses.show', $course->id) }}" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="View Course Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+
+                            <!-- Delete Button -->
+                            <form action="{{ route('courses.destroy', $course->id) }}"
+                                method="POST"
+                                class="inline"
+                                onsubmit="return confirm('Are you sure you want to delete this course?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -179,6 +207,9 @@
             <h3 class="text-xl font-bold text-slate-800" id="modalTitle">Add New Course</h3>
             <button type="button" onclick="closeCourseModal()" class="text-slate-400 hover:text-slate-600 transition">
                 <i class="fas fa-times text-xl"></i>
+            </button>
+            <button id="modulesTab" class="py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent tab-inactive transition duration-200">
+                <i class="fas fa-layer-group mr-2"></i>Modules
             </button>
         </div>
 
@@ -281,7 +312,99 @@
         </div>
     </div>
 </div>
-<!-- Removed extra closing </div> -->
+ <!-- Module Modal -->
+<div id="moduleModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-slate-200">
+            <h3 class="text-xl font-bold text-slate-800">Add New Module</h3>
+            <button type="button" onclick="closeModuleModal()" class="text-slate-400 hover:text-slate-600 transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body - Scrollable Content -->
+        <div class="flex-1 overflow-y-auto">
+            <form id="moduleForm" class="p-6" action="{{ route('module.store') }}" METHOD="POST">
+                @csrf
+                <div class="space-y-6">
+                    <!-- Module Title -->
+                    <div>
+                        <label for="moduleTitle" class="block text-sm font-semibold text-slate-700 mb-2">Module Title *</label>
+                        <input type="text" name="title" id="moduleTitle"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+                                value="" required>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="moduleDescription" class="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+                        <textarea name="description" id="moduleDescription" rows="4"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+                                    placeholder="Enter module description..."></textarea>
+                    </div>
+
+                    <!-- Two Column Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Course Selection -->
+                        <div>
+                            <label for="course_id" class="block text-sm font-semibold text-slate-700 mb-2">Course *</label>
+                            <select name="course_id" id="course_id" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition" required>
+                                <option value="">Select a course</option>
+                                @foreach ($cour as $cour)
+                                    <option value="{{ $cour->id }}">{{ $cour->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Duration -->
+                        <div>
+                            <label for="duration_minutes" class="block text-sm font-semibold text-slate-700 mb-2">Duration (minutes)</label>
+                            <input type="number" name="duration_minutes" id="duration_minutes" min="0"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+                                    value=""
+                                    placeholder="Module duration">
+                        </div>
+                    </div>
+
+                    <!-- Two Column Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Order -->
+                        <div>
+                            <label for="order" class="block text-sm font-semibold text-slate-700 mb-2">Order</label>
+                            <input type="number" name="order" id="order" min="1"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+                                    value="1"
+                                    placeholder="Module order">
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label for="is_active" class="block text-sm font-semibold text-slate-700 mb-2">Status</label>
+                            <select name="is_active" id="is_active" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
+                                <option value="1">Active</option>
+                                <option value="0">Draft</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-slate-200">
+                    <button type="button" onclick="closeModuleModal()"
+                            class="px-5 py-2.5 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition duration-200 font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 transition duration-200 font-medium">
+                        <span class="btn-text">Save Module</span>
+                        <i class="btn-icon fas fa-save ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- Include SweetAlert2 in your layout or add it here -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -306,6 +429,74 @@
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     }
+
+    // Function to open module modal
+    function openModuleModal() {
+        const modal = document.getElementById('moduleModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    // Function to close module modal
+    function closeModuleModal() {
+        const modal = document.getElementById('moduleModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+
+        // Reset form when closing
+        const form = document.getElementById('moduleForm');
+        if (form) {
+            form.reset();
+        }
+    }
+
+    // Enhanced form submission with loading state
+        function handleFormSubmission(form, type) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnIcon = submitBtn.querySelector('.btn-icon');
+
+            if (submitBtn && btnText && btnIcon) {
+                // Disable button and show loading state
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+                // Change button content to loading spinner
+                btnText.innerHTML = 'Saving...';
+                btnIcon.classList.remove('fa-save');
+                btnIcon.classList.add('fa-spinner', 'fa-spin');
+            }
+
+            // Simulate API call
+            setTimeout(() => {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: `${type} created successfully.`,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: type === 'Course' ? '#4f46e5' : '#10b981',
+                    background: '#f0f9ff',
+                    iconColor: '#10b981'
+                }).then(() => {
+                    if (type === 'Course') {
+                        closeCourseModal();
+                    } else {
+                        closeModuleModal();
+                    }
+
+                    // Reset button state
+                    if (submitBtn && btnText && btnIcon) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                        btnText.innerHTML = `Save ${type}`;
+                        btnIcon.classList.remove('fa-spinner', 'fa-spin');
+                        btnIcon.classList.add('fa-save');
+                    }
+                });
+            }, 1500);
+        }
+
 
     // Enhanced form submission with loading state
     document.addEventListener('DOMContentLoaded', function() {
