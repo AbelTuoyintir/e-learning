@@ -55,7 +55,7 @@ class ModuleController extends Controller
 
         $module->update($validated);
 
-        return redirect()->route('modules.index')->with('success', 'Module updated successfully.');
+        return redirect()->route('courses.show')->with('success', 'Module updated successfully.');
     }
 
     public function destroy(Module $module)

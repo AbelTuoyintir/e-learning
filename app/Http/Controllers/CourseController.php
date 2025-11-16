@@ -177,7 +177,7 @@ public function enrolledCourses(){
     }
 
     // Update course
-    public function update(Request $request, Course $course): RedirectResponse
+    public function update(Request $request, Course $course)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -194,13 +194,18 @@ public function enrolledCourses(){
     // Show modules for a course
     public function modules(Course $course)
     {
-        $modules = $course->modules; // Assuming you have a modules relationship
+        $modules = $course->modules()->paginate(10); // paginate 10 per page
+        // dd($modules);
+        return view('course.module', compact('course', 'modules'));
+    }
 
-        return view('courses.modules', compact('course', 'modules'));
+    public function show(Course $course){
+        $course->load('modules.topics');
+        return view('course.courseDetails', compact('course'));
     }
 
     // Delete course
-    public function destroy(Course $course): RedirectResponse
+    public function destroy(Course $course)
     {
         $course->delete();
 
@@ -208,10 +213,7 @@ public function enrolledCourses(){
             ->with('success', 'Course deleted successfully!');
     }
 
-    public function show(Course $course){
-        $course->load('modules.topics');
-        return view('course.courseDetails', compact('course'));
-    }
 }
+
 
 

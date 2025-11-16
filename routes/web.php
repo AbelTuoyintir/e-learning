@@ -6,6 +6,8 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ModuleController;
+use App\Http\Controllers\TopicController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -31,6 +33,17 @@ Route::put('/courses/{course}', [CourseController::class, 'update'])->name('cour
 Route::get('courses/{course}/show', [CourseController::class, 'show'])->name('courses.show');
 Route::get('/courses/{course}/modules', [CourseController::class, 'modules'])->name('courses.modules');
 Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'])
+    ->name('modules.store');
+Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'])
+     ->name('modules.store');
+
+Route::put('/modules/{module}', [ModuleController::class, 'update'])
+     ->name('modules.update');
+Route::delete('/modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('modules.destroy');
+Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name('topics.index');
+Route::get('/modules/{module}/topics/create', [TopicController::class, 'create'])->name('topics.create');
+
 
 
 

@@ -129,8 +129,7 @@
 
                             <!-- View Modules Button -->
                             <a href="{{ route('courses.modules', $course->id) }}"
-                            class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition"
-                            title="View Modules">
+                            class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition" title="View Modules">
                                 <i class="fas fa-layer-group"></i>
                             </a>
 
@@ -142,8 +141,7 @@
                             <!-- Delete Button -->
                             <form action="{{ route('courses.destroy', $course->id) }}"
                                 method="POST"
-                                class="inline"
-                                onsubmit="return confirm('Are you sure you want to delete this course?')">
+                                class="inline ">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
