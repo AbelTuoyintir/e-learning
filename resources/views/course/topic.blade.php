@@ -1,145 +1,486 @@
 @extends('layouts.app')
-
+@section('title','Topic Management')
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-slate-100">
+<div class="min-h-screen bg-gray-50 text-gray-800"
+     x-data="topicManager()"
+     x-init="loadTopic({{ $topic->id ?? 0 }})">
 
-  <!-- Header -->
-  <header class="max-w-4xl mx-auto px-6 pt-10 pb-6">
+  {{-- HEADER --}}
+  <header class="max-w-5xl mx-auto px-6 pt-10 pb-6">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-          Add Topic under Module
-        </h1>
-        <p class="text-slate-400 text-sm mt-1" id="moduleName">{{ $module->title }}</p>
+        <h1 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"
+            x-text="editId ? 'Edit Topic' : 'Create Topic'"></h1>
+        <p class="text-gray-600 text-sm mt-1">Module: <span class="font-semibold text-gray-800">{{ $module->title }}</span></p>
       </div>
-      <button onclick="closeSlide()" class="p-2 text-slate-400 hover:text-white transition">
-        <i class="fas fa-times text-xl"></i>
-      </button>
+      <a href="{{ route('courses.modules',$module->id) }}"
+         class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition text-sm">
+        <i class="fas fa-arrow-left mr-2"></i>Back to module
+      </a>
     </div>
   </header>
 
-  <!-- Form Card -->
-  <div class="max-w-4xl mx-auto px-6 pb-10">
-    <div class="bg-white/5 backdrop-blur rounded-3xl shadow-2xl border border-white/10 p-8">
+      {{-- TOPICS TABLE --}}
+    <div class="max-w-7xl mx-auto px-6 pb-10">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            {{-- Table --}}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Topic
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Module
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Course
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Order
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Created
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($topics as $topic)
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ $topic->title }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ Str::limit($topic->content, 50) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ $topic->module->title ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ $topic->module->course->title ?? 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $topic->order }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    {{ $topic->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                    {{ $topic->is_active ? 'Active' : 'Draft' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $topic->created_at->format('M d, Y') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('admin.topics.edit', $topic->id) }}"
+                                       class="text-indigo-600 hover:text-indigo-900 transition"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ route('admin.topics.show', $topic->id) }}"
+                                       class="text-blue-600 hover:text-blue-900 transition"
+                                       title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form action="{{ route('admin.topics.destroy', $topic->id) }}" method="POST"
+                                          class="inline delete-form">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="text-red-600 hover:text-red-900 transition"
+                                                title="Delete"
+                                                onclick="return confirm('Are you sure you want to delete this topic?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                <i class="fas fa-inbox text-4xl mb-3 text-gray-300"></i>
+                                <p class="text-lg">No topics found</p>
+                                <p class="text-sm mt-1">Get started by creating your first topic</p>
+                                <a href="{{ route('admin.topics.create') }}"
+                                   class="mt-3 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                    <i class="fas fa-plus mr-2"></i>Create Topic
+                                </a>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-      <form id="topicForm" x-data="topicForm()" @submit.prevent="submitTopic" class="space-y-6">
-
-        <!-- Title -->
-        <div>
-          <label for="title" class="block text-sm font-semibold text-slate-300 mb-2">Topic Title *</label>
-          <input type="text" name="title" id="title" x-model="form.title" required placeholder="e.g. Introduction to HTML"
-                 class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl placeholder-slate-400 text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
+            {{-- Pagination --}}
+            @if($topics->hasPages())
+            <div class="bg-white px-6 py-4 border-t border-gray-200">
+                {{ $topics->links() }}
+            </div>
+            @endif
         </div>
+    </div>
+</div>
 
-        <!-- Content (Rich editor placeholder) -->
-        <div>
-          <label for="content" class="block text-sm font-semibold text-slate-300 mb-2">Content</label>
-          <textarea name="content" id="content" x-model="form.content" rows="6" placeholder="Write your lesson, paste HTML, or leave empty..."
-                    class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl placeholder-slate-400 text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"></textarea>
-        </div>
+{{-- MAIN FORM --}}
+<form method="POST"
+      action="{{route('admin.topics.store') }}"
+      enctype="multipart/form-data"
+      id="myForm"
+      class="max-w-5xl mx-auto px-6 pb-10">
+    @csrf
 
-        <!-- Video URL -->
-        <div>
-          <label for="video_url" class="block text-sm font-semibold text-slate-300 mb-2">Video URL (YouTube/Vimeo)</label>
-          <input type="url" name="video_url" id="video_url" x-model="form.video_url" placeholder="https://youtu.be/xxxxxx"
-                 class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl placeholder-slate-400 text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
-        </div>
+    <input type="hidden" name="module_id" value="{{ $module->id }}">
 
-        <!-- File Upload -->
-        <div>
-          <label for="file" class="block text-sm font-semibold text-slate-300 mb-2">Upload File (pdf, video, image)</label>
-          <input type="file" name="file" id="file" @change="form.file = $event.target.files[0]" accept="video/*,image/*,.pdf"
-                 class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:cursor-pointer focus:ring-2 focus:ring-indigo-400 transition">
-        </div>
+    <div class="grid md:grid-cols-3 gap-6">
 
-        <!-- Two Column Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Order -->
+      {{-- LEFT: Topic core --}}
+      <div class="md:col-span-2 space-y-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-5">
+
+          {{-- Title --}}
           <div>
-            <label for="order" class="block text-sm font-semibold text-slate-300 mb-2">Order</label>
-            <input type="number" name="order" id="order" x-model="form.order" min="0" value="0"
-                   class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Topic Title *</label>
+            <input type="text" name="title" value="{{ old('title', $topic->title ?? '') }}" required
+                   class="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            @error('title')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
           </div>
 
-          <!-- Status -->
+          {{-- Contents --}}
           <div>
-            <label for="is_active" class="block text-sm font-semibold text-slate-300 mb-2">Status</label>
-            <select name="is_active" id="is_active" x-model="form.is_active" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
-              <option value="1">Active</option>
-              <option value="0">Draft</option>
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm font-semibold text-gray-700">Lesson Contents</label>
+              <button type="button" id="addContent" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                <i class="fas fa-plus mr-1"></i>Add block
+              </button>
+            </div>
+
+            <div class="space-y-3" id="contentsList">
+              {{-- Contents will be added dynamically via JavaScript --}}
+              @php
+                $oldContents = old('contents', []);
+                if(empty($oldContents) && isset($topic) && $topic->contents->count() > 0) {
+                    $oldContents = $topic->contents->toArray();
+                }
+              @endphp
+
+              @foreach($oldContents as $index => $content)
+              <div class="content-block bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
+                <div class="flex items-start justify-between">
+                  <span class="text-xs text-gray-500">Block {{ $loop->iteration }}</span>
+                  <button type="button" class="remove-content text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+
+                <select name="contents[{{ $index }}][type]"
+                        class="content-type mt-2 w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
+                  <option value="text" {{ ($content['type'] ?? 'text') == 'text' ? 'selected' : '' }}>Text / HTML</option>
+                  <option value="image" {{ ($content['type'] ?? '') == 'image' ? 'selected' : '' }}>Image</option>
+                  <option value="video" {{ ($content['type'] ?? '') == 'video' ? 'selected' : '' }}>Video</option>
+                  <option value="pdf" {{ ($content['type'] ?? '') == 'pdf' ? 'selected' : '' }}>PDF</option>
+                </select>
+
+                {{-- Text content --}}
+                <textarea name="contents[{{ $index }}][body]"
+                          class="text-content mt-2 w-full px-3 py-2 bg-white border border-gray-300 rounded-xl"
+                          rows="4"
+                          placeholder="Write or paste HTML...">{{ $content['body'] ?? '' }}</textarea>
+
+                {{-- File input --}}
+                <input type="file"
+                       name="contents[{{ $index }}][file]"
+                       class="file-content mt-2 w-full text-sm text-gray-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white">
+              </div>
+              @endforeach
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {{-- RIGHT: Sidebar --}}
+      <div class="space-y-6">
+        {{-- Settings --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <h3 class="font-semibold text-gray-800">Settings</h3>
+
+          <div>
+            <label class="text-sm text-gray-600">Order</label>
+            <input type="number" name="order" value="{{ old('order', $topic->order ?? 0) }}" min="0"
+                   class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
+            @error('order')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+          </div>
+
+          <div>
+            <label class="text-sm text-gray-600">Status</label>
+            <select name="is_active"
+                    class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
+              <option value="1" {{ old('is_active', $topic->is_active ?? 1) ? 'selected' : '' }}>Active</option>
+              <option value="0" {{ !old('is_active', $topic->is_active ?? 1) ? 'selected' : '' }}>Draft</option>
             </select>
           </div>
-        </div>
 
-        <!-- Progress Bar -->
-        <template x-if="uploadProgress > 0">
-          <div class="w-full bg-white/10 rounded-full h-2.5">
-            <div class="bg-indigo-500 h-2.5 rounded-full" :style="`width: ${uploadProgress}%`"></div>
+          <div>
+            <label class="text-sm text-gray-600">Video URL (YouTube/Vimeo)</label>
+            <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url ?? '') }}"
+                   placeholder="https://youtu.be/xxxx"
+                   class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
+            @error('video_url')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
           </div>
-        </template>
-
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-3 pt-6 border-t border-white/10">
-          <button type="button" onclick="closeSlide()" class="px-5 py-2.5 border border-white/20 text-slate-300 rounded-xl hover:bg-white/10 transition duration-200 font-medium">
-            Cancel
-          </button>
-          <button type="submit" :disabled="submitting" class="group px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-[#1e293b] transition duration-200 font-medium disabled:opacity-60">
-            <span x-text="submitting ? 'Creating...' : 'Create Topic'"></span>
-            <i class="fas fa-save ml-2 group-hover:scale-110 transition"></i>
-          </button>
         </div>
-      </form>
-    </div>
-  </div>
 
+        {{-- Quiz builder --}}
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-gray-800">Quiz</h3>
+            <button type="button" id="addQuestion" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+              <i class="fas fa-plus mr-1"></i>Question
+            </button>
+          </div>
+
+          <div id="questionsList">
+            {{-- Questions will be added dynamically --}}
+            @php
+              $oldQuestions = old('questions', []);
+              if(empty($oldQuestions) && isset($topic) && $topic->questions->count() > 0) {
+                  $oldQuestions = $topic->questions->toArray();
+              }
+            @endphp
+
+            @foreach($oldQuestions as $qIndex => $question)
+            <div class="question-block bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
+              <div class="flex items-start justify-between">
+                <span class="text-xs text-gray-500">Q{{ $loop->iteration }}</span>
+                <button type="button" class="remove-question text-red-600 hover:text-red-800">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <input type="text"
+                     name="questions[{{ $qIndex }}][text]"
+                     value="{{ $question['text'] ?? '' }}"
+                     placeholder="Question text"
+                     class="w-full mt-2 px-3 py-2 bg-white border border-gray-300 rounded-xl">
+
+              <div class="mt-3 space-y-2">
+                @foreach($question['options'] ?? [['text'=>''],['text'=>'']] as $oIndex => $option)
+                <div class="flex items-center gap-2 option-row">
+                  <input type="text"
+                         name="questions[{{ $qIndex }}][options][{{ $oIndex }}][text]"
+                         value="{{ $option['text'] ?? '' }}"
+                         placeholder="Option"
+                         class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
+                  <label class="text-xs text-gray-600 flex items-center gap-1">
+                    <input type="radio"
+                           name="questions[{{ $qIndex }}][correct]"
+                           value="{{ $oIndex }}"
+                           {{ ($question['correct'] ?? 0) == $oIndex ? 'checked' : '' }}
+                           class="text-indigo-600 bg-white border-gray-300">
+                    Correct
+                  </label>
+                  <button type="button" class="remove-option text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+                @endforeach
+                <button type="button" class="add-option text-xs text-indigo-600 hover:text-indigo-800">
+                  + Add option
+                </button>
+              </div>
+            </div>
+            @endforeach
+          </div>
+        </div>
+
+        {{-- Submit --}}
+        <button type="submit"
+                class="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 font-semibold">
+          <span>Save Topic</span>
+          <i class="fas fa-save"></i>
+        </button>
+      </div>
+
+    </div>
+  </form>
 </div>
+
+
 
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function closeSlide(){
-  // if inside iframe / slide-over
-  parent.postMessage({action:'closeTopicSlide'},'*');
+document.addEventListener('DOMContentLoaded', function() {
+    let contentCounter = {{ count(old('contents', [])) }};
+    let questionCounter = {{ count(old('questions', [])) }};
+
+    // Add content block
+    document.getElementById('addContent').addEventListener('click', function() {
+        const contentsList = document.getElementById('contentsList');
+        const index = contentCounter++;
+
+        const contentHTML = `
+        <div class="content-block bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
+            <div class="flex items-start justify-between">
+                <span class="text-xs text-gray-500">Block ${contentCounter}</span>
+                <button type="button" class="remove-content text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <select name="contents[${index}][type]" class="content-type mt-2 w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
+                <option value="text">Text / HTML</option>
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="pdf">PDF</option>
+            </select>
+            <textarea name="contents[${index}][body]" class="text-content mt-2 w-full px-3 py-2 bg-white border border-gray-300 rounded-xl" rows="4" placeholder="Write or paste HTML..."></textarea>
+            <input type="file" name="contents[${index}][file]" class="file-content mt-2 w-full text-sm text-gray-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white">
+        </div>
+        `;
+
+        contentsList.insertAdjacentHTML('beforeend', contentHTML);
+    });
+
+    // Add question block
+    document.getElementById('addQuestion').addEventListener('click', function() {
+        const questionsList = document.getElementById('questionsList');
+        const index = questionCounter++;
+
+        const questionHTML = `
+        <div class="question-block bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
+            <div class="flex items-start justify-between">
+                <span class="text-xs text-gray-500">Q${questionCounter}</span>
+                <button type="button" class="remove-question text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <input type="text" name="questions[${index}][text]" placeholder="Question text" class="w-full mt-2 px-3 py-2 bg-white border border-gray-300 rounded-xl">
+            <div class="mt-3 space-y-2">
+                <div class="flex items-center gap-2 option-row">
+                    <input type="text" name="questions[${index}][options][0][text]" placeholder="Option" class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
+                    <label class="text-xs text-gray-600 flex items-center gap-1">
+                        <input type="radio" name="questions[${index}][correct]" value="0" class="text-indigo-600 bg-white border-gray-300" checked>
+                        Correct
+                    </label>
+                    <button type="button" class="remove-option text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 option-row">
+                    <input type="text" name="questions[${index}][options][1][text]" placeholder="Option" class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
+                    <label class="text-xs text-gray-600 flex items-center gap-1">
+                        <input type="radio" name="questions[${index}][correct]" value="1" class="text-indigo-600 bg-white border-gray-300">
+                        Correct
+                    </label>
+                    <button type="button" class="remove-option text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <button type="button" class="add-option text-xs text-indigo-600 hover:text-indigo-800">
+                    + Add option
+                </button>
+            </div>
+        </div>
+        `;
+
+        questionsList.insertAdjacentHTML('beforeend', questionHTML);
+    });
+
+    // Remove handlers (delegated)
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-content')) {
+            e.target.closest('.content-block').remove();
+        }
+        if (e.target.closest('.remove-question')) {
+            e.target.closest('.question-block').remove();
+        }
+        if (e.target.closest('.remove-option')) {
+            if (e.target.closest('.question-block').querySelectorAll('.option-row').length > 1) {
+                e.target.closest('.option-row').remove();
+            }
+        }
+        if (e.target.closest('.add-option')) {
+            const questionBlock = e.target.closest('.question-block');
+            const optionIndex = questionBlock.querySelectorAll('.option-row').length;
+            const questionIndex = Array.from(questionBlock.parentNode.children).indexOf(questionBlock);
+
+            const optionHTML = `
+            <div class="flex items-center gap-2 option-row">
+                <input type="text" name="questions[${questionIndex}][options][${optionIndex}][text]" placeholder="Option" class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
+                <label class="text-xs text-gray-600 flex items-center gap-1">
+                    <input type="radio" name="questions[${questionIndex}][correct]" value="${optionIndex}" class="text-indigo-600 bg-white border-gray-300">
+                    Correct
+                </label>
+                <button type="button" class="remove-option text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            `;
+            e.target.insertAdjacentHTML('beforebegin', optionHTML);
+        }
+    });
+});
+
+// Function to show the loading alert
+function showLoading() {
+    Swal.fire({
+        title: 'Now loading',
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        onOpen: () => {
+            Swal.showLoading(); // This shows the loading spinner
+        }
+    });
 }
 
-function topicForm(){
-  return {
-    form: {
-      title: '',
-      content: '',
-      video_url: '',
-      file: null,
-      order: 0,
-      is_active: 1
-    },
-    submitting: false,
-    uploadProgress: 0,
+// Example: Show loading when a form is submitted
+document.getElementById('myForm').addEventListener('submit', function(event) {
+    showLoading();
+});
 
-    async submitTopic(){
-      this.submitting = true;
-      const fd = new FormData();
-      Object.keys(this.form).forEach(k => fd.append(k, this.form[k]));
-      fd.append('module_id', {{ $module->id }});
-
-      try{
-        const res = await axios.post('/admin/topics', fd, {
-          onUploadProgress: e => this.uploadProgress = Math.round((e.loaded * 100) / e.total)
+{{-- Place this in your Blade template --}}
+@if(Session::has('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: '{{ Session::get('success') }}',
+            confirmButtonText: 'Cool'
         });
-        this.uploadProgress = 0;
-        Swal.fire({icon:'success',title:'Created!',text:'Topic added to module.',background:'#1e293b',color:'#e2e8f0',timer:1200});
-        parent.postMessage({action:'topicCreated',topic:res.data.topic},'*');
-        setTimeout(()=>closeSlide(),500);
-      }catch(err){
-        this.uploadProgress = 0;
-        Swal.fire({icon:'error',title:'Oops',text:err.response.data.message ?? 'Validation failed',background:'#1e293b',color:'#e2e8f0'});
-      }finally{
-        this.submitting = false;
-      }
-    }
-  };
-}
+    </script>
+@endif
+
+@if(Session::has('error'))
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: '{{ Session::get('error') }}',
+            confirmButtonText: 'Okay'
+        });
+    </script>
+@endif
 </script>
-
-
 @endsection

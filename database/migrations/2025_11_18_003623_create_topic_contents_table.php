@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-      Schema::create('topic_articles', function (Blueprint $table) {
+        Schema::create('topic_contents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('topic_id')->constrained()->onDelete('cascade');
+            $table->foreignId('topic_id')->constrained()->cascadeOnDelete();
+            $table->enum('type', ['text', 'image', 'video', 'pdf']);
+            $table->longText('body')->nullable();
             $table->string('file_path')->nullable();
-            $table->text('content');
+            $table->string('file_name')->nullable();
+            $table->integer('order')->default(0);
             $table->timestamps();
         });
-
     }
 
     /**
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('articles');
+        Schema::dropIfExists('topic_contents');
     }
 };

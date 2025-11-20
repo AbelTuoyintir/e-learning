@@ -88,11 +88,11 @@
             <!-- Right -->
             <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
               <button @click="toggleStatus(mod)" class="p-2 text-slate-300 hover:text-white transition" title="Toggle status"><i class="fas fa-sync"></i></button>
-              <button @click="editModule(mod)" class="p-2 text-slate-300 hover:text-white transition" title="Edit"><i class="fas fa-edit"></i></button>
-              <a href="{{ route('topics.create', $mod->id) }}"
-                    class="p-2 text-green-400 hover:text-green-300 transition"
-                    title="Add Topic">
-                        <i class="fas fa-book-open"></i>
+              <button @click=editModule(mod)" class="p-2 text-slate-300 hover:text-white transition" title="Edit"><i class="fas fa-edit"></i></button>
+             <a :href="`/admin/topics/create/${mod.id}`"
+                class="p-2 text-green-400 hover:text-green-300 transition"
+                title="Add Topic">
+                    <i class="fas fa-book-open"></i>
                 </a>
 
               <button @click="deleteModule(mod.id)" class="p-2 text-rose-400 hover:text-rose-300 transition" title="Delete"><i class="fas fa-trash"></i></button>

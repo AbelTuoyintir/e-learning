@@ -42,8 +42,17 @@ Route::put('/modules/{module}', [ModuleController::class, 'update'])
      ->name('modules.update');
 Route::delete('/modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('modules.destroy');
 Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name('topics.index');
-Route::get('/modules/{module}/topics/create', [TopicController::class, 'create'])->name('topics.create');
-
+Route::prefix('admin')->group(function () {
+   Route::get('/topics/create/{module}', [TopicController::class, 'create'])
+    ->name('admin.topics.create');
+    Route::post('/topics', [TopicController::class, 'store'])->name('admin.topics.store');
+    Route::get('/topics/{topic}', [TopicController::class, 'show'])->name('admin.topics.show');
+    Route::get('/topics/{topic}/edit', [TopicController::class, 'edit'])->name('admin.topics.edit');
+    Route::put('/topics/{topic}', [TopicController::class, 'update'])->name('admin.topics.update');
+    Route::delete('/topics/{topic}', [TopicController::class, 'destroy'])->name('admin.topics.destroy');
+    Route::get('/modules/{module}/topics', [TopicController::class, 'byModule'])->name('admin.modules.topics');
+    Route::post('/topics/order', [TopicController::class, 'updateOrder'])->name('admin.topics.order');
+});
 
 
 

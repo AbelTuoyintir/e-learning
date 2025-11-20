@@ -12,12 +12,20 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('image')->nullable();
+
             $table->enum('quiz_type', ['topic_quiz', 'module_assessment', 'course_exam']);
+
             $table->morphs('related_to');
+
             $table->enum('difficulty', ['easy', 'medium', 'hard'])->default('easy');
-            $table->integer('time_limit')->default(30); // in minutes
-            $table->integer('time_per_question')->default(30); // in seconds
-            $table->foreignId('course_id')->constrained()->onDelete('cascade');
+            $table->integer('time_limit')->default(30);
+            $table->integer('time_per_question')->default(30);
+
+            // Foreign Keys
+            $table->foreignId('module_id')->nullable()->constrained('modules')->onDelete('cascade');
+            $table->foreignId('topic_id')->nullable()->constrained('topics')->onDelete('cascade');
+            $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+
             $table->text('description')->nullable();
             $table->timestamps();
         });

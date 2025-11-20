@@ -30,7 +30,7 @@
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
 
     <!-- Top Navigation -->
-    <nav class="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50">
+    <nav class="bg-white/80 backdrop-blur-md shadow-md border-b border-white/20 sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
 
             <!-- Logo -->

@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title','Courses Management')
 @section('content')
 
 <!-- Courses Management Container -->

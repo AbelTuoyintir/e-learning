@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Topic extends Model
 {
@@ -13,37 +13,60 @@ class Topic extends Model
         'module_id',
         'title',
         'content',
+        'video_url',
+        'file_path',
+        'file_name',
         'order',
-        'duration_minutes',
-        'is_active',
-        'has_quiz',
-        'passing_score',
+        'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'order' => 'integer'
     ];
 
     /**
-     * A topic belongs to a module.
+     * Get the module that owns the topic.
      */
     public function module()
     {
         return $this->belongsTo(Module::class);
     }
 
+    // Topic.php
+    public function contents(){
+        return $this->hasMany(TopicContent::class);
+    }
+    public function quiz(){
+        return $this->morphOne(Quiz::class, 'related_to');
+    }
+
+    // Quiz.php
+    public function questions(){
+        return $this->hasMany(Question::class);
+    }
+
     /**
-     * (Optional) If each topic has multiple quizzes,
-     * you can define this relationship later.
+     * Get the file URL for display.
      */
-    public function quizzes()
+    public function getFileUrlAttribute()
     {
-        return $this->hasMany(Quiz::class);
+        return $this->file_path ? Storage::url($this->file_path) : null;
     }
 
-    public function videos()
+    /**
+     * Scope active topics.
+     */
+    public function scopeActive($query)
     {
-        return $this->hasMany(TopicVideo::class);
+        return $query->where('is_active', true);
     }
 
-    public function articles()
+    /**
+     * Scope ordered topics.
+     */
+    public function scopeOrdered($query)
     {
-        return $this->hasMany(TopicArticle::class);
+        return $query->orderBy('order')->orderBy('created_at');
     }
 }

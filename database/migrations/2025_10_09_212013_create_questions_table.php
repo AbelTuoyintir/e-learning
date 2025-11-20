@@ -12,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('quiz_id')->constrained('quizzes')->onDelete('cascade');
             $table->text('question_text');
-            $table->string('option a');
-            $table->string('option b');
-            $table->string('option c');
-            $table->string('option d');
+            $table->string('option_a');
+            $table->string('option_b');
+            $table->string('option_c');
+            $table->string('option_d');
             $table->string('correct_option');
             $table->integer('points')->default(1);
             $table->timestamps();
