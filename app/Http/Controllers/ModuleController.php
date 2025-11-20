@@ -24,7 +24,7 @@ class ModuleController extends Controller
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'order' => 'nullable|integer',
-            'duration_minutes' => 'nullable|integer',
+            
             'is_active' => 'boolean',
         ]);
 

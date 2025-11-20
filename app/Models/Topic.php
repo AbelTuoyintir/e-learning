@@ -41,10 +41,6 @@ class Topic extends Model
         return $this->morphOne(Quiz::class, 'related_to');
     }
 
-    // Quiz.php
-    public function questions(){
-        return $this->hasMany(Question::class);
-    }
 
     /**
      * Get the file URL for display.

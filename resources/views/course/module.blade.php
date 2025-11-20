@@ -89,7 +89,7 @@
             <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
               <button @click="toggleStatus(mod)" class="p-2 text-slate-300 hover:text-white transition" title="Toggle status"><i class="fas fa-sync"></i></button>
               <button @click=editModule(mod)" class="p-2 text-slate-300 hover:text-white transition" title="Edit"><i class="fas fa-edit"></i></button>
-             <a :href="`/admin/topics/create/${mod.id}`"
+             <a  href="{{ route('admin.topics.create', mod) }}"
                 class="p-2 text-green-400 hover:text-green-300 transition"
                 title="Add Topic">
                     <i class="fas fa-book-open"></i>
@@ -123,9 +123,9 @@
       </div>
 
    @php
-    // Determine if we are in edit mode
-    $isEdit = isset($module); // pass $module from controller when editing
-@endphp
+        // Determine if we are in edit mode
+        $isEdit = isset($module); // pass $module from controller when editing
+    @endphp
 
 <form action="{{ $isEdit ? route('modules.update', $module->id) : route('modules.store', $course->id) }}" method="POST" class="flex-1 overflow-y-auto p-6 space-y-5">
     @csrf
@@ -144,15 +144,10 @@
             class="w-full px-4 py-2 text-gray-950 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400">
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div>
         <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Order</label>
             <input type="number" name="order" value="{{ old('order', $isEdit ? $module->order : 0) }}" min="0"
-                class="w-full px-4 py-2 text-gray-950 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400">
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Duration (min)</label>
-            <input type="number" name="duration_minutes" value="{{ old('duration_minutes', $isEdit ? $module->duration_minutes : 30) }}" min="0"
                 class="w-full px-4 py-2 text-gray-950 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400">
         </div>
     </div>

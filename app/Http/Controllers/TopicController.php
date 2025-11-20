@@ -31,11 +31,14 @@ class TopicController extends Controller
     {
         // Get existing topics for this module with their relationships
         $topics = Topic::where('module_id', $module->id)
-                      ->with(['module.course', 'contents', 'questions'])
+                      ->with(['module.course', 'contents', 'quiz.questions'])
                       ->orderBy('order')
                       ->paginate(10);
 
-        return view('course.topic', compact('module', 'topics'));
+        // Get existing quizzes for this module
+        $quizzes = \App\Models\Quiz::where('module_id', $module->id)->get();
+
+        return view('course.topic', compact('module', 'topics', 'quizzes'));
     }
 
     /**
@@ -49,6 +52,7 @@ class TopicController extends Controller
             'order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'video_url' => 'nullable|url',
+            'quiz_id' => 'nullable|exists:quizzes,id',
             'contents' => 'nullable|array',
             'questions' => 'nullable|array',
         ]);
@@ -64,49 +68,9 @@ class TopicController extends Controller
                 'title' => $request->title,
                 'order' => $request->order ?? 0,
                 'is_active' => $request->is_active ?? true,
-                'video_url' => $request->video_url,
             ]);
 
-            // Create topic contents - use TopicContent instead of Topic_content
-            if ($request->contents) {
-                foreach ($request->contents as $index => $contentData) {
-                    $filePath = null;
-                    $fileName = null;
-
-                    // Handle file upload
-                    if (isset($contentData['file']) && $contentData['file'] instanceof \Illuminate\Http\UploadedFile) {
-                        $file = $contentData['file'];
-                        $fileName = time() . '_' . $file->getClientOriginalName();
-                        $filePath = $file->storeAs('topics/content', $fileName, 'public');
-                    }
-
-                    // Use TopicContent model (proper PascalCase)
-                    TopicContent::create([
-                        'topic_id' => $topic->id,
-                        'type' => $contentData['type'],
-                        'body' => $contentData['body'] ?? null,
-                        'file_path' => $filePath,
-                        'file_name' => $fileName,
-                        'order' => $index,
-                    ]);
-                }
-            }
-
-            // Create questions
-            if ($request->questions) {
-                foreach ($request->questions as $index => $questionData) {
-                    Question::create([
-                        'topic_id' => $topic->id,
-                        'text' => $questionData['text'],
-                        'options' => $questionData['options'] ?? [],
-                        'correct_option' => $questionData['correct'] ?? 0,
-                        'order' => $index,
-                    ]);
-                }
-            }
-
-            return redirect()->route('admin.topics.index')
-                           ->with('success', 'Topic created successfully!');
+            return redirect()->route('admin.topics.create')->with('success', 'Topic created successfully!');
 
         } catch (\Exception $e) {
             \Log::error('Topic creation failed: ' . $e->getMessage());
@@ -130,67 +94,39 @@ class TopicController extends Controller
     public function edit(Topic $topic)
     {
         $modules = Module::where('is_active', true)->get();
-        $topic->load('contents', 'questions'); // Load relationships for editing
-        return view('admin.topics.edit', compact('topic', 'modules'));
+        $topic->load('contents', 'quiz.questions'); // Load relationships for editing
+        return view('course.editTopic', compact('topic', 'modules'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Topic $topic)
+     public function update(Request $request, $id): RedirectResponse
     {
-        $validator = Validator::make($request->all(), [
-            'module_id' => 'required|exists:modules,id',
-            'title' => 'required|string|max:255',
-            'content' => 'nullable|string',
-            'video_url' => 'nullable|url',
-            'file' => 'nullable|file|mimes:pdf,mp4,mov,avi,jpg,jpeg,png,gif|max:10240',
-            'order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean'
-        ]);
-
-        if ($validator->fails()) {
-            // For web requests, use redirect back instead of JSON
-            return back()->withErrors($validator)->withInput();
-        }
-
         try {
-            $filePath = $topic->file_path;
-            $fileName = $topic->file_name;
-
-            // Handle file upload if new file provided
-            if ($request->hasFile('file') && $request->file('file')->isValid()) {
-                // Delete old file if exists
-                if ($topic->file_path) {
-                    Storage::disk('public')->delete($topic->file_path);
-                }
-
-                $file = $request->file('file');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('topics/files', $fileName, 'public');
-            }
-
-            // Update the topic
-            $topic->update([
-                'module_id' => $request->module_id,
-                'title' => $request->title,
-                'content' => $request->content,
-                'video_url' => $request->video_url,
-                'file_path' => $filePath,
-                'file_name' => $fileName,
-                'order' => $request->order ?? $topic->order,
-                'is_active' => $request->is_active ?? $topic->is_active,
+            // Validate the request
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'order' => 'nullable|integer|min:0',
+                'is_active' => 'required|boolean',
+                'module_id' => 'required|exists:modules,id'
             ]);
 
+            // Find the topic
+            $topic = Topic::findOrFail($id);
+
+            // Update the topic
+            $topic->update($validated);
+
             // For web requests, use redirect instead of JSON
-            return redirect()->route('admin.topics.index')
-                           ->with('success', 'Topic updated successfully!');
+            return back()->with('success', 'Topic updated successfully!');
 
         } catch (\Exception $e) {
+            \Log::error('Topic update failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to update topic: ' . $e->getMessage())->withInput();
         }
     }
-
     /**
      * Remove the specified resource from storage.
      */
@@ -204,7 +140,9 @@ class TopicController extends Controller
 
             // Delete associated contents and questions
             $topic->contents()->delete();
-            $topic->questions()->delete();
+            if ($topic->quiz) {
+                $topic->quiz->questions()->delete();
+            }
 
             $topic->delete();
 

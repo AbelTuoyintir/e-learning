@@ -13,7 +13,6 @@ class Module extends Model
         'course_id',
         'title',
         'order',
-        'duration_minutes',
         'is_active',
     ];
 

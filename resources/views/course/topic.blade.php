@@ -116,10 +116,10 @@
                                 <i class="fas fa-inbox text-4xl mb-3 text-gray-300"></i>
                                 <p class="text-lg">No topics found</p>
                                 <p class="text-sm mt-1">Get started by creating your first topic</p>
-                                <a href="{{ route('admin.topics.create') }}"
-                                   class="mt-3 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                <button class="mt-3 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                    id="createTopicBtn">
                                     <i class="fas fa-plus mr-2"></i>Create Topic
-                                </a>
+                                </button>
                             </td>
                         </tr>
                         @endforelse
@@ -138,7 +138,18 @@
 </div>
 
 {{-- MAIN FORM --}}
-<form method="POST"
+<div id="topicModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+
+
+    <!-- POPUP BOX -->
+    <div class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-xl p-6 relative">
+        <h1 class ="text-3xl text-center font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"> Create Topic </h1>
+        <!-- CLOSE BUTTON -->
+        <button id="closeTopicModal"
+                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">
+            &times;
+        </button>
+    <form method="POST"
       action="{{route('admin.topics.store') }}"
       enctype="multipart/form-data"
       id="myForm"
@@ -147,7 +158,7 @@
 
     <input type="hidden" name="module_id" value="{{ $module->id }}">
 
-    <div class="grid md:grid-cols-3 gap-6">
+    <div class="grid md:grid-cols-2 gap-4">
 
       {{-- LEFT: Topic core --}}
       <div class="md:col-span-2 space-y-6">
@@ -163,66 +174,7 @@
             @enderror
           </div>
 
-          {{-- Contents --}}
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <label class="text-sm font-semibold text-gray-700">Lesson Contents</label>
-              <button type="button" id="addContent" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                <i class="fas fa-plus mr-1"></i>Add block
-              </button>
-            </div>
-
-            <div class="space-y-3" id="contentsList">
-              {{-- Contents will be added dynamically via JavaScript --}}
-              @php
-                $oldContents = old('contents', []);
-                if(empty($oldContents) && isset($topic) && $topic->contents->count() > 0) {
-                    $oldContents = $topic->contents->toArray();
-                }
-              @endphp
-
-              @foreach($oldContents as $index => $content)
-              <div class="content-block bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
-                <div class="flex items-start justify-between">
-                  <span class="text-xs text-gray-500">Block {{ $loop->iteration }}</span>
-                  <button type="button" class="remove-content text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-
-                <select name="contents[{{ $index }}][type]"
-                        class="content-type mt-2 w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
-                  <option value="text" {{ ($content['type'] ?? 'text') == 'text' ? 'selected' : '' }}>Text / HTML</option>
-                  <option value="image" {{ ($content['type'] ?? '') == 'image' ? 'selected' : '' }}>Image</option>
-                  <option value="video" {{ ($content['type'] ?? '') == 'video' ? 'selected' : '' }}>Video</option>
-                  <option value="pdf" {{ ($content['type'] ?? '') == 'pdf' ? 'selected' : '' }}>PDF</option>
-                </select>
-
-                {{-- Text content --}}
-                <textarea name="contents[{{ $index }}][body]"
-                          class="text-content mt-2 w-full px-3 py-2 bg-white border border-gray-300 rounded-xl"
-                          rows="4"
-                          placeholder="Write or paste HTML...">{{ $content['body'] ?? '' }}</textarea>
-
-                {{-- File input --}}
-                <input type="file"
-                       name="contents[{{ $index }}][file]"
-                       class="file-content mt-2 w-full text-sm text-gray-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white">
-              </div>
-              @endforeach
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {{-- RIGHT: Sidebar --}}
-      <div class="space-y-6">
-        {{-- Settings --}}
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
-          <h3 class="font-semibold text-gray-800">Settings</h3>
-
-          <div>
+         <div>
             <label class="text-sm text-gray-600">Order</label>
             <input type="number" name="order" value="{{ old('order', $topic->order ?? 0) }}" min="0"
                    class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
@@ -240,90 +192,19 @@
             </select>
           </div>
 
-          <div>
-            <label class="text-sm text-gray-600">Video URL (YouTube/Vimeo)</label>
-            <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url ?? '') }}"
-                   placeholder="https://youtu.be/xxxx"
-                   class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
-            @error('video_url')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-          </div>
         </div>
-
-        {{-- Quiz builder --}}
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-gray-800">Quiz</h3>
-            <button type="button" id="addQuestion" class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-              <i class="fas fa-plus mr-1"></i>Question
-            </button>
-          </div>
-
-          <div id="questionsList">
-            {{-- Questions will be added dynamically --}}
-            @php
-              $oldQuestions = old('questions', []);
-              if(empty($oldQuestions) && isset($topic) && $topic->questions->count() > 0) {
-                  $oldQuestions = $topic->questions->toArray();
-              }
-            @endphp
-
-            @foreach($oldQuestions as $qIndex => $question)
-            <div class="question-block bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
-              <div class="flex items-start justify-between">
-                <span class="text-xs text-gray-500">Q{{ $loop->iteration }}</span>
-                <button type="button" class="remove-question text-red-600 hover:text-red-800">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-
-              <input type="text"
-                     name="questions[{{ $qIndex }}][text]"
-                     value="{{ $question['text'] ?? '' }}"
-                     placeholder="Question text"
-                     class="w-full mt-2 px-3 py-2 bg-white border border-gray-300 rounded-xl">
-
-              <div class="mt-3 space-y-2">
-                @foreach($question['options'] ?? [['text'=>''],['text'=>'']] as $oIndex => $option)
-                <div class="flex items-center gap-2 option-row">
-                  <input type="text"
-                         name="questions[{{ $qIndex }}][options][{{ $oIndex }}][text]"
-                         value="{{ $option['text'] ?? '' }}"
-                         placeholder="Option"
-                         class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
-                  <label class="text-xs text-gray-600 flex items-center gap-1">
-                    <input type="radio"
-                           name="questions[{{ $qIndex }}][correct]"
-                           value="{{ $oIndex }}"
-                           {{ ($question['correct'] ?? 0) == $oIndex ? 'checked' : '' }}
-                           class="text-indigo-600 bg-white border-gray-300">
-                    Correct
-                  </label>
-                  <button type="button" class="remove-option text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-                @endforeach
-                <button type="button" class="add-option text-xs text-indigo-600 hover:text-indigo-800">
-                  + Add option
-                </button>
-              </div>
-            </div>
-            @endforeach
-          </div>
-        </div>
-
-        {{-- Submit --}}
         <button type="submit"
                 class="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 font-semibold">
           <span>Save Topic</span>
           <i class="fas fa-save"></i>
         </button>
-      </div>
+    </div>
 
     </div>
   </form>
+</div>
+</div>
+
 </div>
 
 
@@ -460,27 +341,26 @@ document.getElementById('myForm').addEventListener('submit', function(event) {
     showLoading();
 });
 
-{{-- Place this in your Blade template --}}
-@if(Session::has('success'))
-    <script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: '{{ Session::get('success') }}',
-            confirmButtonText: 'Cool'
-        });
-    </script>
-@endif
 
-@if(Session::has('error'))
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: '{{ Session::get('error') }}',
-            confirmButtonText: 'Okay'
-        });
-    </script>
-@endif
+const openBtn = document.getElementById("createTopicBtn");
+const modal = document.getElementById("topicModal");
+const closeBtn = document.getElementById("closeTopicModal");
+
+openBtn.addEventListener("click", () => {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+});
+
+// Close when clicking X
+closeBtn.addEventListener("click", () => {
+    modal.classList.add("hidden");
+});
+
+// Close when clicking outside the popup box
+modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+        modal.classList.add("hidden");
+    }
+});
 </script>
 @endsection
