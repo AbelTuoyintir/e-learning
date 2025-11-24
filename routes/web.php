@@ -52,6 +52,7 @@ Route::prefix('admin')->group(function () {
     Route::delete('/topics/{topic}', [TopicController::class, 'destroy'])->name('admin.topics.destroy');
     Route::get('/modules/{module}/topics', [TopicController::class, 'byModule'])->name('admin.modules.topics');
     Route::post('/topics/order', [TopicController::class, 'updateOrder'])->name('admin.topics.order');
+    route::get('/topics/back', [TopicController::class, 'back'])->name('admin.topics.back');
 });
 
 

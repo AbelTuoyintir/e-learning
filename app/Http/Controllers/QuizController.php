@@ -12,6 +12,9 @@ class QuizController extends Controller
     public function index()
     {
         $quizzes = Quiz::all();
+        $modules = \App\Models\Module::all();
+        $topics = \App\Models\Topic::all();
+
         return view('manage.manageQuiz', [
             'quizzes' => $quizzes
         ]);
@@ -20,9 +23,13 @@ class QuizController extends Controller
     public function create()
     {
         $courses = Course::all();
+        $modules = \App\Models\Module::all();
+        $topics = \App\Models\Topic::all();
         return view('manage.create', [
             'quiz' => new Quiz(),
             'courses' => $courses,
+            'modules'=> $modules,
+            'topics' => $topics,
             'submitText' => 'Create Quiz'
         ]);
     }
@@ -30,10 +37,14 @@ class QuizController extends Controller
     public function edit(Quiz $quiz) // Fixed: Added parameter
     {
         $courses = Course::all();
+        $modules = \App\Models\Module::all();
+        $topics = \App\Models\Topic::all();
 
         return view('manage.editQuiz', [
             'quiz' => $quiz, // Fixed: Now $quiz is defined
             'courses' => $courses,
+            'modules'=> $modules,
+            'topics' => $topics,
             'submitText' => 'Update Quiz'
         ]);
     }
@@ -46,7 +57,10 @@ class QuizController extends Controller
             'difficulty' => 'required|in:easy,medium,hard',
             'time_limit' => 'required|integer|min:1',
             'time_per_question' => 'required|integer|min:5',
+            'quiz_type' => 'nullable|string|max:255', 
             'course_id' => 'required|exists:courses,id',
+            'module_id' => 'nullable|exists:modules,id',
+            'topic_id' => 'nullable|exists:topics,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -69,6 +83,8 @@ class QuizController extends Controller
             'time_limit' => 'required|integer|min:1',
             'time_per_question' => 'required|integer|min:5',
             'course_id' => 'required|exists:courses,id',
+            'module_id' => 'nullable|exists:modules,id',
+            'topic_id' => 'nullable|exists:topics,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 

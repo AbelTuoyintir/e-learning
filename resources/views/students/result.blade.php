@@ -71,7 +71,7 @@
 
             <h3 class="text-xl font-semibold text-gray-800 mb-4">📝 Answer Review</h3>
             <div class="space-y-6">
-                @foreach($sessionResult['details'] as $index => $detail)
+                @foreach($result->details as $index => $detail)
                     <div class="mb-6 p-4 bg-white rounded shadow">
                         <p class="font-semibold">
                             Q{{ $index + 1 }}: {{ $detail['question'] ?? 'Question not available' }}

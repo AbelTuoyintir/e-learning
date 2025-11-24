@@ -19,11 +19,6 @@ class Quiz extends Model
         return $this->hasMany(Result::class);
     }
 
-    public function related_to()
-    {
-        return $this->morphTo();
-    }
-
     public function topic()
     {
         return $this->belongsTo(Topic::class);

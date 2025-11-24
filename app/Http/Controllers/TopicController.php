@@ -120,7 +120,7 @@ class TopicController extends Controller
             $topic->update($validated);
 
             // For web requests, use redirect instead of JSON
-            return back()->with('success', 'Topic updated successfully!');
+           return redirect()->back()->with('success', 'Topic updated successfully!');
 
         } catch (\Exception $e) {
             \Log::error('Topic update failed: ' . $e->getMessage());
@@ -207,5 +207,10 @@ class TopicController extends Controller
                 'message' => 'Failed to update topic order: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function back()
+    {
+        return redirect()->back();
     }
 }

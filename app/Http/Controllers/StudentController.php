@@ -70,14 +70,26 @@ public function submit(Request $request, Quiz $quiz)
 
     }
 
-    // Save results in session
-    session([
-        'quiz_result' => [
-            'quiz'    => $quiz->id,
-            'score'   => $score,
-            'total'   => $quiz->questions->count(),
-            'details' => $details,
-        ]
+    // Determine if passed (e.g., 70% or more)
+    $totalQuestions = $quiz->questions->count();
+    $percentage = ($totalQuestions > 0) ? ($score / $totalQuestions) * 100 : 0;
+    $passed = $percentage >= 70;
+
+    // Get attempt number
+    $attemptNumber = Result::where('student_id', Auth::id())
+        ->where('quiz_id', $quiz->id)
+        ->max('attempt_number') ?? 0;
+    $attemptNumber++;
+
+    // Save to database
+    Result::create([
+        'student_id' => Auth::id(),
+        'quiz_id' => $quiz->id,
+        'score' => $score,
+        'passed' => $passed,
+        'attempt_number' => $attemptNumber,
+        'completed_at' => now(),
+        'details' => json_encode($details),
     ]);
 
     // Redirect to results page
@@ -89,13 +101,19 @@ public function submit(Request $request, Quiz $quiz)
 
 public function results(Quiz $quiz)
 {
-    $sessionResult = session('quiz_result');
-    //dd($sessionResult);
-    if (!$sessionResult || $sessionResult['quiz'] != $quiz->id) {
+    $result = Result::where('student_id', Auth::id())
+        ->where('quiz_id', $quiz->id)
+        ->latest('completed_at')
+        ->first();
+
+    if (!$result) {
         return redirect()->route('quizzes.index')
             ->with('error', 'No result found for this quiz.');
     }
 
-    return view('result', compact('quiz', 'sessionResult'));
+    // Decode details from JSON
+    $result->details = json_decode($result->details, true);
+
+    return view('result', compact('quiz', 'result'));
 }
 }

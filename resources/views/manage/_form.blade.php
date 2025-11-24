@@ -55,6 +55,32 @@
             @endforeach
         </select>
     </div>
+    <!-- Module-->
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Module</label>
+        <select name="module_id"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            <option value="">-- Select a Module --</option>
+            @foreach ($modules as $module)
+                <option value="{{ $module->id }}" @selected(old('course_id', $quiz->module_id ?? '') == $module->id)>
+                    {{ $module->title }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    <!--Topic-->
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Topic</label>
+        <select name="topic_id"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            <option value="">-- Select a Topic --</option>
+            @foreach ($topics as $topic)
+                <option value="{{ $topic->id }}" @selected(old('course_id', $quiz->topic_id ?? '') == $topic->id)>
+                    {{ $topic->title }}
+                </option>
+            @endforeach
+        </select>
+    </div>
 
     <!-- Difficulty -->
     <div>

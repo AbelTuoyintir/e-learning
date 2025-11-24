@@ -91,11 +91,7 @@
                                        title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{{ route('admin.topics.show', $topic->id) }}"
-                                       class="text-blue-600 hover:text-blue-900 transition"
-                                       title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
+
                                     <form action="{{ route('admin.topics.destroy', $topic->id) }}" method="POST"
                                           class="inline delete-form">
                                         @csrf

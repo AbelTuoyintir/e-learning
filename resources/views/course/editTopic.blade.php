@@ -69,7 +69,7 @@
                 <h1 class="text-2xl font-bold text-gray-900">Topic Management</h1>
                 <p class="text-gray-600">Edit existing topic details</p>
             </div>
-            <a href="#" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+            <a href="{{ route('admin.topics.create', $topic->module_id) }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Back to Topics
             </a>
@@ -104,13 +104,6 @@
                                 <input type="text" name="title" value="{{ old('title', $topic->title) }}" required
                                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                                 <p class="text-red-600 text-sm mt-1 hidden">The title field is required.</p>
-                            </div>
-
-                            <!-- Description -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                                <textarea name="description" rows="4"
-                                          class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">{{ old('description', $topic->description) }}</textarea>
                             </div>
 
                             <!-- Order -->
