@@ -57,7 +57,7 @@ class QuizController extends Controller
             'difficulty' => 'required|in:easy,medium,hard',
             'time_limit' => 'required|integer|min:1',
             'time_per_question' => 'required|integer|min:5',
-            'quiz_type' => 'nullable|string|max:255', 
+            'quiz_type' => 'nullable|string|max:255',
             'course_id' => 'required|exists:courses,id',
             'module_id' => 'nullable|exists:modules,id',
             'topic_id' => 'nullable|exists:topics,id',
@@ -74,7 +74,7 @@ class QuizController extends Controller
                         ->with('success', 'Quiz created successfully!');
     }
 
-    public function update(Request $request, Quiz $quiz) // Fixed: Added parameter and type-hinted
+   public function update(Request $request, Quiz $quiz)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -97,7 +97,7 @@ class QuizController extends Controller
             $validated['image'] = $request->file('image')->store('quiz_images', 'public');
         }
 
-        $quiz->update($validated); // Fixed: Now $quiz is defined
+        $quiz->update($validated);
 
         return redirect()->route('quizzes.index')->with('success', 'Quiz updated successfully!');
     }

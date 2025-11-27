@@ -76,7 +76,7 @@
                     </div>
                     <div class="row">
                         <span class="lbl">Password:</span>
-                        <span class="val">{{ $plainPassword }}</span>
+                        <span class="val">{{ $password }}</span>
                         <button class="cpy" onclick="copyToClipboard('{{ $plainPassword }}')">Copy</button>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                 <!-- CTA -->
                 <div class="cta">
                     <p>Ready to explore your courses?</p>
-                    <a href="{{ url('/login') }}" class="btn">Log In Now</a>
+                    <a href="{{ url('/student/login') }}" class="btn">Log In Now</a>
                 </div>
 
                 <p>If you didn’t create this account, please ignore this email or <a href="mailto:support@school.com">contact support</a>.</p>

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Http;
 use App\Models\Student;
+use App\Mail\StudentPasswordMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -15,97 +17,57 @@ class UserController extends Controller
     }
 
     public function store(Request $request)
-    {
-        // 1. Validate request
-        $validated = $request->validate([
-            'firstname'  => 'required|string|max:255',
-            'middlename' => 'nullable|string|max:255',
-            'lastname'   => 'required|string|max:255',
-            'email'      => 'required|string|email|max:255|unique:students',
-            'phone'      => 'required|string|max:20',
-            'Program'    => 'nullable|string|max:100',
-        ]);
+{
+    $validated = $request->validate([
+        'firstname' => 'required|string|max:255',
+        'middlename' => 'nullable|string|max:255',
+        'lastname' => 'required|string|max:255',
+        'email' => 'required|email|unique:students,email',
+        'phone' => 'required|string|max:20',
+        'program' => 'nullable|string|max:255',
+        // ... add other fields as needed
+    ]);
 
-        // 2. Generate random password
-        $plainPassword = \Illuminate\Support\Str::random(10);
+    try {
+        // Generate plain text password
+        $plainPassword = Str::random(8);
 
-        // 3. Hash password before saving
-        $validated['password'] = \Illuminate\Support\Facades\Hash::make($plainPassword);
+        // Hash password for database
+        $validated['password'] = Hash::make($plainPassword);
 
-        // 4. Create student
+        // Create student
+        $student = Student::create($validated);
+
+        // Send email with the PLAIN password (not hashed)
+        Mail::to($student->email)->send(new StudentPasswordMail($student, $plainPassword, $student->email));
+
+        // Send SMS with the PLAIN password
         try {
-            $student = \App\Models\Student::create($validated);
+            $apiKey = env('ARKASEL_API_KEY');
+            $senderId = env('ARKASEL_SENDER_ID');
 
-           Mail::to($student->email)->send(new StudentPasswordMail($student, $plainPassword, $student->email));
+            $message = "Hello {$student->firstname}, your QuizApp account is ready. Email: {$student->email}, Password: {$plainPassword}. Login at: " . url('/login');
 
-            // 5. Send SMS via Arkasel
-            try {
-                $apiKey   = env('ARKASEL_API_KEY');
-                $senderId = env('ARKASEL_SENDER_ID');
-                $to       = $student->phone;  // in international format
-                $message  = "Hello {$student->firstname}, your account has been created. Email: {$student->email}, Password: {$plainPassword}";
+            $response = Http::get('https://sms.arkesel.com/sms/api', [
+                'action' => 'send-sms',
+                'api_key' => $apiKey,
+                'to' => $student->phone,
+                'from' => $senderId,
+                'sms' => $message
+            ]);
 
-                // Build the URL
-                $url = 'https://sms.arkesel.com/sms/api';
-                $query = [
-                    'action'  => 'send-sms',
-                    'api_key' => $apiKey,
-                    'to'      => $to,
-                    'from'    => $senderId,
-                    'sms'     => $message,
-                ];
-
-                // Send GET request
-                $response = \Illuminate\Support\Facades\Http::get($url, $query);
-
-                \Log::debug('Arkasel GET SMS URL', ['url' => $response->effectiveUri(), 'status' => $response->status(), 'body' => $response->body()]);
-
-                if ($response->successful()) {
-                    \Log::info("SMS sent to {$to}");
-
-                    return redirect()->back()->with([
-                        'success' => 'Student registered successfully! Password has been sent via SMS.',
-                        'student_data' => [
-                            'name' => $student->firstname . ' ' . $student->lastname,
-                            'email' => $student->email,
-                            'password' => $plainPassword
-                        ]
-                    ]);
-                } else {
-                    \Log::error("Failed to send SMS (GET)", [
-                        'status' => $response->status(),
-                        'body'   => $response->body(),
-                    ]);
-
-                    // Student created but SMS failed - still return success but with warning
-                    return redirect()->back()->with([
-                        'warning' => 'Student registered but SMS failed to send. Please manually provide the password: ' . $plainPassword,
-                        'student_data' => [
-                            'name' => $student->firstname . ' ' . $student->lastname,
-                            'email' => $student->email,
-                            'password' => $plainPassword
-                        ]
-                    ]);
-                }
-
-            } catch (\Exception $e) {
-                \Log::error("SMS GET Error: " . $e->getMessage());
-
-                // Student created but SMS failed due to exception
-                return redirect()->back()->with([
-                    'warning' => 'Student registered but SMS service encountered an error. Please manually provide the password: ' . $plainPassword,
-                    'student_data' => [
-                        'name' => $student->firstname . ' ' . $student->lastname,
-                        'email' => $student->email,
-                        'password' => $plainPassword
-                    ]
-                ]);
+            if (!$response->successful()) {
+                \Log::error('SMS failed: ' . $response->body());
             }
 
-        } catch (\Exception $e) {
-            \Log::error("Student creation failed: " . $e->getMessage());
-
-            return redirect()->back()->with('error', 'Failed to create student: ' . $e->getMessage())->withInput();
+        } catch (\Exception $smsException) {
+            \Log::error('SMS sending error: ' . $smsException->getMessage());
         }
+
+        return redirect()->back()->with('success', 'Student created successfully!');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Failed to create student: ' . $e->getMessage())->withInput();
     }
+}
 }

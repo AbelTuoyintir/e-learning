@@ -54,7 +54,7 @@
                                 </a>
 
                                 {{-- Edit --}}
-                                <a href="{{ route('quizzes.edit', $quiz) }}"
+                                <a href="{{ route('quizzes.edit', $quiz->id) }}"
                                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-md shadow hover:shadow-md transition transform hover:-translate-y-0.5">
                                     Edit
                                 </a>

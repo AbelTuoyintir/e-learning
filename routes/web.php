@@ -20,8 +20,8 @@ Route::get('/', function () {
 Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
 Route::get('quiz/create', [QuizController::class, 'create'])->name('quizzes.create');
 Route::post('quiz', [QuizController::class, 'store'])->name('quizzes.store');
-Route::get('quiz/{id}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
-Route::put('quiz/{id}', [QuizController::class, 'update'])->name('quizzes.update');
+Route::get('quiz/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
+Route::put('quiz/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
 Route::delete('quiz/{id}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
 
 Route::get('course', [App\Http\Controllers\CourseController::class, 'index'])->name('courses.index');
