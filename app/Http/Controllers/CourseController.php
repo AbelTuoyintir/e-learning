@@ -7,6 +7,9 @@ use App\Models\StudentCourses;
 use App\Models\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
+
 class CourseController extends Controller
 {
     //
@@ -91,82 +94,65 @@ public function courseReg(){
 
 public function enroll(Request $request)
 {
-    Log::info('Enrollment process started.', [
-        'user_id' => auth()->guard('student')->id(),
-        'input' => $request->all(),
-    ]);
-
     try {
-        $validated = $request->validate([
-            'course_id' => 'required|exists:courses,id',
+        \Log::info('Enrollment process started.', ['user_id' => auth()->id(), 'input' => $request->all()]);
+
+        // Get the authenticated user
+        $user = auth()->user();
+
+        // Check if user is authenticated
+        if (!$user) {
+            // Use a direct URL instead of named route to avoid issues
+            return redirect('/login')->with('error', 'Please log in to enroll in courses.');
+        }
+
+        $courseId = $request->input('course_id');
+
+        // Validate course_id
+        $request->validate([
+            'course_id' => 'required|exists:courses,id'
         ]);
 
-        $studentId = auth()->guard('student')->id();
-        $courseId = $validated['course_id'];
+        // Find the course
+        $course = Course::find($courseId);
 
-        // Check if student is already enrolled
-        $existingEnrollment = \App\Models\StudentCourses::where('student_id', $studentId)
-            ->where('course_id', $courseId)
-            ->first();
+        if (!$course) {
+            return back()->with('error', 'Course not found.');
+        }
 
-        if ($existingEnrollment) {
-            $message = 'You are already enrolled in this course.';
+        // Check if course is paid and payment is required
+        if ($course->price > 0) {
+            return back()->with('error', 'This is a paid course. Payment integration is not yet implemented.');
+        }
 
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $message], 409);
-            }
-            return redirect()->back()->with('error', $message);
+        // Check if already enrolled
+        if ($user->enrollments()->where('course_id', $courseId)->exists()) {
+            return back()->with('info', 'You are already enrolled in this course.');
         }
 
         // Create enrollment
-        $enrollment = \App\Models\StudentCourses::create([
-            'student_id' => $studentId,
+        $enrollment = $user->enrollments()->create([
             'course_id' => $courseId,
+            'enrolled_at' => now(),
         ]);
 
-        Log::info('Enrollment successful.', [
-            'student_id' => $studentId,
+        \Log::info('Enrollment successful.', [
+            'user_id' => $user->id,
             'course_id' => $courseId,
-            'enrollment_id' => $enrollment->id,
+            'enrollment_id' => $enrollment->id
         ]);
 
-        $successMessage = 'Course enrollment successful!';
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $successMessage,
-                'enrollment_id' => $enrollment->id
-            ]);
-        }
-
-        return redirect()->back()->with('success', $successMessage);
+        return back()->with('success', 'Successfully enrolled in the course!');
 
     } catch (\Exception $e) {
-        Log::error('Error during course enrollment.', [
+        \Log::error('Error during course enrollment.', [
             'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
+            'user_id' => auth()->id(),
+            'course_id' => $request->input('course_id')
         ]);
 
-        $errorMessage = 'An unexpected error occurred during enrollment.';
-
-        if ($request->expectsJson()) {
-            return response()->json(['success' => false, 'message' => $errorMessage], 500);
-        }
-
-        return redirect()->back()->with('error', $errorMessage);
+        return back()->with('error', 'An error occurred during enrollment. Please try again.');
     }
-}
-
-public function enrolledCourses(){
-    $studentId = auth()->guard('student')->id();
-    $enrolledCourses = \App\Models\StudentCourses::where('student_id', $studentId)
-        ->with('course') // Eager load the related course
-        ->get();
-
-    return view('students.enrolledcourse', [
-        'enrolledCourses' => $enrolledCourses,
-    ]);
 }
 
     // Show edit form

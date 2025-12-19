@@ -21,6 +21,7 @@ class TopicController extends Controller
     public function index()
     {
         $topics = Topic::with('module.course')->latest()->paginate(10);
+        $topicContent = TopicContent::all();
         return view('admin.topics.index', compact('topics'));
     }
 
@@ -209,8 +210,5 @@ class TopicController extends Controller
         }
     }
 
-    public function back()
-    {
-        return redirect()->back();
-    }
+
 }

@@ -93,7 +93,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.students') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">
+                        <a href="{{ route('students.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">
                             <i class="fas fa-users"></i>
                             <span class="font-medium">Students</span>
                         </a>
@@ -116,6 +116,15 @@
                             <i class="fas fa-cog"></i>
                             <span class="font-medium">Settings</span>
                         </a>
+                    </li>
+                    <li class="pt-4 border-t border-slate-200">
+                        <form method="POST" action="{{ route('admin.logout') }}">
+                            @csrf
+                            <button type="submit" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 w-full text-left">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span class="font-medium">Logout</span>
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>

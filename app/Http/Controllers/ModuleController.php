@@ -24,7 +24,7 @@ class ModuleController extends Controller
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
             'order' => 'nullable|integer',
-            
+
             'is_active' => 'boolean',
         ]);
 
@@ -33,10 +33,10 @@ class ModuleController extends Controller
         return redirect()->route('courses.index')->with('success', 'Module created successfully.');
     }
 
-    public function show(Module $module)
+  public function show(Module $module)
     {
-        $module->load('topics');
-        return view('modules.show', compact('module'));
+        $module->load(['topics', 'course']); // Eager load relationships
+        return view('course.module', compact('module'));
     }
 
     public function edit(Module $module)

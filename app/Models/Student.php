@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable; // so students can log in
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\CanResetPassword;
 
-class Student extends Authenticatable
+class Student extends Authenticatable implements CanResetPassword
 {
     use HasFactory, Notifiable;
 
@@ -44,5 +45,21 @@ class Student extends Authenticatable
     public function quizAttempts()
     {
         return $this->hasMany(QuizAttempt::class);
+    }
+
+    /**
+     * Get the email address for password reset.
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\StudentPasswordResetNotification($token));
     }
 }

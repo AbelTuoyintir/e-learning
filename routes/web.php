@@ -8,15 +8,75 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\TopicController;
+use App\Http\Controllers\AuthController;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/', function () {
+    return view('home');
+});
 
 // Route::get('/', [QuizController::class, 'index'])->name('admin.dashboard');
-Route::get('/', function () {
-    return view('dashboad');
-})->name('admin.dashboard');
+// Admin Authentication Routes (using web guard)
+
+Route::middleware('auth:web')->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+
+    Route::get('/admin/students', function () {
+        $students = \App\Models\Student::all();
+        return view('admin.students', compact('students'));
+    })->name('students.index');
+});
+
+Route::middleware('guest:web')->group(function () {
+    Route::get('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login');
+    Route::post('/admin/login/submit', [AuthController::class, 'adminLoginSubmit'])->name('admin.login.submit');
+});
+
+// Student Authentication Routes
+Route::get('/student/login', [AuthController::class, 'login'])->name('student.login');
+Route::post('/student/login/submit', [AuthController::class, 'studentLogin'])->name('student.login.submit');
+
+// Forgot Password Routes for Students
+Route::get('/student/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('student.forgot.password');
+Route::post('/student/forgot-password', [AuthController::class, 'sendResetLink'])->name('student.forgot.password.submit');
+Route::get('/student/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('student.reset.password');
+Route::post('/student/reset-password', [AuthController::class, 'resetPassword'])->name('student.reset.password.submit');
+
+Route::middleware('guest:student')->group(function () {
+    // Public student routes
+    Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
+    Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
+    Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
+});
+
+// Authenticated Student Routes
+Route::middleware('auth:student')->group(function () {
+    Route::get('/students/dashboard',function(){
+        return view('students.dashboard');
+    })->name('students.dashboard');
+
+    Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
+    Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
+    Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');
+    Route::get('/students/enrolled-courses/{course}/quizzes', [App\Http\Controllers\CourseController::class, 'getQuizzes'])->name('students.course.quizzes');
+    Route::get('/students/scores',function(){
+        return view('students.scores');
+    })->name('students.scores');
+});
+
+// Admin Logout
+Route::post('/admin/logout', [AuthController::class, 'adminLogout'])->name('admin.logout');
+
+// Student Logout
+Route::post('/student/logout', [AuthController::class, 'studentLogout'])->name('student.logout');
+
+// Route::get('/', function () {
+//     return view('dashboard');
+// })->name('admin.dashboard');
+//admin routes with middleware
+
+Route::prefix('admin')->group(function () {
 Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
 Route::get('quiz/create', [QuizController::class, 'create'])->name('quizzes.create');
 Route::post('quiz', [QuizController::class, 'store'])->name('quizzes.store');
@@ -42,7 +102,7 @@ Route::put('/modules/{module}', [ModuleController::class, 'update'])
      ->name('modules.update');
 Route::delete('/modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('modules.destroy');
 Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name('topics.index');
-Route::prefix('admin')->group(function () {
+
    Route::get('/topics/create/{module}', [TopicController::class, 'create'])
     ->name('admin.topics.create');
     Route::post('/topics', [TopicController::class, 'store'])->name('admin.topics.store');
@@ -53,7 +113,9 @@ Route::prefix('admin')->group(function () {
     Route::get('/modules/{module}/topics', [TopicController::class, 'byModule'])->name('admin.modules.topics');
     Route::post('/topics/order', [TopicController::class, 'updateOrder'])->name('admin.topics.order');
     route::get('/topics/back', [TopicController::class, 'back'])->name('admin.topics.back');
-});
+
+
+
 
 
 
@@ -70,6 +132,7 @@ Route::prefix('quiz/{quiz}')->group(function () {
     Route::get('questions/{question}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
     Route::put('questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
     Route::delete('questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
+});
 });
 
 // Dashboard - List available quizzes
@@ -89,28 +152,4 @@ Route::prefix('quiz/{quiz}')->group(function () {
 // Route::get('results/{id}', [ResultController::class, 'show'])->name('results.show');
 // Route::delete('results/{id}', [ResultController::class, 'destroy'])->name('results.destroy');
 
-//students routes
-Route::get('/students/dashboard',function(){
-    return view('students.dashboard');
-})->name('students.dashboard');
-
-
-
-Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
-Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
-Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
-Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');
-Route::get('/students/enrolled-courses/{course}/quizzes', [App\Http\Controllers\CourseController::class, 'getQuizzes'])->name('students.course.quizzes');
-Route::post('/student/login/submit', [App\Http\Controllers\AuthController::class, 'studentLogin'])->name('student.login.submit');
-Route::get('/student/login', [App\Http\Controllers\AuthController::class, 'login'])->name('student.login');
-Route::post('/student/logout', [App\Http\Controllers\AuthController::class, 'studentLogout'])->name('student.logout');
-Route::get('/students/scores',function(){
-    return view('students.scores');
-})->name('students.scores');
-// Route::get('/students/profile',function(){
-//     return view('students.profile');
-// })->name('students.profile');
-
-Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
-Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
 

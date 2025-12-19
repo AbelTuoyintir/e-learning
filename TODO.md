@@ -1,0 +1,5 @@
+- [x] Move enrollment routes from guest:student middleware to authenticated student middleware
+- [x] Fix the enroll method in CourseController.php to use authenticated student instead of undefined variables
+- [x] Remove the incorrect Auth::guard('student')->login($studentUser) line
+- [x] Use auth()->guard('student')->id() for studentId
+- [x] Remove the dd() debug statement

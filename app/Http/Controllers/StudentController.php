@@ -18,7 +18,7 @@ public function dashboard()
                  ->get();
 
 
-    return view('quiz', compact('quizzes'));
+    return view('students.quiz', compact('quizzes'));
 }
 
 public function showQuiz(Quiz $quiz)
@@ -30,7 +30,7 @@ public function showQuiz(Quiz $quiz)
         $question->correct_answer_text = $question->{$question->correct_option};
     }
 
-    return view('question', compact('quiz', 'questions'));
+    return view('students.question', compact('quiz', 'questions'));
 }
 
 
@@ -82,7 +82,7 @@ public function submit(Request $request, Quiz $quiz)
     $attemptNumber++;
 
     // Save to database
-    Result::create([
+    $result = Result::create([
         'student_id' => Auth::id(),
         'quiz_id' => $quiz->id,
         'score' => $score,
@@ -91,6 +91,13 @@ public function submit(Request $request, Quiz $quiz)
         'completed_at' => now(),
         'details' => json_encode($details),
     ]);
+
+    // Send email notification
+    try {
+        Mail::to(Auth::user()->email)->send(new StudentResultMail($result, $quiz));
+    } catch (\Exception $e) {
+        \Log::error('Failed to send quiz result email: ' . $e->getMessage());
+    }
 
     // Redirect to results page
     return redirect()->route('quiz.results', $quiz->id);
@@ -114,6 +121,6 @@ public function results(Quiz $quiz)
     // Decode details from JSON
     $result->details = json_decode($result->details, true);
 
-    return view('result', compact('quiz', 'result'));
+    return view('students.result', compact('quiz', 'result'));
 }
 }

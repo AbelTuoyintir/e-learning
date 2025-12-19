@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Student Login</title>
+    <title>Forgot Password</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -17,31 +17,27 @@
         <!-- IMAGE / INFO SIDE -->
         <div class="hidden md:flex md:w-1/2 items-center justify-center p-8">
             <div class="text-center text-white max-w-md">
-
                 <div class="mb-3">
                     <img
                         src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80"
                         class="w-full h-64 object-cover rounded-2xl shadow-2xl mx-auto"
                     >
                 </div>
-
-                <h2 class="text-4xl font-bold mb-4">Welcome Back, Student!</h2>
+                <h2 class="text-4xl font-bold mb-4">Forgot Your Password?</h2>
                 <p class="text-blue-100 text-lg">
-                    Access all your courses, quizzes, and learning tools.
+                    No worries! Enter your email and we'll send you a reset link.
                 </p>
             </div>
         </div>
 
-        <!-- LOGIN FORM -->
+        <!-- FORGOT PASSWORD FORM -->
         <div class="md:w-1/2 flex items-center justify-center p-8">
-
             <div class="w-full max-w-md bg-white/20 backdrop-blur-lg p-10 rounded-3xl shadow-xl">
-
                 <div class="text-center mb-8">
                     <div class="w-20 h-20 bg-white/30 rounded-full mx-auto flex items-center justify-center">
-                        <i class="fas fa-user-graduate text-3xl text-white"></i>
+                        <i class="fas fa-key text-3xl text-white"></i>
                     </div>
-                    <h1 class="text-3xl font-bold text-white mt-4">Student Portal</h1>
+                    <h1 class="text-3xl font-bold text-white mt-4">Reset Password</h1>
                 </div>
 
                 @if(session('status'))
@@ -58,11 +54,9 @@
                     </div>
                 @endif
 
-                <!-- LOGIN FORM -->
-                <form method="POST" action="{{ route('student.login.submit') }}">
+                <form method="POST" action="{{ route('student.forgot.password.submit') }}">
                     @csrf
 
-                    <!-- EMAIL -->
                     <label class="text-white font-medium">Student Email</label>
                     <input
                         type="email"
@@ -73,61 +67,22 @@
                         required
                     >
 
-                    <!-- PASSWORD -->
-                    <label class="text-white font-medium mt-4 block">Password</label>
-                    <div class="relative">
-                        <input
-                            type="password"
-                            name="password"
-                            class="w-full px-4 py-3 pr-12 mt-1 rounded-xl bg-white/90 text-gray-700 focus:ring-2 focus:ring-blue-300 outline-none"
-                            placeholder="Enter password"
-                            required
-                        >
-                        <button type="button" onclick="togglePassword()" class="absolute right-4 top-4 text-gray-600">
-                            <i id="toggleIcon" class="fas fa-eye"></i>
-                        </button>
-                    </div>
-
-                    <!-- BUTTON -->
                     <button
                         type="submit"
                         class="w-full bg-white text-blue-700 mt-6 py-3 rounded-xl font-bold hover:bg-blue-50"
                     >
-                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        <i class="fas fa-paper-plane mr-2"></i>Send Reset Link
                     </button>
                 </form>
 
-                <!-- FORGOT PASSWORD LINK -->
-                <p class="text-center text-white mt-4">
-                    <a href="{{ route('student.forgot.password') }}" class="font-semibold hover:text-blue-200">Forgot Password?</a>
-                </p>
-
-                <!-- ADMIN LINK -->
                 <p class="text-center text-white mt-6">
-                    Admin?
-                    <a href="{{ route('admin.login') }}" class="font-semibold hover:text-blue-200">Login here</a>
+                    Remember your password?
+                    <a href="{{ route('student.login') }}" class="font-semibold hover:text-blue-200">Login here</a>
                 </p>
-
             </div>
         </div>
     </div>
 
-    <script>
-        // SHOW PASSWORD
-        function togglePassword() {
-            const field = document.getElementById("password");
-            const icon = document.getElementById("toggleIcon");
-
-            if (field.type === "password") {
-                field.type = "text";
-                icon.classList.replace("fa-eye", "fa-eye-slash");
-            } else {
-                field.type = "password";
-                icon.classList.replace("fa-eye-slash", "fa-eye");
-            }
-        }
-    </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
-</html>
 </html>
