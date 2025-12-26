@@ -12,7 +12,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm">Enrolled Courses</p>
-                            <p class="text-3xl font-bold text-blue-600">2</p>
+                            <p class="text-3xl font-bold text-blue-600">{{ $enrolledCoursesCount }}</p>
                         </div>
                         <i class="fas fa-book-open text-4xl text-blue-200"></i>
                     </div>
@@ -22,7 +22,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm">Completed Quizzes</p>
-                            <p class="text-3xl font-bold text-green-600">5</p>
+                            <p class="text-3xl font-bold text-green-600">{{ $completedQuizzesCount }}</p>
                         </div>
                         <i class="fas fa-check-circle text-4xl text-green-200"></i>
                     </div>
@@ -32,7 +32,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-600 text-sm">Average Score</p>
-                            <p class="text-3xl font-bold text-purple-600">87%</p>
+                            <p class="text-3xl font-bold text-purple-600">{{ number_format($averageScore, 1) }}%</p>
                         </div>
                         <i class="fas fa-chart-line text-4xl text-purple-200"></i>
                     </div>
@@ -49,70 +49,46 @@
                 </div>
             </div>
 
-            <!-- Recent Activity & Upcoming Quizzes -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Recent Activity -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-history mr-2 text-blue-600"></i>Recent Activity</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
-                            <div>
-                                <p class="font-medium">Completed JavaScript Quiz</p>
-                                <p class="text-sm text-gray-600">Score: 92% - 2 hours ago</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-download text-blue-500 mr-3"></i>
-                            <div>
-                                <p class="font-medium">Downloaded React Materials</p>
-                                <p class="text-sm text-gray-600">1 day ago</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                            <i class="fas fa-plus-circle text-purple-500 mr-3"></i>
-                            <div>
-                                <p class="font-medium">Enrolled in Data Science</p>
-                                <p class="text-sm text-gray-600">3 days ago</p>
-                            </div>
+        <!-- Recent Activity & Upcoming Quizzes -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-history mr-2 text-blue-600"></i>Recent Activity</h3>
+                <div class="space-y-3">
+                    @forelse($recentResults as $result)
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                        <div>
+                            <p class="font-medium">Completed {{ $result->quiz->title }}</p>
+                            <p class="text-sm text-gray-600">Score: {{ number_format(($result->score / $result->quiz->questions->count()) * 100, 1) }}% - {{ $result->completed_at->diffForHumans() }}</p>
                         </div>
                     </div>
-                </div>
-
-                <!-- Upcoming Quizzes -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-calendar-alt mr-2 text-red-600"></i>Upcoming Quizzes</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
-                            <div>
-                                <p class="font-medium">HTML & CSS Quiz</p>
-                                <p class="text-sm text-gray-600">Due: Oct 15, 2025</p>
-                            </div>
-                            <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
-                                Start
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
-                            <div>
-                                <p class="font-medium">Python Basics Quiz</p>
-                                <p class="text-sm text-gray-600">Due: Oct 18, 2025</p>
-                            </div>
-                            <button class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm transition">
-                                Start
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                            <div>
-                                <p class="font-medium">Statistics Quiz</p>
-                                <p class="text-sm text-gray-600">Due: Oct 25, 2025</p>
-                            </div>
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition">
-                                Start
-                            </button>
-                        </div>
-                    </div>
+                    @empty
+                    <p class="text-gray-500 text-sm">No recent activity</p>
+                    @endforelse
                 </div>
             </div>
+
+            <!-- Available Quizzes -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-calendar-alt mr-2 text-red-600"></i>Available Quizzes</h3>
+                <div class="space-y-3">
+                    @forelse($availableQuizzes as $quiz)
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
+                        <div>
+                            <p class="font-medium">{{ $quiz->title }}</p>
+                            <p class="text-sm text-gray-600">{{ $quiz->questions->count() }} questions</p>
+                        </div>
+                        <a href="{{ route('quiz.start', $quiz) }}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
+                            Start
+                        </a>
+                    </div>
+                    @empty
+                    <p class="text-gray-500 text-sm">No quizzes available</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
 
             <!-- Quick Actions -->
             <div class="mt-6 bg-white rounded-lg shadow-md p-6">

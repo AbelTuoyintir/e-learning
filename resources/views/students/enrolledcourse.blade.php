@@ -30,7 +30,7 @@
                     <button onclick="viewMaterials('{{ $enrollment->course->title }}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
                         <i class="fas fa-book mr-2"></i>Materials
                     </button>
-                    <button onclick="viewQuizzes('{{ $enrollment->course->title }}')" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    <button onclick="viewQuizzes('{{ $enrollment->course->id }}', '{{ $enrollment->course->title }}')" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
                         <i class="fas fa-tasks mr-2"></i>Quizzes
                     </button>
                 </div>
@@ -87,7 +87,7 @@
 function viewMaterials(course) {
     document.getElementById('materialsContent').innerHTML = `<div class="text-center py-10 text-slate-500">Loading materials for <strong>${course}</strong>...</div>`;
     document.getElementById('materialsModal').classList.remove('hidden');
-    
+
     // Simulate load
     setTimeout(() => {
         document.getElementById('materialsContent').innerHTML = `
@@ -119,23 +119,23 @@ function viewMaterials(course) {
     }, 600);
 }
 
-function viewQuizzes(course) {
-    document.getElementById('quizzesContent').innerHTML = `<div class="text-center py-10 text-slate-500">Loading quizzes for <strong>${course}</strong>...</div>`;
+function viewQuizzes(courseId, courseTitle) {
+    document.getElementById('quizzesContent').innerHTML = `<div class="text-center py-10 text-slate-500">Loading quizzes for <strong>${courseTitle}</strong>...</div>`;
     document.getElementById('quizzesModal').classList.remove('hidden');
-    
+
     setTimeout(() => {
         document.getElementById('quizzesContent').innerHTML = `
             <div class="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h4 class="font-semibold text-slate-800">${course} Quiz</h4>
+                        <h4 class="font-semibold text-slate-800">${courseTitle} Quiz</h4>
                         <div class="flex items-center gap-4 mt-2 text-sm text-slate-500">
                             <span><i class="fas fa-question-circle mr-1"></i>20 questions</span>
                             <span><i class="fas fa-clock mr-1"></i>30 min</span>
                             <span><i class="fas fa-calendar mr-1"></i>Due: Oct 15</span>
                         </div>
                     </div>
-                    <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">Start</button>
+                    <a href="/students/enrolled-courses/${courseId}/quizzes" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm">Start</a>
                 </div>
             </div>
         `;

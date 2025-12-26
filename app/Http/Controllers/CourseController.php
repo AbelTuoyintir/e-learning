@@ -85,7 +85,6 @@ public function filterAndSearch(Request $request)
 
 public function courseReg(){
     $courses = \App\Models\Course::where('status','active')->paginate(10);
-;
     return view('students.studcourses', [
         'courses'=> $courses,
     ]);
@@ -199,7 +198,49 @@ public function enroll(Request $request)
             ->with('success', 'Course deleted successfully!');
     }
 
+    // Get enrolled courses for the authenticated student
+   public function enrolledCourses()
+    {
+        $user = Auth::user();
+
+        // Debug step 1: Check user
+        if (!$user) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Debug step 2: Check relationship
+        $enrolledCourses = $user->enrollments()
+            ->with('course')
+            ->get();
+
+        return view('students.enrolledcourse', compact('enrolledCourses'));
+    }
+    // Get materials for a specific course
+    public function getMaterials(Course $course)
+    {
+        // Check if the user is enrolled in the course
+        $user = auth()->user();
+        if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
+            return redirect()->route('students.enrolledcourses')->with('error', 'You are not enrolled in this course.');
+        }
+
+        return view('students.materials', compact('course'));
+    }
+
+    // Get quizzes for a specific course
+   public function getQuizzes(Course $course)
+    {
+        $user = auth()->user();
+        if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
+            return redirect()->route('students.enrolledcourses')
+                            ->with('error', 'You are not enrolled in this course.');
+        }
+
+        $quizzes = $course->quizzes()          // eager-load anything you need
+                        ->withCount(['questions', 'attempts' => fn($q) => $q->where('user_id', $user->id)])
+                        ->orderBy('due_at')
+                        ->get();
+
+        return view('students.quizzes.index', compact('course', 'quizzes'));
+    }
 }
-
-
-

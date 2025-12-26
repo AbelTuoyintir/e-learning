@@ -39,6 +39,11 @@ class Student extends Authenticatable implements CanResetPassword
         return $this->belongsToMany(Course::class, 'course_student');
     }
 
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
     /**
      * A student can attempt many quizzes.
      */

@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\Result;
+use App\Models\Student;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StudentResultMail;
 
 class StudentController extends Controller
 {
@@ -13,12 +17,40 @@ class StudentController extends Controller
     // StudentController.php
 public function dashboard()
 {
-    $quizzes = Quiz::withCount('questions')
-                 ->whereHas('questions') // Only quizzes with questions
-                 ->get();
+    $student = auth()->user();
 
+    // Enrolled courses count
+    $enrolledCoursesCount = $student->enrollments()->count();
 
-    return view('students.quiz', compact('quizzes'));
+    // Completed quizzes count
+    $completedQuizzesCount = Result::where('student_id', $student->id)->count();
+    $student = Student::find(auth()->id());
+
+    // Average score
+    $results = Result::where('student_id', $student->id)->get();
+    $averageScore = $results->count() > 0 ? $results->avg(function ($result) {
+        return ($result->score / $result->quiz->questions->count()) * 100;
+    }) : 0;
+
+    // Recent results
+    $recentResults = Result::where('student_id', $student->id)
+        ->with('quiz')
+        ->latest('completed_at')
+        ->take(5)
+        ->get();
+
+    // Available quizzes
+    $availableQuizzes = Quiz::withCount('questions')
+        ->whereHas('questions')
+        ->get();
+
+    return view('students.dashboard', compact(
+        'enrolledCoursesCount',
+        'completedQuizzesCount',
+        'averageScore',
+        'recentResults',
+        'availableQuizzes'
+    ));
 }
 
 public function showQuiz(Quiz $quiz)

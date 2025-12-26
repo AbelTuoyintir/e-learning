@@ -130,7 +130,7 @@ class AuthController extends Controller
             $student = Student::where('email', $request->email)->first();
             $student->password = Hash::make($request->password);
 
-            
+
 
             $student->save();
 
@@ -243,6 +243,6 @@ class AuthController extends Controller
         auth()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect('/');
     }
 }

@@ -15,6 +15,7 @@ class Course extends Model
         'image',
         'duration',
         'instructor',
+        'price',
     ];
 
      public function quizzes()

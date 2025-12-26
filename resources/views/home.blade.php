@@ -65,7 +65,7 @@
         <li><a href="#courses" class="hover:text-primary-600 transition">Courses</a></li>
         <li><a href="#catalog" class="hover:text-primary-600 transition">Catalog</a></li>
         <li><a href="#testimonials" class="hover:text-primary-600 transition">Testimonials</a></li>
-        <li><a href="{{ route('student.login') }}" class="btn-primary bg-primary-600 text-white border rounded-md p-3 shadow-md hover:bg-primary-700 hover:text-white">Sign In</a></li>
+        <li><a href="{{ route('login') }}" class="btn-primary bg-primary-600 text-white border rounded-md p-3 shadow-md hover:bg-primary-700 hover:text-white">Sign In</a></li>
       </ul>
 
       <!-- Mobile burger -->

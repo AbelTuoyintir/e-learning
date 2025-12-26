@@ -34,7 +34,7 @@ Route::middleware('guest:web')->group(function () {
 });
 
 // Student Authentication Routes
-Route::get('/student/login', [AuthController::class, 'login'])->name('student.login');
+Route::get('/student/login', [AuthController::class, 'login'])->name('login');
 Route::post('/student/login/submit', [AuthController::class, 'studentLogin'])->name('student.login.submit');
 
 // Forgot Password Routes for Students
@@ -52,10 +52,10 @@ Route::middleware('guest:student')->group(function () {
 
 // Authenticated Student Routes
 Route::middleware('auth:student')->group(function () {
-    Route::get('/students/dashboard',function(){
-        return view('students.dashboard');
-    })->name('students.dashboard');
-
+    Route::get('/students/dashboard',[StudentController::class, 'dashboard'])->name('students.dashboard');
+     Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
+    Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
+    Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
     Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
     Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
     Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');
@@ -63,6 +63,19 @@ Route::middleware('auth:student')->group(function () {
     Route::get('/students/scores',function(){
         return view('students.scores');
     })->name('students.scores');
+    Route::get('/download/transcript', [StudentController::class, 'downloadTranscript'])->name('download.transcript');
+    Route::get('/download/certificate/{course}', [StudentController::class, 'downloadCertificate'])->name('download.certificate');
+
+       // Quiz taking flow
+    Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('/quiz/{quiz}', [StudentController::class, 'showQuiz'])->name('quiz.start');
+
+    Route::post('/quiz/{quiz}/submit', [StudentController::class, 'submit'])->name('quiz.submit');
+    Route::get('/quiz/{quiz}/results', [StudentController::class, 'results'])->name('quiz.results');
+
+    // Quiz history and progress
+    Route::get('/results', [StudentController::class, 'resultsIndex'])->name('results.index');
+    Route::get('/results/{result}', [StudentController::class, 'resultShow'])->name('results.show');
 });
 
 // Admin Logout
@@ -115,11 +128,6 @@ Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name(
     route::get('/topics/back', [TopicController::class, 'back'])->name('admin.topics.back');
 
 
-
-
-
-
-
 // Incorrect - duplicate quiz parameter
 Route::post('quiz/{quiz}/questions/import', [QuestionController::class, 'import'])->name('questions.import');
 
@@ -136,17 +144,9 @@ Route::prefix('quiz/{quiz}')->group(function () {
 });
 
 // Dashboard - List available quizzes
-    Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+    // Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
 
-    // Quiz taking flow
-    Route::get('/quiz/{quiz}', [StudentController::class, 'showQuiz'])->name('quiz.start');
 
-    Route::post('/quiz/{quiz}/submit', [StudentController::class, 'submit'])->name('quiz.submit');
-    Route::get('/quiz/{quiz}/results', [StudentController::class, 'results'])->name('quiz.results');
-
-    // Quiz history and progress
-    Route::get('/results', [StudentController::class, 'resultsIndex'])->name('results.index');
-    Route::get('/results/{result}', [StudentController::class, 'resultShow'])->name('results.show');
 
 // Route::get('results', [ResultController::class, 'index'])->name('results.index');
 // Route::get('results/{id}', [ResultController::class, 'show'])->name('results.show');
