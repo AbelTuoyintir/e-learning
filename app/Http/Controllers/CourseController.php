@@ -5,6 +5,7 @@ namespace App\Http\Controllers;   // ✅ This must be the very first line (after
 use App\Models\Course;
 use App\Models\StudentCourses;
 use App\Models\Module;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -139,6 +140,16 @@ public function enroll(Request $request)
             'user_id' => $user->id,
             'course_id' => $courseId,
             'enrollment_id' => $enrollment->id
+        ]);
+
+        // Create notification for successful enrollment
+        $course = Course::find($courseId);
+        Notification::create([
+            'student_id' => $user->id,
+            'title' => 'Course Enrollment Successful!',
+            'message' => "You have successfully enrolled in '{$course->title}'. Start exploring the course materials and quizzes.",
+            'type' => 'success',
+            'is_read' => false,
         ]);
 
         return back()->with('success', 'Successfully enrolled in the course!');

@@ -24,6 +24,7 @@ class Student extends Authenticatable implements CanResetPassword
         'phone',
         'Program',
         'status',
+        'index_number'
         'theme_preference',
     ];
 
@@ -52,6 +53,14 @@ class Student extends Authenticatable implements CanResetPassword
     public function quizAttempts()
     {
         return $this->hasMany(QuizAttempt::class);
+    }
+
+    /**
+     * A student can have many notifications.
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 
 

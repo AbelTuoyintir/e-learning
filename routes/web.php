@@ -91,6 +91,11 @@ Route::middleware('auth:student')->group(function () {
     Route::get('/students/settings', [StudentController::class, 'settings'])->name('students.settings');
     Route::post('/students/change-password', [StudentController::class, 'changePassword'])->name('students.changePassword');
     Route::post('/students/update-preferences', [StudentController::class, 'updatePreferences'])->name('students.updatePreferences');
+
+    // Notifications
+    Route::get('/students/notifications', [StudentController::class, 'getNotifications'])->name('students.notifications');
+    Route::post('/students/notifications/{notification}/read', [StudentController::class, 'markNotificationAsRead'])->name('students.notifications.read');
+    Route::post('/students/notifications/mark-all-read', [StudentController::class, 'markAllNotificationsAsRead'])->name('students.notifications.markAllRead');
 });
 
 // Admin Logout

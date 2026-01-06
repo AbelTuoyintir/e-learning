@@ -56,10 +56,29 @@
 
                 <!-- Right Menu Items -->
                 <div class="flex items-center space-x-4">
-                    <button class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                    </button>
+                    <!-- Notifications Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                        </button>
+                        <div id="notificationsDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+                            <div class="py-2">
+                                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-600">
+                                    <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">Notifications</h3>
+                                </div>
+                                <div id="notificationsList" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                    <!-- Notifications will be loaded here -->
+                                </div>
+                                <div class="px-4 py-2 border-t border-gray-200 dark:border-gray-600">
+                                    <button onclick="markAllAsRead()" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="relative">
                         <button onclick="toggleDropdown()" class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
                             <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->firstname ?? 'Student') }}&background=3B82F6&color=fff"
@@ -93,12 +112,27 @@
             dropdown.classList.toggle('hidden');
         }
 
-        // Close dropdown when clicking outside
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationsDropdown');
+            dropdown.classList.toggle('hidden');
+            if (!dropdown.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        }
+
+        // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('profileDropdown');
-            const button = document.querySelector('[onclick="toggleDropdown()"]');
-            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
-                dropdown.classList.add('hidden');
+            const profileDropdown = document.getElementById('profileDropdown');
+            const notificationsDropdown = document.getElementById('notificationsDropdown');
+            const profileButton = document.querySelector('[onclick="toggleDropdown()"]');
+            const notificationsButton = document.querySelector('[onclick="toggleNotifications()"]');
+
+            if (!profileDropdown.contains(event.target) && !profileButton.contains(event.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+
+            if (!notificationsDropdown.contains(event.target) && !notificationsButton.contains(event.target)) {
+                notificationsDropdown.classList.add('hidden');
             }
         });
 
@@ -116,7 +150,118 @@
         document.addEventListener('DOMContentLoaded', function() {
             const userTheme = '{{ Auth::user()->theme_preference ?? 'light' }}';
             applyTheme(userTheme);
+            updateNotificationCount();
         });
+
+        // Notification functions
+        function loadNotifications() {
+            fetch('{{ route("students.notifications") }}')
+                .then(response => response.json())
+                .then(notifications => {
+                    displayNotifications(notifications);
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+        }
+
+        function displayNotifications(notifications) {
+            const list = document.getElementById('notificationsList');
+            list.innerHTML = '';
+
+            if (notifications.length === 0) {
+                list.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">No notifications</div>';
+                return;
+            }
+
+            notifications.forEach(notification => {
+                const item = document.createElement('div');
+                item.className = `px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer ${!notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`;
+                item.onclick = () => markAsRead(notification.id);
+
+                const typeColors = {
+                    'success': 'text-green-600 dark:text-green-400',
+                    'error': 'text-red-600 dark:text-red-400',
+                    'warning': 'text-yellow-600 dark:text-yellow-400',
+                    'info': 'text-blue-600 dark:text-blue-400'
+                };
+
+                item.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-bell ${typeColors[notification.type] || 'text-gray-400'}"></i>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${notification.title}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">${notification.message}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(notification.created_at).toLocaleDateString()}</p>
+                        </div>
+                        ${!notification.is_read ? '<div class="flex-shrink-0"><div class="w-2 h-2 bg-blue-500 rounded-full"></div></div>' : ''}
+                    </div>
+                `;
+
+                list.appendChild(item);
+            });
+        }
+
+        function markAsRead(notificationId) {
+            fetch(`{{ url('/students/notifications') }}/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotifications();
+                    updateNotificationCount();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
+        }
+
+        function markAllAsRead() {
+            fetch('{{ route("students.notifications.markAllRead") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotifications();
+                    updateNotificationCount();
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all notifications as read:', error);
+            });
+        }
+
+        function updateNotificationCount() {
+            fetch('{{ route("students.notifications") }}')
+                .then(response => response.json())
+                .then(notifications => {
+                    const unreadCount = notifications.filter(n => !n.is_read).length;
+                    const countElement = document.getElementById('notificationCount');
+
+                    if (unreadCount > 0) {
+                        countElement.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        countElement.classList.remove('hidden');
+                    } else {
+                        countElement.classList.add('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating notification count:', error);
+                });
+        }
     </script>
 </body>
 </html>

@@ -7,6 +7,7 @@ use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\Result;
 use App\Models\Student;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
@@ -132,6 +133,15 @@ public function submit(Request $request, Quiz $quiz)
         \Log::error('Failed to send quiz result email: ' . $e->getMessage());
     }
 
+    // Create in-app notification
+    Notification::create([
+        'student_id' => Auth::id(),
+        'title' => 'Quiz Completed!',
+        'message' => "You have completed the quiz '{$quiz->title}' with a score of {$score}/{$totalQuestions} ({$percentage}%). " . ($passed ? 'Congratulations!' : 'Keep practicing!'),
+        'type' => $passed ? 'success' : 'warning',
+        'is_read' => false,
+    ]);
+
     // Redirect to results page
     return redirect()->route('quiz.results', $quiz->id);
 }
@@ -239,5 +249,30 @@ public function updatePreferences(Request $request)
     $student->update($request->only(['status', 'theme_preference']));
 
     return redirect()->route('students.settings')->with('success', 'Preferences updated successfully.');
+}
+
+public function getNotifications()
+{
+    $student = Auth::user();
+    $notifications = $student->notifications()->latest()->get();
+
+    return response()->json($notifications);
+}
+
+public function markNotificationAsRead($notificationId)
+{
+    $student = Auth::user();
+    $notification = $student->notifications()->findOrFail($notificationId);
+    $notification->update(['is_read' => true]);
+
+    return response()->json(['success' => true]);
+}
+
+public function markAllNotificationsAsRead()
+{
+    $student = Auth::user();
+    $student->notifications()->where('is_read', false)->update(['is_read' => true]);
+
+    return response()->json(['success' => true]);
 }
 }
