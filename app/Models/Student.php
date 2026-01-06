@@ -24,7 +24,7 @@ class Student extends Authenticatable implements CanResetPassword
         'phone',
         'Program',
         'status',
-        'index_number'
+        'index_number',
         'theme_preference',
     ];
 
