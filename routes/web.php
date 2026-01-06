@@ -84,6 +84,13 @@ Route::middleware('auth:student')->group(function () {
     // Quiz history and progress
     Route::get('/results', [StudentController::class, 'resultsIndex'])->name('results.index');
     Route::get('/results/{result}', [StudentController::class, 'resultShow'])->name('results.show');
+
+    // Profile and Settings
+    Route::get('/students/profile', [StudentController::class, 'profile'])->name('students.profile');
+    Route::put('/students/profile', [StudentController::class, 'updateProfile'])->name('students.updateProfile');
+    Route::get('/students/settings', [StudentController::class, 'settings'])->name('students.settings');
+    Route::post('/students/change-password', [StudentController::class, 'changePassword'])->name('students.changePassword');
+    Route::post('/students/update-preferences', [StudentController::class, 'updatePreferences'])->name('students.updatePreferences');
 });
 
 // Admin Logout

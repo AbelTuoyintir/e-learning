@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     // Optionally also append to specific groups
     $middleware->web(append: [
         \App\Http\Middleware\ActivityLogger::class,
+        \App\Http\Middleware\CheckStudentStatus::class,
     ]);
 
     })

@@ -23,6 +23,8 @@ class Student extends Authenticatable implements CanResetPassword
         'password',
         'phone',
         'Program',
+        'status',
+        'theme_preference',
     ];
 
     // Hide password when returning JSON

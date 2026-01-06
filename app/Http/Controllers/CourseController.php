@@ -228,39 +228,30 @@ public function enroll(Request $request)
     // }`
 
     // Get quizzes for a specific course
-  public function getQuizzes(Course $course)
+ public function getQuizzes(Course $course)
 {
     $user = auth()->user();
+
+    // Check if user is enrolled in the course
     if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
         return redirect()->route('students.enrolledcourses')
                         ->with('error', 'You are not enrolled in this course.');
     }
 
-    // Option A: If you have attempts relationship
-    $quizzes = $course->quizzes()
-        ->withCount('questions')
-        ->with(['attempts' => function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        }])
-        ->orderBy('due_at')
-        ->get();
+    try {
+        // Simple version without attempts
+        $quizzes = $course->quizzes()
+            ->withCount('questions')
+            ->orderBy('due_at')
+            ->get();
 
-    // Option B: Load attempts count separately
-    $quizzes = $course->quizzes()
-        ->withCount('questions')
-        ->orderBy('due_at')
-        ->get()
-        ->each(function($quiz) use ($user) {
-            $quiz->attempts_count = $quiz->attempts()->where('user_id', $user->id)->count();
-        });
+        return view('students.getquiz', compact('course', 'quizzes'));
 
-    // Option C: If you don't have attempts, remove that part
-    $quizzes = $course->quizzes()
-        ->withCount('questions')
-        ->orderBy('due_at')
-        ->get();
+    } catch (\Exception $e) {
+        \Log::error('Error loading quizzes: ' . $e->getMessage());
 
-    return view('students.getquiz', compact('course', 'quizzes'));
+        return back()->with('error', 'Failed to load quizzes: ' . $e->getMessage());
+    }
 }
 
 // App\Http\Controllers\CourseController.php
@@ -311,7 +302,7 @@ public function studentQuizzes()
         $quizzes = $quizzes->merge($courseQuizzes);
     }
 
-    return view('students.quizzes', compact('quizzes', 'enrolledCourses'));
+    return view('students.getquiz', compact('quizzes', 'enrolledCourses'));
 }
 
 // Alternative: All quizzes from enrolled courses with more details

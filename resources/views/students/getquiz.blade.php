@@ -1,8 +1,8 @@
 @extends('layouts.studentNavBar')
-@section('title', $course->title . ' – Quizzes')
+@section('title', isset($course) ? $course->title . ' – Quizzes' : 'All Quizzes')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+<div class="min-h-screen bg-linear-to-br from-gray-50 to-blue-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Breadcrumb --}}
         <nav class="mb-8">
@@ -13,12 +13,14 @@
                         My Courses
                     </a>
                 </li>
-                <li class="flex items-center">
-                    <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                </li>
-                <li class="text-gray-600 font-medium">{{ $course->title }}</li>
+                @if(isset($course))
+                    <li class="flex items-center">
+                        <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </li>
+                    <li class="text-gray-600 font-medium">{{ $course->title }}</li>
+                @endif
             </ol>
         </nav>
 
@@ -155,7 +157,7 @@
                         </svg>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-3">No Quizzes Available</h3>
-                    <p class="text-gray-600 mb-8">There are no quizzes published for this course yet. Check back later or contact your instructor.</p>
+                    <p class="text-gray-600 mb-8">{{ isset($course) ? 'There are no quizzes published for this course yet. Check back later or contact your instructor.' : 'You haven\'t enrolled in any courses with quizzes yet.' }}</p>
                     <a href="{{ route('students.enrolledcourses') }}"
                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all duration-300">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">

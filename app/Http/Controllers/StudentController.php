@@ -9,6 +9,7 @@ use App\Models\Result;
 use App\Models\Student;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use App\Mail\StudentResultMail;
 
 class StudentController extends Controller
@@ -154,5 +155,89 @@ public function results(Quiz $quiz)
     $result->details = json_decode($result->details, true);
 
     return view('students.result', compact('quiz', 'result'));
+}
+
+public function resultsIndex()
+{
+    $student = Auth::user();
+    $results = Result::where('student_id', $student->id)
+        ->with('quiz')
+        ->latest('completed_at')
+        ->get();
+
+    return view('students.results', compact('results'));
+}
+
+public function resultShow(Result $result)
+{
+    // Ensure the result belongs to the authenticated student
+    if ($result->student_id !== Auth::id()) {
+        abort(403);
+    }
+
+    $result->details = json_decode($result->details, true);
+    $quiz = $result->quiz;
+
+    return view('students.result', compact('result', 'quiz'));
+}
+
+public function profile()
+{
+    $student = Auth::user();
+    return view('students.profile', compact('student'));
+}
+
+public function settings()
+{
+    $student = Auth::user();
+    return view('students.settings', compact('student'));
+}
+
+public function updateProfile(Request $request)
+{
+    $request->validate([
+        'firstname' => 'required|string|max:255',
+        'lastname' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:students,email,' . Auth::id(),
+        'phone' => 'nullable|string|max:20',
+    ]);
+
+    $student = Auth::user();
+    $student->update($request->only(['firstname', 'lastname', 'email', 'phone']));
+
+    return redirect()->route('students.profile')->with('success', 'Profile updated successfully.');
+}
+
+public function changePassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    $student = Auth::user();
+
+    if (!Hash::check($request->current_password, $student->password)) {
+        return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+    }
+
+    $student->update([
+        'password' => Hash::make($request->password),
+    ]);
+
+    return redirect()->route('students.settings')->with('success', 'Password changed successfully.');
+}
+
+public function updatePreferences(Request $request)
+{
+    $request->validate([
+        'status' => 'required|in:active,inactive',
+        'theme_preference' => 'required|in:light,dark',
+    ]);
+
+    $student = Auth::user();
+    $student->update($request->only(['status', 'theme_preference']));
+
+    return redirect()->route('students.settings')->with('success', 'Preferences updated successfully.');
 }
 }
