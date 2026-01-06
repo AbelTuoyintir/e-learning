@@ -2,7 +2,7 @@
 @section('title', isset($course) ? $course->title . ' – Quizzes' : 'All Quizzes')
 
 @section('content')
-<div class="min-h-screen bg-linear-to-br from-gray-50 to-blue-50 py-8">
+<div class="min-h-screen bg-linear-to-br from-gray-50 to-blue-50 py-8 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 ">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Breadcrumb --}}
         <nav class="mb-8">

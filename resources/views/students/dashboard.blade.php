@@ -1,7 +1,7 @@
  @extends('layouts.studentNavBar')
  @section('content')
  <!-- Main Container -->
-    <div class="container mx-auto p-6">
+    <div class="container mx-auto p-6 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
         <!-- Dashboard Section -->
         <section id="dashboardSection" class="mb-8 section-content">
             <h2 class="text-3xl font-bold text-gray-800 mb-6"><i class="fas fa-tachometer-alt mr-3 text-blue-600"></i>Student Dashboard</h2>

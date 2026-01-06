@@ -1,7 +1,7 @@
 @extends('layouts.studentNavBar')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div class="max-w-2xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Account Settings</h1>
 

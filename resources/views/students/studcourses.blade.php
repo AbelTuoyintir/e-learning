@@ -6,7 +6,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Page Container -->
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
 
   <!-- Header -->
   <header class="max-w-7xl mx-auto px-6 pt-10 pb-6">
@@ -172,14 +172,14 @@
 @endif
     </section>
 
-   
+
   </main>
 </div>
 
 <script>
   function closeModal(id){document.getElementById(id).classList.add('hidden')}
-  
- 
+
+
   function clearSearch() {
         // Remove search parameter from URL and reload
         const url = new URL(window.location.href);

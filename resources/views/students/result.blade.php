@@ -28,7 +28,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div class="max-w-3xl mx-auto p-6">
         <!-- Quiz Title -->
         <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">{{ $quiz->title }}</h2>
@@ -120,7 +120,7 @@
                                     <p>{{ $detail['your_key'] ?? 'Not answered' }}</p>
                                 </div>
 
-                           
+
                         </div>
                     </div>
                 @endforeach

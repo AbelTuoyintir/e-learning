@@ -1,7 +1,7 @@
 @extends('layouts.studentNavBar')
 @section('content')
 <!-- Results Section -->
-<section id="resultsSection" class="mb-8 section-content hidden">
+<section id="resultsSection" class="mb-8 section-content hidden dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <h2 class="text-3xl font-bold text-gray-800 mb-6"><i class="fas fa-chart-bar mr-3 text-purple-600"></i>My Results</h2>
 
     <!-- Summary Cards -->

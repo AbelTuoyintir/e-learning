@@ -3,7 +3,7 @@
 @section('title', 'Taking Quiz: ' . $quiz->title)
 
 @section('content')
-<div class="container mx-auto p-6 max-w-4xl">
+<div class="container mx-auto p-6 max-w-4xl dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <!-- Quiz Header -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="flex justify-between items-center mb-4">

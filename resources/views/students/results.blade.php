@@ -1,7 +1,7 @@
 @extends('layouts.studentNavBar')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">My Quiz Results</h1>
 
     @if($results->count() > 0)
