@@ -291,4 +291,54 @@ public function getMaterials(Course $course)
 
     return view('students.materials', compact('course'));
 }
+
+// In your CourseController.php
+
+public function studentQuizzes()
+{
+    $user = auth()->user();
+
+    // Get enrolled courses
+    $enrolledCourses = $user->enrollments()
+        ->with('course')
+        ->get();
+
+    // If you want to show quizzes from enrolled courses
+    $quizzes = collect();
+
+    foreach ($enrolledCourses as $enrollment) {
+        $courseQuizzes = $enrollment->course->quizzes ?? collect();
+        $quizzes = $quizzes->merge($courseQuizzes);
+    }
+
+    return view('students.quizzes', compact('quizzes', 'enrolledCourses'));
+}
+
+// Alternative: All quizzes from enrolled courses with more details
+public function allQuizzes()
+{
+    $user = auth()->user();
+
+    // Get enrolled course IDs
+    $enrolledCourseIds = $user->enrollments()->pluck('course_id');
+
+    // Get quizzes from enrolled courses
+    $quizzes = \App\Models\Quiz::whereIn('course_id', $enrolledCourseIds)
+        ->with(['course', 'module', 'questions'])
+        ->where('is_active', true)
+        ->orderBy('due_at', 'asc')
+        ->get()
+        ->map(function($quiz) use ($user) {
+            // Add attempts count for this user
+            $quiz->attempts_count = $quiz->attempts()->where('user_id', $user->id)->count();
+            $quiz->latest_attempt = $quiz->attempts()
+                ->where('user_id', $user->id)
+                ->latest()
+                ->first();
+            return $quiz;
+        });
+
+    return view('students.all-quizzes', compact('quizzes'));
+}
+
 }

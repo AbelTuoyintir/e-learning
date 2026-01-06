@@ -47,7 +47,7 @@
                         <i class="fas fa-books mr-2"></i> My Courses
                     </a>
 
-                    <a href="{{ route('quizzes.index') }}" class="menu-item flex items-center px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition">
+                    <a href="#" class="menu-item flex items-center px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition">
                         <i class="fas fa-tasks mr-2"></i>Quizzes
                     </a>
                     <button  class="menu-item flex items-center px-3 py-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition">

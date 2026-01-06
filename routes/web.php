@@ -59,12 +59,16 @@ Route::middleware('auth:student')->group(function () {
     Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
     Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
     Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');
-      Route::get('/student/course/{course}/materials', [CourseController::class, 'getMaterials'])
-        ->name('students.course.materials');
+    Route::get('/student/course/{course}/materials', [CourseController::class, 'getMaterials'])->name('students.course.materials');
     Route::get('/students/enrolled-courses/{course}/quizzes', [App\Http\Controllers\CourseController::class, 'getQuizzes'])->name('students.course.quizzes');
+    Route::get('/student/quizzes', [CourseController::class, 'studentQuizzes'])->name('students.quizzes');
+
+    // If you want a separate page for all quizzes
+    Route::get('/student/all-quizzes', [CourseController::class, 'allQuizzes'])->name('students.allQuizzes');
+
     Route::get('/students/scores',function(){
         return view('students.scores');
-    })->name('students.scores');
+    })->name('students.scofres');
     Route::get('/download/transcript', [StudentController::class, 'downloadTranscript'])->name('download.transcript');
     Route::get('/download/certificate/{course}', [StudentController::class, 'downloadCertificate'])->name('download.certificate');
 
@@ -74,6 +78,8 @@ Route::middleware('auth:student')->group(function () {
 
     Route::post('/quiz/{quiz}/submit', [StudentController::class, 'submit'])->name('quiz.submit');
     Route::get('/quiz/{quiz}/results', [StudentController::class, 'results'])->name('quiz.results');
+
+
 
     // Quiz history and progress
     Route::get('/results', [StudentController::class, 'resultsIndex'])->name('results.index');
@@ -92,7 +98,7 @@ Route::post('/student/logout', [AuthController::class, 'studentLogout'])->name('
 //admin routes with middleware
 
 Route::prefix('admin')->group(function () {
-Route::get('quizzes', [QuizController::class, 'index'])->name('quizzes.index');
+Route::get('manage/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
 Route::get('quiz/create', [QuizController::class, 'create'])->name('quizzes.create');
 Route::post('quiz', [QuizController::class, 'store'])->name('quizzes.store');
 Route::get('quiz/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
