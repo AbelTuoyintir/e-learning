@@ -52,6 +52,7 @@ class Student extends Authenticatable implements CanResetPassword
         return $this->hasMany(QuizAttempt::class);
     }
 
+
     /**
      * Get the email address for password reset.
      */

@@ -216,31 +216,79 @@ public function enroll(Request $request)
         return view('students.enrolledcourse', compact('enrolledCourses'));
     }
     // Get materials for a specific course
-    public function getMaterials(Course $course)
-    {
-        // Check if the user is enrolled in the course
-        $user = auth()->user();
-        if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
-            return redirect()->route('students.enrolledcourses')->with('error', 'You are not enrolled in this course.');
-        }
+    // `public function getMaterials(Course $course)
+    // {
+    //     // Check if the user is enrolled in the course
+    //     $user = auth()->user();
+    //     if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
+    //         return redirect()->route('students.enrolledcourses')->with('error', 'You are not enrolled in this course.');
+    //     }
 
-        return view('students.materials', compact('course'));
-    }
+    //     return view('students.materials', compact('course'));
+    // }`
 
     // Get quizzes for a specific course
-   public function getQuizzes(Course $course)
-    {
-        $user = auth()->user();
-        if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
-            return redirect()->route('students.enrolledcourses')
-                            ->with('error', 'You are not enrolled in this course.');
-        }
-
-        $quizzes = $course->quizzes()          // eager-load anything you need
-                        ->withCount(['questions', 'attempts' => fn($q) => $q->where('user_id', $user->id)])
-                        ->orderBy('due_at')
-                        ->get();
-
-        return view('students.quizzes.index', compact('course', 'quizzes'));
+  public function getQuizzes(Course $course)
+{
+    $user = auth()->user();
+    if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
+        return redirect()->route('students.enrolledcourses')
+                        ->with('error', 'You are not enrolled in this course.');
     }
+
+    // Option A: If you have attempts relationship
+    $quizzes = $course->quizzes()
+        ->withCount('questions')
+        ->with(['attempts' => function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])
+        ->orderBy('due_at')
+        ->get();
+
+    // Option B: Load attempts count separately
+    $quizzes = $course->quizzes()
+        ->withCount('questions')
+        ->orderBy('due_at')
+        ->get()
+        ->each(function($quiz) use ($user) {
+            $quiz->attempts_count = $quiz->attempts()->where('user_id', $user->id)->count();
+        });
+
+    // Option C: If you don't have attempts, remove that part
+    $quizzes = $course->quizzes()
+        ->withCount('questions')
+        ->orderBy('due_at')
+        ->get();
+
+    return view('students.getquiz', compact('course', 'quizzes'));
+}
+
+// App\Http\Controllers\CourseController.php
+
+public function getMaterials(Course $course)
+{
+    $user = auth()->user();
+
+    // Check if user is enrolled in the course
+    if (!$user->enrollments()->where('course_id', $course->id)->exists()) {
+        return redirect()->route('students.enrolledcourses')
+                        ->with('error', 'You are not enrolled in this course.');
+    }
+
+    // Eager load all necessary relationships with their nested relationships
+    $course->load([
+        'modules' => function($query) {
+            $query->orderBy('order')
+                  ->where('is_active', true);
+        },
+        'modules.topics' => function($query) {
+            $query->orderBy('order')
+                  ->where('is_active', true);
+        },
+        'modules.topics.contents', // This loads topic contents
+        'modules.topics.quiz.questions' // This loads quiz with questions
+    ]);
+
+    return view('students.materials', compact('course'));
+}
 }

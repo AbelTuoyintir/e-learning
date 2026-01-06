@@ -59,6 +59,8 @@ Route::middleware('auth:student')->group(function () {
     Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
     Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
     Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');
+      Route::get('/student/course/{course}/materials', [CourseController::class, 'getMaterials'])
+        ->name('students.course.materials');
     Route::get('/students/enrolled-courses/{course}/quizzes', [App\Http\Controllers\CourseController::class, 'getQuizzes'])->name('students.course.quizzes');
     Route::get('/students/scores',function(){
         return view('students.scores');

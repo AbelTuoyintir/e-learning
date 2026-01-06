@@ -1,58 +1,109 @@
 @extends('layouts.studentNavBar')
 
-@section('title', 'Course Materials')
-
 @section('content')
-<div class="container mx-auto p-6">
-    <div class="bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">{{ $course->title }} - Course Materials</h1>
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ $course->title }} - Learning Materials</h1>
+        <p class="text-gray-600">{{ $course->description ?? 'No description available' }}</p>
+    </div>
 
-        @if($course->modules->count() > 0)
-            @foreach($course->modules as $module)
-                <div class="mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-700 mb-4">{{ $module->title }}</h2>
+    @php
+        // Debug: Check what's available
+        // dd($course->modules);
+    @endphp
 
-                    @if($module->topics->count() > 0)
-                        @foreach($module->topics as $topic)
-                            <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                                <h3 class="text-xl font-medium text-gray-800 mb-2">{{ $topic->title }}</h3>
-                                <p class="text-gray-600 mb-3">{{ $topic->description }}</p>
+    @forelse($course->modules ?? [] as $module)
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b">
+                <h2 class="text-2xl font-semibold text-gray-800">
+                    Module {{ $loop->iteration }}: {{ $module->title }}
+                </h2>
+                @if($module->description)
+                    <p class="text-gray-600 mt-2">{{ $module->description }}</p>
+                @endif
+            </div>
 
-                                @if($topic->contents->count() > 0)
-                                    <div class="space-y-2">
-                                        @foreach($topic->contents as $content)
-                                            <div class="flex items-center justify-between bg-white p-3 rounded border">
-                                                <div>
-                                                    <span class="font-medium">{{ $content->title }}</span>
-                                                    <span class="text-sm text-gray-500 ml-2">({{ $content->content_type }})</span>
-                                                </div>
-                                                <a href="{{ $content->content_url }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
-                                                    View Content
-                                                </a>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <p class="text-gray-500">No content available for this topic.</p>
-                                @endif
+            @forelse($module->topics ?? [] as $topic)
+                <div class="p-6 border-b last:border-b-0">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3">
+                        {{ $loop->iteration }}. {{ $topic->title }}
+                    </h3>
+
+                    <!-- Text Contents -->
+                    @foreach($topic->contents ?? [] as $content)
+                        @if($content->type === 'text')
+                            <div class="bg-gray-50 p-4 rounded-lg mb-3">
+                                <p class="text-gray-700 whitespace-pre-line">{{ $content->body }}</p>
                             </div>
-                        @endforeach
-                    @else
-                        <p class="text-gray-500">No topics available for this module.</p>
+                        @endif
+                    @endforeach
+
+                    <!-- File Contents -->
+                    @foreach($topic->contents ?? [] as $content)
+                        @if(in_array($content->type, ['image', 'video', 'pdf']))
+                            <div class="flex items-center p-3 bg-blue-50 rounded-lg mb-3">
+                                @switch($content->type)
+                                    @case('image')
+                                        <i class="fas fa-image text-blue-500 mr-3"></i>
+                                        @break
+                                    @case('video')
+                                        <i class="fas fa-video text-blue-500 mr-3"></i>
+                                        @break
+                                    @case('pdf')
+                                        <i class="fas fa-file-pdf text-blue-500 mr-3"></i>
+                                        @break
+                                    @default
+                                        <i class="fas fa-file text-blue-500 mr-3"></i>
+                                @endswitch
+                                <div class="flex-grow">
+                                    <span class="font-medium text-gray-700">{{ $content->file_name ?? 'File' }}</span>
+                                    <br>
+                                    <small class="text-gray-500">{{ $content->type }} file</small>
+                                </div>
+                                <a href="{{ $content->file_path ? asset('storage/' . $content->file_path) : '#' }}"
+                                   target="_blank"
+                                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
+                                    <i class="fas fa-download mr-1"></i> Download
+                                </a>
+                            </div>
+                        @endif
+                    @endforeach
+
+                    <!-- Video URL -->
+                    @if($topic->video_url)
+                        <div class="mb-3">
+                            <h5 class="font-medium text-gray-700 mb-2">Video Content:</h5>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <a href="{{ $topic->video_url }}"
+                                   target="_blank"
+                                   class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    Watch Video (External Link)
+                                </a>
+                            </div>
+                        </div>
                     @endif
                 </div>
-            @endforeach
-        @else
-            <div class="text-center py-10">
-                <p class="text-gray-500 text-lg">No modules available for this course yet.</p>
-            </div>
-        @endif
-
-        <div class="mt-8">
-            <a href="{{ route('students.enrolledcourses') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg">
-                Back to Enrolled Courses
-            </a>
+            @empty
+                <div class="p-6 text-center text-gray-500">
+                    No topics in this module
+                </div>
+            @endforelse
         </div>
+    @empty
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <i class="fas fa-book-open text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-700 mb-2">No Modules Available</h3>
+            <p class="text-gray-500">This course doesn't have any modules yet.</p>
+        </div>
+    @endforelse
+
+    <div class="mt-8">
+        <a href="{{ url()->previous() }}"
+           class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg inline-flex items-center transition">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Go Back
+        </a>
     </div>
 </div>
 @endsection

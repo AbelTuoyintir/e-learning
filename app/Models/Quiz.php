@@ -33,4 +33,16 @@ class Quiz extends Model
         return $this->belongsTo(Course::class);
     }
 
+     public function attempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
+
+    // Add this if you want to filter by specific user
+    public function userAttempts($userId = null)
+    {
+        $userId = $userId ?? auth()->id();
+        return $this->hasMany(QuizAttempt::class)->where('user_id', $userId);
+    }
+
 }
