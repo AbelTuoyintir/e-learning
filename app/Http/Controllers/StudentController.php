@@ -57,7 +57,7 @@ public function dashboard()
 
 public function showQuiz(Quiz $quiz)
 {
-    $questions = $quiz->questions()->inRandomOrder()->get();
+    $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
 
     foreach ($questions as $question) {
         // This gives you the actual correct answer text
@@ -94,8 +94,8 @@ public function submit(Request $request, Quiz $quiz)
             'C' => $question->option_c,
             'D' => $question->option_d,
         ],
-        'your_answer'    => $userAnswer,  // ✅ not null anymore
-        'correct_answer' => $question->correct_option,
+        'your_answer'    => $userAnswer ? $question->{$userAnswer} : null,
+        'correct_answer' => $question->{$question->correct_option},
         'is_correct'     => $userAnswer === $question->correct_option,
         'skipped'        => is_null($userAnswer),
 
@@ -164,7 +164,14 @@ public function results(Quiz $quiz)
     // Decode details from JSON
     $result->details = json_decode($result->details, true);
 
-    return view('students.result', compact('quiz', 'result'));
+    // Prepare sessionResult for the view
+    $sessionResult = [
+        'details' => $result->details,
+        'score' => $result->score,
+        'total' => count($result->details),
+    ];
+
+    return view('students.result', compact('quiz', 'result', 'sessionResult'));
 }
 
 public function resultsIndex()
@@ -188,7 +195,14 @@ public function resultShow(Result $result)
     $result->details = json_decode($result->details, true);
     $quiz = $result->quiz;
 
-    return view('students.result', compact('result', 'quiz'));
+    // Prepare sessionResult for the view
+    $sessionResult = [
+        'details' => $result->details,
+        'score' => $result->score,
+        'total' => count($result->details),
+    ];
+
+    return view('students.result', compact('result', 'quiz', 'sessionResult'));
 }
 
 public function profile()

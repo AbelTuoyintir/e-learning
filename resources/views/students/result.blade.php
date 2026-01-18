@@ -129,7 +129,7 @@
             <!-- Action buttons -->
             <div class="mt-8 flex justify-center space-x-4">
                 <a href="{{ route('quiz.start', $quiz) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Retry Quiz</a>
-                <a href="{{ route('dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Back to Quizzes</a>
+                <a href="{{ route('students.dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">Back to Dashboard</a>
             </div>
         @else
             <div class="bg-white p-6 rounded shadow text-center">
