@@ -80,28 +80,52 @@ public function submit(Request $request, Quiz $quiz)
         // Get user's submitted answer for this question (like "option_a")
         $userAnswer = $request->input("answers.{$question->id}");
 
-        // Determine correctness
-        $isCorrect = $userAnswer === $question->correct_option;
-        if ($isCorrect) {
-            $score++;
+        // Determine correctness - compare the actual option value
+        $isCorrect = false;
+        $userAnswerText = null;
+
+        if ($userAnswer) {
+            // Get the text of the user's answer (e.g., $question->option_a)
+            $userAnswerText = $question->{$userAnswer};
+
+            // Get the correct option column name (e.g., "option_a")
+            $correctOptionColumn = $this->getOptionColumn($question->correct_option);
+
+            // Compare if user selected the correct option column
+            $isCorrect = $userAnswer === $correctOptionColumn;
+
+            if ($isCorrect) {
+                $score++;
+            }
         }
 
-       $details[] = [
-        'question'       => $question->question_text,
-        'options'        => [
-            'A' => $question->option_a,
-            'B' => $question->option_b,
-            'C' => $question->option_c,
-            'D' => $question->option_d,
-        ],
-        'your_answer'    => $userAnswer ? $question->{$userAnswer} : null,
-        'correct_answer' => $question->{$question->correct_option},
-        'is_correct'     => $userAnswer === $question->correct_option,
-        'skipped'        => is_null($userAnswer),
+        // Get the correct option column name
+        $correctOptionColumn = $this->getOptionColumn($question->correct_option);
 
-    ];
+        // Get the text of the correct answer
+        $correctAnswerText = $question->{$correctOptionColumn};
 
-
+        $details[] = [
+            'question'       => $question->question_text,
+            'options'        => [
+                'A' => $question->option_a,
+                'B' => $question->option_b,
+                'C' => $question->option_c,
+                'D' => $question->option_d,
+            ],
+            'your_answer'    => $userAnswerText,
+            'correct_answer' => $correctAnswerText,
+            'is_correct'     => $isCorrect,
+            'skipped'        => is_null($userAnswer),
+            // Debug info to help troubleshoot
+            'debug' => [
+                'user_selected' => $userAnswer,
+                'correct_letter' => $question->correct_option,
+                'correct_column' => $correctOptionColumn,
+                'your_answer_text' => $userAnswerText,
+                'correct_answer_text' => $correctAnswerText,
+            ]
+        ];
     }
 
     // Determine if passed (e.g., 70% or more)
@@ -137,13 +161,40 @@ public function submit(Request $request, Quiz $quiz)
     Notification::create([
         'student_id' => Auth::id(),
         'title' => 'Quiz Completed!',
-        'message' => "You have completed the quiz '{$quiz->title}' with a score of {$score}/{$totalQuestions} ({$percentage}%). " . ($passed ? 'Congratulations!' : 'Keep practicing!'),
+        'message' => "You have completed the quiz '{$quiz->title}' with a score of {$score}/{$totalQuestions} (" . number_format($percentage, 2) . "%). " . ($passed ? 'Congratulations!' : 'Keep practicing!'),
         'type' => $passed ? 'success' : 'warning',
         'is_read' => false,
     ]);
 
+    // Log the result for debugging
+    \Log::info('Quiz submitted', [
+        'quiz_id' => $quiz->id,
+        'student_id' => Auth::id(),
+        'score' => $score,
+        'total_questions' => $totalQuestions,
+        'percentage' => $percentage,
+        'passed' => $passed
+    ]);
+
     // Redirect to results page
     return redirect()->route('quiz.results', $quiz->id);
+}
+
+/**
+ * Helper function to convert letter (A, B, C, D) to column name (option_a, option_b, etc.)
+ */
+private function getOptionColumn($letter)
+{
+    $letter = strtoupper(trim($letter));
+
+    $mapping = [
+        'A' => 'option_a',
+        'B' => 'option_b',
+        'C' => 'option_c',
+        'D' => 'option_d'
+    ];
+
+    return $mapping[$letter] ?? 'option_a'; // default to option_a if invalid
 }
 
 
@@ -161,14 +212,22 @@ public function results(Quiz $quiz)
             ->with('error', 'No result found for this quiz.');
     }
 
-    // Decode details from JSON
-    $result->details = json_decode($result->details, true);
+    // Load the quiz relationship
+    $result->load('quiz');
+
+    // Safely decode details from JSON
+    $result->details = json_decode($result->details, true) ?? [];
+
+    // Calculate total questions from quiz instead of details count
+    $totalQuestions = $result->quiz->questions->count();
 
     // Prepare sessionResult for the view
     $sessionResult = [
         'details' => $result->details,
         'score' => $result->score,
-        'total' => count($result->details),
+        'total' => $totalQuestions,
+        'percentage' => $totalQuestions > 0 ? ($result->score / $totalQuestions) * 100 : 0,
+        'passed' => $result->passed,
     ];
 
     return view('students.result', compact('quiz', 'result', 'sessionResult'));
@@ -177,10 +236,14 @@ public function results(Quiz $quiz)
 public function resultsIndex()
 {
     $student = Auth::user();
+
     $results = Result::where('student_id', $student->id)
-        ->with('quiz')
+        ->with(['quiz' => function($query) {
+            $query->select('id', 'title', 'description', 'time_limit', 'pass_percentage');
+        }])
+        ->select('id', 'quiz_id', 'score', 'passed', 'attempt_number', 'completed_at')
         ->latest('completed_at')
-        ->get();
+        ->paginate(10); // Add pagination for better performance
 
     return view('students.results', compact('results'));
 }
@@ -192,19 +255,30 @@ public function resultShow(Result $result)
         abort(403);
     }
 
-    $result->details = json_decode($result->details, true);
+    // Load the quiz relationship with questions count
+    $result->load(['quiz' => function($query) {
+        $query->withCount('questions');
+    }]);
+
+    // Safely decode details from JSON
+    $result->details = json_decode($result->details, true) ?? [];
+
     $quiz = $result->quiz;
+
+    // Calculate total from quiz questions count
+    $totalQuestions = $quiz->questions_count;
 
     // Prepare sessionResult for the view
     $sessionResult = [
         'details' => $result->details,
         'score' => $result->score,
-        'total' => count($result->details),
+        'total' => $totalQuestions,
+        'percentage' => $totalQuestions > 0 ? ($result->score / $totalQuestions) * 100 : 0,
+        'passed' => $result->passed,
     ];
 
     return view('students.result', compact('result', 'quiz', 'sessionResult'));
 }
-
 public function profile()
 {
     $student = Auth::user();
@@ -288,5 +362,31 @@ public function markAllNotificationsAsRead()
     $student->notifications()->where('is_read', false)->update(['is_read' => true]);
 
     return response()->json(['success' => true]);
+}
+
+/**
+ * Calculate statistics for a student
+ */
+public function statistics()
+{
+    $student = Auth::user();
+
+    $stats = Result::where('student_id', $student->id)
+        ->selectRaw('
+            COUNT(*) as total_attempts,
+            SUM(CASE WHEN passed = 1 THEN 1 ELSE 0 END) as passed_quizzes,
+            AVG(score) as average_score,
+            MAX(score) as highest_score,
+            MIN(score) as lowest_score
+        ')
+        ->first();
+
+    $recentResults = Result::where('student_id', $student->id)
+        ->with('quiz')
+        ->latest('completed_at')
+        ->take(5)
+        ->get();
+
+    return view('students.statistics', compact('stats', 'recentResults'));
 }
 }
