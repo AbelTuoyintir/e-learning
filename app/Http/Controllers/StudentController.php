@@ -70,216 +70,355 @@ public function showQuiz(Quiz $quiz)
 
 public function submit(Request $request, Quiz $quiz)
 {
-    $score = 0;
-    $details = [];
-
-    // Load all questions for this quiz
-    $quiz->load('questions');
-
-    foreach ($quiz->questions as $question) {
-        // Get user's submitted answer (should be 'A', 'B', 'C', or 'D')
-        $userAnswerLetter = strtoupper(trim($request->input("answers.{$question->id}")));
-
-        // Get the correct option letter from database (should be 'A', 'B', 'C', or 'D')
-        $correctLetter = strtoupper(trim($question->correct_option));
-
-        // Determine correctness
-        $isCorrect = false;
-        $userAnswerText = null;
-        $userAnswerColumn = null;
-
-        if ($userAnswerLetter && in_array($userAnswerLetter, ['A', 'B', 'C', 'D'])) {
-            // Get the database column name for user's answer
-            $userAnswerColumn = $this->getOptionColumn($userAnswerLetter);
-            $userAnswerText = $question->{$userAnswerColumn};
-
-            // Compare the letters directly
-            $isCorrect = ($userAnswerLetter === $correctLetter);
-
-            if ($isCorrect) {
-                $score++;
-            }
-        }
-
-        // Get the correct option column name and text
-        $correctOptionColumn = $this->getOptionColumn($correctLetter);
-        $correctAnswerText = $question->{$correctOptionColumn};
-
-        $details[] = [
-            'question'       => $question->question_text,
-            'options'        => [
-                'A' => $question->option_a,
-                'B' => $question->option_b,
-                'C' => $question->option_c,
-                'D' => $question->option_d,
-            ],
-            'your_answer'    => $userAnswerText,
-            'correct_answer' => $correctAnswerText,
-            'is_correct'     => $isCorrect,
-            'skipped'        => empty($userAnswerLetter) || !in_array($userAnswerLetter, ['A', 'B', 'C', 'D']),
-            'debug' => [
-                'user_selected_letter' => $userAnswerLetter,
-                'user_selected_column' => $userAnswerColumn,
-                'correct_letter' => $correctLetter,
-                'correct_column' => $correctOptionColumn,
-                'your_answer_text' => $userAnswerText,
-                'correct_answer_text' => $correctAnswerText,
-            ]
-        ];
-    }
-
-    // Determine if passed (e.g., 70% or more)
-    $totalQuestions = $quiz->questions->count();
-    $percentage = ($totalQuestions > 0) ? ($score / $totalQuestions) * 100 : 0;
-    $passed = $percentage >= 70;
-
-    // Get attempt number
-    $attemptNumber = Result::where('student_id', Auth::id())
-        ->where('quiz_id', $quiz->id)
-        ->max('attempt_number') ?? 0;
-    $attemptNumber++;
-
-    // Save to database
-    $result = Result::create([
-        'student_id' => Auth::id(),
+    \Log::info('=== QUIZ SUBMIT START ===', [
         'quiz_id' => $quiz->id,
-        'score' => $score,
-        'passed' => $passed,
-        'attempt_number' => $attemptNumber,
-        'completed_at' => now(),
-        'details' => json_encode($details),
+        'quiz_title' => $quiz->title,
+        'student_id' => Auth::id(),
+        'answers_count' => count($request->input('answers', [])),
     ]);
 
-    // Send email notification
+    // Validate the request
+    $validated = $request->validate([
+        'answers' => 'required|array',
+        'answers.*' => 'nullable|string|in:A,B,C,D',
+    ]);
+
+    \Log::debug('Validation passed', ['answers_keys' => array_keys($validated['answers'])]);
+
     try {
-        Mail::to(Auth::user()->email)->send(new StudentResultMail($result, $quiz));
+        // Use database transaction for data integrity
+        return DB::transaction(function () use ($request, $quiz, $validated) {
+            $score = 0;
+            $details = [];
+
+            // Eager load questions to avoid N+1 query
+            $quiz->load(['questions' => function($query) {
+                $query->select('id', 'quiz_id', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option');
+            }]);
+
+            \Log::debug('Questions loaded', ['count' => $quiz->questions->count()]);
+
+            foreach ($quiz->questions as $question) {
+                $userAnswerLetter = strtoupper(trim($request->input("answers.{$question->id}", '')));
+                $correctLetter = strtoupper(trim($question->correct_option));
+
+                $isCorrect = false;
+                $userAnswerText = null;
+                $userAnswerColumn = null;
+
+                // Validate user answer
+                if ($this->isValidAnswer($userAnswerLetter)) {
+                    $userAnswerColumn = $this->getOptionColumn($userAnswerLetter);
+                    $userAnswerText = $question->{$userAnswerColumn};
+
+                    $isCorrect = ($userAnswerLetter === $correctLetter);
+
+                    if ($isCorrect) {
+                        $score++;
+                    }
+                }
+
+                // Prepare answer details
+                $details[] = $this->prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter);
+            }
+
+            \Log::debug('Scoring complete', ['score' => $score, 'total' => $quiz->questions->count()]);
+
+            $totalQuestions = $quiz->questions->count();
+            $percentage = $this->calculatePercentage($score, $totalQuestions);
+            $passed = $this->isPassed($percentage, $quiz);
+            $attemptNumber = $this->getNextAttemptNumber($quiz->id);
+
+            \Log::debug('Creating result', [
+                'score' => $score,
+                'total' => $totalQuestions,
+                'percentage' => $percentage,
+                'passed' => $passed,
+                'attempt' => $attemptNumber,
+            ]);
+
+            // Create result with validated data
+            $result = Result::create([
+                'student_id' => Auth::id(),
+                'quiz_id' => $quiz->id,
+                'score' => $score,
+                'passed' => $passed,
+                'attempt_number' => $attemptNumber,
+                'completed_at' => now(),
+                'details' => json_encode($details),
+            ]);
+
+            \Log::info('Result created', [
+                'result_id' => $result->id,
+                'quiz_id' => $result->quiz_id,
+                'student_id' => $result->student_id,
+            ]);
+
+            // Dispatch notifications asynchronously
+            $this->sendNotifications($result, $quiz, $score, $totalQuestions, $percentage, $passed);
+
+            // Log for debugging
+            $this->logQuizSubmission($quiz, $score, $totalQuestions, $request->input('answers'));
+
+            \Log::info('Redirecting to results', [
+                'route_name' => 'quiz.results',
+                'quiz_id' => $quiz->id,
+                'result_id' => $result->id,
+                'redirect_url' => route('quiz.results', $quiz->id),
+            ]);
+
+            // Redirect with success message
+            return redirect()->route('quiz.results', $quiz->id)
+                ->with('success', 'Quiz submitted successfully!')
+                ->with('result_id', $result->id); // Add result ID to session
+        });
+
     } catch (\Exception $e) {
-        \Log::error('Failed to send quiz result email: ' . $e->getMessage());
+        \Log::error('Quiz submission failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'quiz_id' => $quiz->id,
+            'student_id' => Auth::id(),
+        ]);
+
+        return redirect()->back()
+            ->with('error', 'Failed to submit quiz. Please try again.')
+            ->withInput();
     }
+}
 
-    // Create in-app notification
-    Notification::create([
-        'student_id' => Auth::id(),
-        'title' => 'Quiz Completed!',
-        'message' => "You have completed the quiz '{$quiz->title}' with a score of {$score}/{$totalQuestions} (" . number_format($percentage, 2) . "%). " . ($passed ? 'Congratulations!' : 'Keep practicing!'),
-        'type' => $passed ? 'success' : 'warning',
-        'is_read' => false,
-    ]);
+// New helper methods in your controller:
 
-    // Log the result for debugging
-    \Log::info('Quiz submitted', [
-        'quiz_id' => $quiz->id,
-        'student_id' => Auth::id(),
-        'score' => $score,
-        'total_questions' => $totalQuestions,
-        'percentage' => $percentage,
-        'passed' => $passed,
-        'submitted_answers' => $request->input('answers') // Log all submitted answers
-    ]);
-
-    // Redirect to results page
-    return redirect()->route('quiz.results', $quiz->id);
+/**
+ * Check if answer is valid
+ */
+/**
+ * Check if answer is valid
+ */
+private function isValidAnswer($answer): bool
+{
+    return !empty($answer) && in_array($answer, ['A', 'B', 'C', 'D']);
 }
 
 /**
- * Helper function to convert letter (A, B, C, D) to column name (option_a, option_b, etc.)
+ * Prepare answer details array
  */
-private function getOptionColumn($letter)
+private function prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter): array
 {
-    $letter = strtoupper(trim($letter));
+    $correctLetter = strtoupper(trim($question->correct_option));
+    $correctOptionColumn = $this->getOptionColumn($correctLetter);
 
-    $mapping = [
-        'A' => 'option_a',
-        'B' => 'option_b',
-        'C' => 'option_c',
-        'D' => 'option_d'
+    return [
+        'question'       => $question->question_text,
+        'options'        => [
+            'A' => $question->option_a,
+            'B' => $question->option_b,
+            'C' => $question->option_c,
+            'D' => $question->option_d,
+        ],
+        'your_answer'    => $userAnswerText,
+        'correct_answer' => $question->{$correctOptionColumn},
+        'is_correct'     => $isCorrect,
+        'skipped'        => empty($userAnswerLetter) || !$this->isValidAnswer($userAnswerLetter),
+        'correct_letter' => $correctLetter,
+        'user_letter'    => $userAnswerLetter,
     ];
-
-    return $mapping[$letter] ?? 'option_a'; // default to option_a if invalid
 }
 
+/**
+ * Calculate percentage
+ */
+private function calculatePercentage($score, $total): float
+{
+    if ($total <= 0) {
+        return 0.0;
+    }
 
+    return round(($score / $total) * 100, 2);
+}
+
+/**
+ * Check if quiz is passed
+ */
+private function isPassed($percentage, $quiz): bool
+{
+    // Check if quiz has custom pass percentage
+    $passPercentage = $quiz->pass_percentage ?? 70;
+    return $percentage >= $passPercentage;
+}
+
+/**
+ * Get next attempt number
+ */
+private function getNextAttemptNumber($quizId): int
+{
+    $lastAttempt = Result::where('student_id', Auth::id())
+        ->where('quiz_id', $quizId)
+        ->max('attempt_number');
+
+    return ($lastAttempt ?? 0) + 1;
+}
+
+/**
+ * Send notifications
+ */
+private function sendNotifications($result, $quiz, $score, $total, $percentage, $passed): void
+{
+    // Email notification
+    try {
+        Mail::to(Auth::user()->email)->send(new StudentResultMail($result, $quiz));
+    } catch (\Exception $e) {
+        \Log::error('Email failed: ' . $e->getMessage());
+    }
+
+    // In-app notification
+    try {
+        Notification::create([
+            'student_id' => Auth::id(),
+            'title' => 'Quiz Completed',
+            'message' => "You scored {$score}/{$total} ({$percentage}%) on {$quiz->title}",
+            'type' => $passed ? 'success' : 'warning',
+            'is_read' => false,
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Notification failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Log quiz submission
+ */
+private function logQuizSubmission($quiz, $score, $total, $answers): void
+{
+    \Log::info('Quiz submission logged', [
+        'quiz' => $quiz->title,
+        'score' => $score,
+        'total' => $total,
+    ]);
+}
 
 
 public function results(Quiz $quiz)
 {
     $result = Result::where('student_id', Auth::id())
         ->where('quiz_id', $quiz->id)
+        ->with(['quiz' => function($query) {
+            $query->select('id', 'title', 'description', 'time_limit');
+        }])
         ->latest('completed_at')
-        ->first();
+        ->firstOrFail();
 
-    if (!$result) {
-        return redirect()->route('quizzes.index')
-            ->with('error', 'No result found for this quiz.');
-    }
+    // Process result details
+    $this->processResultDetails($result);
 
-    // Load the quiz relationship
-    $result->load('quiz');
+    $totalQuestions = $result->quiz->questions()->count();
+    $percentage = $this->calculatePercentage($result->score, $totalQuestions);
 
-    // Safely decode details from JSON
-    $result->details = json_decode($result->details, true) ?? [];
-
-    // Calculate total questions from quiz instead of details count
-    $totalQuestions = $result->quiz->questions->count();
-
-    // Prepare sessionResult for the view
     $sessionResult = [
         'details' => $result->details,
         'score' => $result->score,
         'total' => $totalQuestions,
-        'percentage' => $totalQuestions > 0 ? ($result->score / $totalQuestions) * 100 : 0,
+        'percentage' => $percentage,
         'passed' => $result->passed,
     ];
 
     return view('students.result', compact('quiz', 'result', 'sessionResult'));
 }
 
-public function resultsIndex()
-{
-    $student = Auth::user();
-
-    $results = Result::where('student_id', $student->id)
-        ->with(['quiz' => function($query) {
-            $query->select('id', 'title', 'description', 'time_limit'); // Remove pass_percentage
-        }])
-        ->select('id', 'quiz_id', 'score', 'passed', 'attempt_number', 'completed_at')
-        ->latest('completed_at')
-        ->paginate(10);
-
-    return view('students.results', compact('results'));
-}
-
 public function resultShow(Result $result)
 {
-    // Ensure the result belongs to the authenticated student
-    if ($result->student_id !== Auth::id()) {
-        abort(403);
-    }
+    // Authorize using Laravel policies
+    $this->authorize('view', $result);
 
-    // Load the quiz relationship with questions count
+    // Eager load with specific columns for performance
     $result->load(['quiz' => function($query) {
-        $query->withCount('questions');
+        $query->select('id', 'title', 'description', 'time_limit')
+              ->withCount('questions');
     }]);
 
-    // Safely decode details from JSON (check if already an array)
-    $result->details = is_string($result->details) ? json_decode($result->details, true) : $result->details;
-    $result->details = $result->details ?? [];
+    // Process result details
+    $this->processResultDetails($result);
 
     $quiz = $result->quiz;
-
-    // Calculate total from quiz questions count
     $totalQuestions = $quiz->questions_count;
+    $percentage = $this->calculatePercentage($result->score, $totalQuestions);
 
-    // Prepare sessionResult for the view
     $sessionResult = [
         'details' => $result->details,
         'score' => $result->score,
         'total' => $totalQuestions,
-        'percentage' => $totalQuestions > 0 ? ($result->score / $totalQuestions) * 100 : 0,
+        'percentage' => $percentage,
         'passed' => $result->passed,
     ];
 
     return view('students.result', compact('result', 'quiz', 'sessionResult'));
+}
+
+/**
+ * Process and validate result details
+ */
+private function processResultDetails(Result &$result): void
+{
+    // Handle different data formats
+    if (is_string($result->details)) {
+        $result->details = json_decode($result->details, true);
+    }
+
+    // Ensure details is an array
+    $result->details = is_array($result->details) ? $result->details : [];
+
+    // Validate and sanitize details structure
+    foreach ($result->details as &$detail) {
+        $detail = $this->sanitizeAnswerDetail($detail);
+    }
+}
+
+/**
+ * Sanitize answer detail structure
+ */
+private function sanitizeAnswerDetail(array $detail): array
+{
+    return [
+        'question' => $detail['question'] ?? 'Question not available',
+        'options' => $detail['options'] ?? [],
+        'your_answer' => $detail['your_answer'] ?? null,
+        'correct_answer' => $detail['correct_answer'] ?? null,
+        'is_correct' => $detail['is_correct'] ?? false,
+        'skipped' => $detail['skipped'] ?? true,
+        'correct_letter' => $detail['correct_letter'] ?? ($detail['debug']['correct_letter'] ?? ''),
+        'user_letter' => $detail['user_letter'] ?? ($detail['debug']['user_selected_letter'] ?? ''),
+    ];
+}
+public function resultsIndex()
+{
+    $student = Auth::user();
+
+    // Cache results for 5 minutes to improve performance
+    $cacheKey = "student_results_{$student->id}_page_" . request()->get('page', 1);
+
+    $results = Cache::remember($cacheKey, 300, function () use ($student) {
+        return Result::where('student_id', $student->id)
+            ->with(['quiz:id,title,description,time_limit'])
+            ->select('id', 'quiz_id', 'score', 'passed', 'attempt_number', 'completed_at')
+            ->latest('completed_at')
+            ->paginate(10);
+    });
+
+    // Calculate statistics
+    $stats = Cache::remember("student_stats_{$student->id}", 300, function () use ($student) {
+        return Result::where('student_id', $student->id)
+            ->selectRaw('
+                COUNT(*) as total_attempts,
+                SUM(CASE WHEN passed = 1 THEN 1 ELSE 0 END) as passed_quizzes,
+                AVG(score) as average_score,
+                MAX(score) as highest_score,
+                MIN(score) as lowest_score,
+                COUNT(DISTINCT quiz_id) as unique_quizzes
+            ')
+            ->first();
+    });
+
+    return view('students.results', compact('results', 'stats'));
 }
 public function profile()
 {
