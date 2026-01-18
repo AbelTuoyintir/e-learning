@@ -77,32 +77,32 @@ public function submit(Request $request, Quiz $quiz)
     $quiz->load('questions');
 
     foreach ($quiz->questions as $question) {
-        // Get user's submitted answer for this question (like "option_a")
-        $userAnswer = $request->input("answers.{$question->id}");
+        // Get user's submitted answer (should be 'A', 'B', 'C', or 'D')
+        $userAnswerLetter = strtoupper(trim($request->input("answers.{$question->id}")));
 
-        // Determine correctness - compare the actual option value
+        // Get the correct option letter from database (should be 'A', 'B', 'C', or 'D')
+        $correctLetter = strtoupper(trim($question->correct_option));
+
+        // Determine correctness
         $isCorrect = false;
         $userAnswerText = null;
+        $userAnswerColumn = null;
 
-        if ($userAnswer) {
-            // Get the text of the user's answer (e.g., $question->option_a)
-            $userAnswerText = $question->{$userAnswer};
+        if ($userAnswerLetter && in_array($userAnswerLetter, ['A', 'B', 'C', 'D'])) {
+            // Get the database column name for user's answer
+            $userAnswerColumn = $this->getOptionColumn($userAnswerLetter);
+            $userAnswerText = $question->{$userAnswerColumn};
 
-            // Get the correct option column name (e.g., "option_a")
-            $correctOptionColumn = $this->getOptionColumn($question->correct_option);
-
-            // Compare if user selected the correct option column
-            $isCorrect = $userAnswer === $correctOptionColumn;
+            // Compare the letters directly
+            $isCorrect = ($userAnswerLetter === $correctLetter);
 
             if ($isCorrect) {
                 $score++;
             }
         }
 
-        // Get the correct option column name
-        $correctOptionColumn = $this->getOptionColumn($question->correct_option);
-
-        // Get the text of the correct answer
+        // Get the correct option column name and text
+        $correctOptionColumn = $this->getOptionColumn($correctLetter);
         $correctAnswerText = $question->{$correctOptionColumn};
 
         $details[] = [
@@ -116,11 +116,11 @@ public function submit(Request $request, Quiz $quiz)
             'your_answer'    => $userAnswerText,
             'correct_answer' => $correctAnswerText,
             'is_correct'     => $isCorrect,
-            'skipped'        => is_null($userAnswer),
-            // Debug info to help troubleshoot
+            'skipped'        => empty($userAnswerLetter) || !in_array($userAnswerLetter, ['A', 'B', 'C', 'D']),
             'debug' => [
-                'user_selected' => $userAnswer,
-                'correct_letter' => $question->correct_option,
+                'user_selected_letter' => $userAnswerLetter,
+                'user_selected_column' => $userAnswerColumn,
+                'correct_letter' => $correctLetter,
                 'correct_column' => $correctOptionColumn,
                 'your_answer_text' => $userAnswerText,
                 'correct_answer_text' => $correctAnswerText,
@@ -173,7 +173,8 @@ public function submit(Request $request, Quiz $quiz)
         'score' => $score,
         'total_questions' => $totalQuestions,
         'percentage' => $percentage,
-        'passed' => $passed
+        'passed' => $passed,
+        'submitted_answers' => $request->input('answers') // Log all submitted answers
     ]);
 
     // Redirect to results page
@@ -239,11 +240,11 @@ public function resultsIndex()
 
     $results = Result::where('student_id', $student->id)
         ->with(['quiz' => function($query) {
-            $query->select('id', 'title', 'description', 'time_limit', 'pass_percentage');
+            $query->select('id', 'title', 'description', 'time_limit'); // Remove pass_percentage
         }])
         ->select('id', 'quiz_id', 'score', 'passed', 'attempt_number', 'completed_at')
         ->latest('completed_at')
-        ->paginate(10); // Add pagination for better performance
+        ->paginate(10);
 
     return view('students.results', compact('results'));
 }
@@ -260,8 +261,9 @@ public function resultShow(Result $result)
         $query->withCount('questions');
     }]);
 
-    // Safely decode details from JSON
-    $result->details = json_decode($result->details, true) ?? [];
+    // Safely decode details from JSON (check if already an array)
+    $result->details = is_string($result->details) ? json_decode($result->details, true) : $result->details;
+    $result->details = $result->details ?? [];
 
     $quiz = $result->quiz;
 

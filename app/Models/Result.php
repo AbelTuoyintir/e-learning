@@ -16,4 +16,10 @@ class Result extends Model
     {
         return $this->belongsTo(Quiz::class);
     }
+
+     protected $casts = [
+        'completed_at' => 'datetime', // Add this line
+        'passed' => 'boolean',
+        'details' => 'array', // 
+    ];
 }
