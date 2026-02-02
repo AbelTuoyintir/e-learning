@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('option_b');
             $table->string('option_c');
             $table->string('option_d');
-            $table->string('correct_option');
+            $table->enum('correct_option', ['A', 'B', 'C', 'D']);
             $table->integer('points')->default(1);
             $table->timestamps();
         });

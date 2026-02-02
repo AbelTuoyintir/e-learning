@@ -88,8 +88,7 @@ class QuestionController extends Controller
             ], 500);
         }
 
-        return redirect()->back()
-                        ->with('error', 'Import failed: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
     }
 }
 
