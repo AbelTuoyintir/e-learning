@@ -43,19 +43,20 @@ Route::post('/student/forgot-password', [AuthController::class, 'sendResetLink']
 Route::get('/student/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('student.reset.password');
 Route::post('/student/reset-password', [AuthController::class, 'resetPassword'])->name('student.reset.password.submit');
 
-Route::middleware('guest:student')->group(function () {
-    // Public student routes
-    Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
+// Route::middleware('guest:student')->group(function () {
+//     // Public student routes
+//     Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
+//     Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
+//     Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
+// });
+
     Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
     Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
-});
 
 // Authenticated Student Routes
 Route::middleware('auth:student')->group(function () {
     Route::get('/students/dashboard',[StudentController::class, 'dashboard'])->name('students.dashboard');
      Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
-    Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
-    Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
     Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
     Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
     Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');

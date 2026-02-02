@@ -14,12 +14,18 @@
         <a href="{{ route('admin.dashboard') }}" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold transition">
             <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
         </a>
+         <a href="{{ route('admin.students') }}" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+            <i class="fas fa-plus mr-2"></i>Add Student
+        </a>
     </div>
 
     <!-- Students Table -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200">
             <h2 class="text-xl font-semibold text-slate-800">All Students ({{ $students->count() }})</h2>
+        </div>
+        <div class="bg-blue-300 shadow-sm shadow-md.rounded-lg.px-6.py-4.mb-6">
+            <p class="text-slate-800 text-sm">Note: You can view, edit, or delete student records using the action buttons provided in the table below.</p>
         </div>
 
         <div class="overflow-x-auto">

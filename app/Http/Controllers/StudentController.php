@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use App\Mail\StudentResultMail;
+use Illuminate\Support\Facades\Cache;
+
 
 class StudentController extends Controller
 {
@@ -187,11 +189,6 @@ public function submit(Request $request, Quiz $quiz)
     }
 }
 
-// New helper methods in your controller:
-
-/**
- * Check if answer is valid
- */
 /**
  * Check if answer is valid
  */
@@ -405,7 +402,9 @@ public function resultsIndex()
     });
 
     // Calculate statistics
-    $stats = Cache::remember("student_stats_{$student->id}", 300, function () use ($student) {
+    $statsCacheKey = "student_stats_{$student->id}";
+
+    $stats = Cache::remember($statsCacheKey, 300, function () use ($student) {
         return Result::where('student_id', $student->id)
             ->selectRaw('
                 COUNT(*) as total_attempts,
@@ -425,6 +424,8 @@ public function profile()
     $student = Auth::user();
     return view('students.profile', compact('student'));
 }
+
+
 
 public function settings()
 {

@@ -101,7 +101,7 @@
                 </form>
 
                 <p class="text-center text-white mt-6">
-                    <a href="{{ route('student.login') }}" class="font-semibold hover:text-blue-200">Back to Login</a>
+                    <a href="{{ route('login') }}" class="font-semibold hover:text-blue-200">Back to Login</a>
                 </p>
             </div>
         </div>
