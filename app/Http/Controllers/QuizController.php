@@ -11,7 +11,7 @@ class QuizController extends Controller
 {
     public function index()
     {
-        $quizzes = Quiz::all();
+        $quizzes = Quiz::withCount('questions')->get();
         $modules = \App\Models\Module::all();
         $topics = \App\Models\Topic::all();
 
@@ -57,6 +57,7 @@ class QuizController extends Controller
             'difficulty' => 'required|in:easy,medium,hard',
             'time_limit' => 'required|integer|min:1',
             'time_per_question' => 'required|integer|min:5',
+            'question_limit' => 'required|integer|min:1|max:1000',
             'quiz_type' => 'nullable|string|max:255',
             'course_id' => 'required|exists:courses,id',
             'module_id' => 'nullable|exists:modules,id',
@@ -82,6 +83,7 @@ class QuizController extends Controller
             'difficulty' => 'required|in:easy,medium,hard',
             'time_limit' => 'required|integer|min:1',
             'time_per_question' => 'required|integer|min:5',
+            'question_limit' => 'required|integer|min:1|max:1000',
             'course_id' => 'required|exists:courses,id',
             'module_id' => 'nullable|exists:modules,id',
             'topic_id' => 'nullable|exists:topics,id',

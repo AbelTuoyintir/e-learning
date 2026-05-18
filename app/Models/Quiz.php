@@ -18,6 +18,7 @@ class Quiz extends Model
         'topic_id',
         'time_limit',
         'time_per_question',
+        'question_limit',
         'description',
         'due_at',
         'max_attempts',
@@ -32,6 +33,7 @@ class Quiz extends Model
         'is_active' => 'boolean',
         'time_limit' => 'integer',
         'time_per_question' => 'integer',
+        'question_limit' => 'integer',
         'max_attempts' => 'integer',
         'passing_score' => 'integer'
     ];

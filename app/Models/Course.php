@@ -18,6 +18,10 @@ class Course extends Model
         'price',
     ];
 
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
+
      public function quizzes()
     {
         return $this->hasMany(Quiz::class);
@@ -37,6 +41,6 @@ class Course extends Model
     }
        public function enrollments()
     {
-        return $this->hasMany(StudentCourses::class);
+        return $this->hasMany(Enrollment::class);
     }
 }

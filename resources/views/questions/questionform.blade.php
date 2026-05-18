@@ -64,6 +64,21 @@
         <p class="text-gray-600 mt-2">You can add a single question manually or upload multiple via CSV.</p>
     </div>
 
+    @php
+        $currentCount = $quiz->questions()->count();
+        $questionLimit = $quiz->question_limit ?? 60;
+        $bankIsFull = $currentCount >= $questionLimit;
+    @endphp
+    <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+        Question bank usage: <strong>{{ $currentCount }}</strong> / <strong>{{ $questionLimit }}</strong>
+    </div>
+
+    @if(session('error'))
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="grid md:grid-cols-2 gap-8">
         <!-- Manual Form Card -->
         <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition">
@@ -78,6 +93,7 @@
                 <div>
                     <label for="question_text" class="block text-sm font-medium text-gray-700 mb-1">Question</label>
                     <input type="text" name="question_text" id="question_text"
+                           value="{{ old('question_text') }}"
                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
                 </div>
 
@@ -86,12 +102,16 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Options</label>
                     <div class="grid grid-cols-1 gap-3">
                         <input type="text" name="option_a" placeholder="Option A"
+                               value="{{ old('option_a') }}"
                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
                         <input type="text" name="option_b" placeholder="Option B"
+                               value="{{ old('option_b') }}"
                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
                         <input type="text" name="option_c" placeholder="Option C"
+                               value="{{ old('option_c') }}"
                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
                         <input type="text" name="option_d" placeholder="Option D"
+                               value="{{ old('option_d') }}"
                                class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
                     </div>
                 </div>
@@ -101,11 +121,11 @@
                     <label for="correct_option" class="block text-sm font-medium text-gray-700 mb-1">Correct Option</label>
                     <select name="correct_option" id="correct_option"
                             class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
-                        <option value="" disabled selected>-- Select the correct option --</option>
-                        <option value="option_a">Option A</option>
-                        <option value="option_b">Option B</option>
-                        <option value="option_c">Option C</option>
-                        <option value="option_d">Option D</option>
+                        <option value="" disabled @selected(!old('correct_option'))>-- Select the correct option --</option>
+                        <option value="A" @selected(old('correct_option') === 'A')>Option A</option>
+                        <option value="B" @selected(old('correct_option') === 'B')>Option B</option>
+                        <option value="C" @selected(old('correct_option') === 'C')>Option C</option>
+                        <option value="D" @selected(old('correct_option') === 'D')>Option D</option>
                     </select>
                 </div>
 
@@ -113,14 +133,16 @@
                 <div>
                     <label for="points" class="block text-sm font-medium text-gray-700 mb-1">Points</label>
                     <input type="number" name="points" id="points" min="1"
+                           value="{{ old('points', 1) }}"
                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
                 </div>
 
                 <!-- Submit -->
                 <div class="pt-2">
                     <button type="submit"
-                            class="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition">
-                        💾 Save Question
+                            @disabled($bankIsFull)
+                            class="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        {{ $bankIsFull ? 'Question Limit Reached' : 'Save Question' }}
                     </button>
                 </div>
             </form>
@@ -128,7 +150,7 @@
 
         <!-- CSV Upload Card -->
        <!-- CSV Upload Card -->
-        <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition">
+        <div id="bulk-upload" class="bg-white p-8 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition">
             <h2 class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
                 📂 Bulk Upload via CSV
             </h2>
@@ -585,3 +607,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 @endsection
+

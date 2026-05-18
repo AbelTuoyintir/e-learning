@@ -70,7 +70,7 @@
         </div>
 
         <!-- Two Column Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- Instructor -->
           <div>
             <label for="instructor" class="block text-sm font-semibold text-slate-300 mb-2">Instructor</label>
@@ -85,6 +85,13 @@
             <input type="number" name="duration" id="duration" min="0" value="{{ old('duration',$course->duration) }}" placeholder="Course duration"
                    class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl placeholder-slate-400 text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition @error('duration') border-rose-400 @enderror">
             @error('duration') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror
+          </div>
+
+          <div>
+            <label for="price" class="block text-sm font-semibold text-slate-300 mb-2">Price (GHS)</label>
+            <input type="number" name="price" id="price" min="0" step="0.01" value="{{ old('price',$course->price ?? 0) }}" placeholder="0.00 for free"
+                   class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl placeholder-slate-400 text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition @error('price') border-rose-400 @enderror">
+            @error('price') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror
           </div>
         </div>
 

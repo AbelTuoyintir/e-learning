@@ -29,6 +29,21 @@
                         {{ $loop->iteration }}. {{ $topic->title }}
                     </h3>
 
+                    @if($topic->file_path)
+                        <div class="flex items-center p-3 bg-indigo-50 rounded-lg mb-3">
+                            <i class="fas fa-file-alt text-indigo-500 mr-3"></i>
+                            <div class="flex-grow">
+                                <span class="font-medium text-gray-700">{{ $topic->file_name ?? 'Topic Document' }}</span>
+                                <br>
+                                <small class="text-gray-500">Document (view only)</small>
+                            </div>
+                            <a href="{{ route('students.course.topics.document.read', [$course->id, $topic->id]) }}"
+                               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </a>
+                        </div>
+                    @endif
+
                     <!-- Text Contents -->
                     @foreach($topic->contents ?? [] as $content)
                         @if($content->type === 'text')
@@ -58,12 +73,11 @@
                                 <div class="flex-grow">
                                     <span class="font-medium text-gray-700">{{ $content->file_name ?? 'File' }}</span>
                                     <br>
-                                    <small class="text-gray-500">{{ $content->type }} file</small>
+                                    <small class="text-gray-500">{{ $content->type }} file (view only)</small>
                                 </div>
-                                <a href="{{ $content->file_path ? asset('storage/' . $content->file_path) : '#' }}"
-                                   target="_blank"
+                                <a href="{{ route('students.course.materials.read', [$course->id, $content->id]) }}"
                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
-                                    <i class="fas fa-download mr-1"></i> Download
+                                    <i class="fas fa-eye mr-1"></i> View
                                 </a>
                             </div>
                         @endif
@@ -73,14 +87,38 @@
                     @if($topic->video_url)
                         <div class="mb-3">
                             <h5 class="font-medium text-gray-700 mb-2">Video Content:</h5>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <a href="{{ $topic->video_url }}"
-                                   target="_blank"
-                                   class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center">
-                                    <i class="fas fa-external-link-alt mr-2"></i>
-                                    Watch Video (External Link)
-                                </a>
-                            </div>
+                            @if($topic->youtube_embed_url)
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="relative w-full overflow-hidden rounded-lg bg-black" style="padding-top:56.25%;">
+                                        <iframe
+                                            src="{{ $topic->youtube_embed_url }}"
+                                            title="YouTube video player"
+                                            class="absolute inset-0 h-full w-full"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerpolicy="strict-origin-when-cross-origin"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <a href="{{ $topic->video_url }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="mt-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                                        <i class="fas fa-external-link-alt mr-2"></i>
+                                        Open on YouTube
+                                    </a>
+                                </div>
+                            @else
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <a href="{{ $topic->video_url }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center">
+                                        <i class="fas fa-external-link-alt mr-2"></i>
+                                        Watch Video (External Link)
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>

@@ -24,6 +24,7 @@
                     <th class="p-4">Title</th>
                     <th class="p-4">Description</th>
                     <th class="p-4">Difficulty</th>
+                    <th class="p-4">Question Bank</th>
                     <th class="p-4">Actions</th>
                 </tr>
             </thead>
@@ -44,6 +45,9 @@
                             <span class="px-3 py-1 text-xs rounded-full animate-pulseOnce {{ $colors[$quiz->difficulty] ?? 'bg-gray-100 text-gray-700' }}">
                                 {{ ucfirst($quiz->difficulty) }}
                             </span>
+                        </td>
+                        <td class="p-4 text-sm text-gray-700">
+                            {{ $quiz->questions_count }} / {{ $quiz->question_limit ?? 60 }}
                         </td>
                         <td class="p-4">
                             <div class="flex flex-wrap gap-2">
@@ -72,7 +76,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="p-8 text-center text-gray-400">
+                        <td colspan="6" class="p-8 text-center text-gray-400">
                             <i class="fas fa-inbox text-4xl mb-3 opacity-40"></i>
                             <p>No quizzes yet – create your first one!</p>
                         </td>

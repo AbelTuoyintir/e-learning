@@ -58,9 +58,23 @@ Route::middleware('auth:student')->group(function () {
     Route::get('/students/dashboard',[StudentController::class, 'dashboard'])->name('students.dashboard');
      Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
     Route::post('/students/course-enrollment',[App\Http\Controllers\CourseController::class, 'enroll'])->name('student.enroll');
+    Route::get('/students/courses/{course}/checkout', [CourseController::class, 'checkout'])->name('students.courses.checkout');
+
+    // Paystack purchase flow
+    Route::post('/students/courses/{course}/paystack/initialize', [CourseController::class, 'completePurchase'])->name('students.courses.purchase');
+    Route::post('/paystack/webhook', [\App\Http\Controllers\PaystackPaymentController::class, 'webhook'])->name('paystack.webhook');
+
     Route::get('/students/enrolled-courses', [App\Http\Controllers\CourseController::class, 'enrolledCourses'])->name('students.enrolledcourses');
     Route::get('/students/enrolled-courses/{course}/materials', [App\Http\Controllers\CourseController::class, 'getMaterials'])->name('students.course.materials');
     Route::get('/student/course/{course}/materials', [CourseController::class, 'getMaterials'])->name('students.course.materials');
+    Route::get('/student/course/{course}/materials/{content}/read', [CourseController::class, 'readMaterial'])->name('students.course.materials.read');
+    Route::get('/student/course/{course}/materials/{content}/view', [CourseController::class, 'viewMaterial'])->name('students.course.materials.view');
+    Route::get('/student/course/{course}/materials/{content}/highlights', [CourseController::class, 'getMaterialHighlights'])->name('students.course.materials.highlights.get');
+    Route::post('/student/course/{course}/materials/{content}/highlights', [CourseController::class, 'saveMaterialHighlights'])->name('students.course.materials.highlights.save');
+    Route::get('/student/course/{course}/topics/{topic}/document/read', [CourseController::class, 'readTopicDocument'])->name('students.course.topics.document.read');
+    Route::get('/student/course/{course}/topics/{topic}/document/view', [CourseController::class, 'viewTopicDocument'])->name('students.course.topics.document.view');
+    Route::get('/student/course/{course}/topics/{topic}/document/highlights', [CourseController::class, 'getTopicDocumentHighlights'])->name('students.course.topics.document.highlights.get');
+    Route::post('/student/course/{course}/topics/{topic}/document/highlights', [CourseController::class, 'saveTopicDocumentHighlights'])->name('students.course.topics.document.highlights.save');
     Route::get('/students/enrolled-courses/{course}/quizzes', [App\Http\Controllers\CourseController::class, 'getQuizzes'])->name('students.course.quizzes');
     Route::get('/student/quizzes', [CourseController::class, 'studentQuizzes'])->name('students.quizzes');
 
@@ -149,12 +163,12 @@ Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name(
     route::get('/topics/back', [TopicController::class, 'back'])->name('admin.topics.back');
 
 
-// Incorrect - duplicate quiz parameter
-Route::post('quiz/{quiz}/questions/import', [QuestionController::class, 'import'])->name('questions.import');
-
 // Corrected routes
 Route::prefix('quiz/{quiz}')->group(function () {
     Route::get('questions', [QuestionController::class, 'index'])->name('questions.index');
+    Route::get('questions/import', function ($quiz) {
+        return redirect()->to(route('questions.create', ['quiz' => $quiz]).'#bulk-upload');
+    })->name('questions.import.form');
     Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
     Route::get('questions/create', [QuestionController::class, 'create'])->name('questions.create');
     Route::post('questions', [QuestionController::class, 'store'])->name('questions.store');
@@ -172,5 +186,3 @@ Route::prefix('quiz/{quiz}')->group(function () {
 // Route::get('results', [ResultController::class, 'index'])->name('results.index');
 // Route::get('results/{id}', [ResultController::class, 'show'])->name('results.show');
 // Route::delete('results/{id}', [ResultController::class, 'destroy'])->name('results.destroy');
-
-

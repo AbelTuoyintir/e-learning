@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use App\Mail\StudentResultMail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 
 class StudentController extends Controller
@@ -44,8 +45,20 @@ public function dashboard()
         ->get();
 
     // Available quizzes
+    $enrolledCourseIds = $student->enrollments()->pluck('course_id')->all();
+
     $availableQuizzes = Quiz::withCount('questions')
+        ->with('questions:id,quiz_id')
         ->whereHas('questions')
+        ->where(function ($query) use ($enrolledCourseIds) {
+            $query->whereIn('course_id', $enrolledCourseIds)
+                ->orWhereHas('module', function ($moduleQuery) use ($enrolledCourseIds) {
+                    $moduleQuery->whereIn('course_id', $enrolledCourseIds);
+                })
+                ->orWhereHas('topic.module', function ($moduleQuery) use ($enrolledCourseIds) {
+                    $moduleQuery->whereIn('course_id', $enrolledCourseIds);
+                });
+        })
         ->get();
 
     return view('students.dashboard', compact(
@@ -59,11 +72,18 @@ public function dashboard()
 
 public function showQuiz(Quiz $quiz)
 {
+    $quiz->loadMissing('module', 'topic.module');
+
+    if (!$this->canAccessQuiz($quiz)) {
+        return $this->denyQuizAccess($quiz);
+    }
+
     $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
 
     foreach ($questions as $question) {
-        // This gives you the actual correct answer text
-        $question->correct_answer_text = $question->{$question->correct_option};
+        $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
+        $correctOptionColumn = $this->getOptionColumn($correctLetter);
+        $question->correct_answer_text = $question->{$correctOptionColumn};
     }
 
     return view('students.question', compact('quiz', 'questions'));
@@ -72,6 +92,13 @@ public function showQuiz(Quiz $quiz)
 
 public function submit(Request $request, Quiz $quiz)
 {
+    $quiz->loadMissing('module', 'topic.module');
+
+    if (!$this->canAccessQuiz($quiz)) {
+        return $this->denyQuizAccess($quiz);
+    }
+
+    
     \Log::info('=== QUIZ SUBMIT START ===', [
         'quiz_id' => $quiz->id,
         'quiz_title' => $quiz->title,
@@ -82,10 +109,13 @@ public function submit(Request $request, Quiz $quiz)
     // Validate the request
     $validated = $request->validate([
         'answers' => 'required|array',
-        'answers.*' => 'nullable|string|in:A,B,C,D',
+        'answers.*' => 'nullable|string|in:A,B,C,D,a,b,c,d', // Added lowercase
     ]);
 
-    \Log::debug('Validation passed', ['answers_keys' => array_keys($validated['answers'])]);
+    \Log::debug('Validation passed', [
+        'answers_keys' => array_keys($validated['answers']),
+        'answers_values' => array_values($validated['answers'])
+    ]);
 
     try {
         // Use database transaction for data integrity
@@ -95,45 +125,58 @@ public function submit(Request $request, Quiz $quiz)
 
             // Eager load questions to avoid N+1 query
             $quiz->load(['questions' => function($query) {
-                $query->select('id', 'quiz_id', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option');
+                $query->select('id', 'quiz_id', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'points'); // Added 'points'
             }]);
 
-            \Log::debug('Questions loaded', ['count' => $quiz->questions->count()]);
+            \Log::debug('Questions loaded', [
+                'count' => $quiz->questions->count(),
+                'question_ids' => $quiz->questions->pluck('id')->toArray()
+            ]);
 
             foreach ($quiz->questions as $question) {
-                $userAnswerLetter = strtoupper(trim($request->input("answers.{$question->id}", '')));
-                $correctLetter = strtoupper(trim($question->correct_option));
+                // Get user answer from validated data
+                $userAnswerLetter = isset($validated['answers'][$question->id])
+                    ? strtoupper(trim($validated['answers'][$question->id]))
+                    : '';
+
+                $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
 
                 $isCorrect = false;
                 $userAnswerText = null;
                 $userAnswerColumn = null;
+                $pointsEarned = 0;
 
                 // Validate user answer
                 if ($this->isValidAnswer($userAnswerLetter)) {
                     $userAnswerColumn = $this->getOptionColumn($userAnswerLetter);
-                    $userAnswerText = $question->{$userAnswerColumn};
+                    $userAnswerText = $question->{$userAnswerColumn} ?? null;
 
                     $isCorrect = ($userAnswerLetter === $correctLetter);
 
                     if ($isCorrect) {
-                        $score++;
+                        $score += $question->points; // Use question points instead of just 1
+                        $pointsEarned = $question->points;
                     }
                 }
 
                 // Prepare answer details
-                $details[] = $this->prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter);
+                $details[] = $this->prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter, $pointsEarned);
             }
 
-            \Log::debug('Scoring complete', ['score' => $score, 'total' => $quiz->questions->count()]);
+            \Log::debug('Scoring complete', [
+                'score' => $score,
+                'total_questions' => $quiz->questions->count(),
+                'total_possible_points' => $quiz->questions->sum('points')
+            ]);
 
-            $totalQuestions = $quiz->questions->count();
-            $percentage = $this->calculatePercentage($score, $totalQuestions);
+            $totalPossiblePoints = $quiz->questions->sum('points');
+            $percentage = $this->calculatePercentage($score, $totalPossiblePoints);
             $passed = $this->isPassed($percentage, $quiz);
-            $attemptNumber = $this->getNextAttemptNumber($quiz->id);
+            $attemptNumber = $this->getNextAttemptNumber($quiz->id, Auth::id());
 
             \Log::debug('Creating result', [
                 'score' => $score,
-                'total' => $totalQuestions,
+                'total_possible_points' => $totalPossiblePoints,
                 'percentage' => $percentage,
                 'passed' => $passed,
                 'attempt' => $attemptNumber,
@@ -144,6 +187,8 @@ public function submit(Request $request, Quiz $quiz)
                 'student_id' => Auth::id(),
                 'quiz_id' => $quiz->id,
                 'score' => $score,
+                'total_possible_points' => $totalPossiblePoints, // NEW: Store total possible points
+                'percentage' => $percentage,
                 'passed' => $passed,
                 'attempt_number' => $attemptNumber,
                 'completed_at' => now(),
@@ -154,13 +199,15 @@ public function submit(Request $request, Quiz $quiz)
                 'result_id' => $result->id,
                 'quiz_id' => $result->quiz_id,
                 'student_id' => $result->student_id,
+                'score' => $result->score,
+                'percentage' => $result->percentage,
             ]);
 
             // Dispatch notifications asynchronously
-            $this->sendNotifications($result, $quiz, $score, $totalQuestions, $percentage, $passed);
+            $this->sendNotifications($result, $quiz, $score, $totalPossiblePoints, $percentage, $passed);
 
             // Log for debugging
-            $this->logQuizSubmission($quiz, $score, $totalQuestions, $request->input('answers'));
+            $this->logQuizSubmission($quiz, $score, $totalPossiblePoints, $validated['answers']);
 
             \Log::info('Redirecting to results', [
                 'route_name' => 'quiz.results',
@@ -181,12 +228,52 @@ public function submit(Request $request, Quiz $quiz)
             'trace' => $e->getTraceAsString(),
             'quiz_id' => $quiz->id,
             'student_id' => Auth::id(),
+            'request_data' => $request->all(),
         ]);
 
         return redirect()->back()
-            ->with('error', 'Failed to submit quiz. Please try again.')
+            ->with('error', 'Failed to submit quiz: ' . $e->getMessage())
             ->withInput();
     }
+}
+
+/**
+ * Get the option column name based on letter
+ */
+private function getOptionColumn($letter): string
+{
+    $letter = strtoupper($letter);
+    $columnMap = [
+        'A' => 'option_a',
+        'B' => 'option_b',
+        'C' => 'option_c',
+        'D' => 'option_d'
+    ];
+
+    return $columnMap[$letter] ?? 'option_a'; // Default to option_a if invalid
+}
+
+private function normalizeCorrectOptionLetter($value): string
+{
+    $normalized = strtoupper(trim((string) $value));
+    $normalized = str_replace([' ', '-'], '_', $normalized);
+
+    $map = [
+        'A' => 'A',
+        'B' => 'B',
+        'C' => 'C',
+        'D' => 'D',
+        'OPTION_A' => 'A',
+        'OPTION_B' => 'B',
+        'OPTION_C' => 'C',
+        'OPTION_D' => 'D',
+        '1' => 'A',
+        '2' => 'B',
+        '3' => 'C',
+        '4' => 'D',
+    ];
+
+    return $map[$normalized] ?? 'A';
 }
 
 /**
@@ -200,12 +287,13 @@ private function isValidAnswer($answer): bool
 /**
  * Prepare answer details array
  */
-private function prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter): array
+private function prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter, $pointsEarned = 0): array
 {
-    $correctLetter = strtoupper(trim($question->correct_option));
+    $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
     $correctOptionColumn = $this->getOptionColumn($correctLetter);
 
     return [
+        'question_id'    => $question->id,
         'question'       => $question->question_text,
         'options'        => [
             'A' => $question->option_a,
@@ -214,11 +302,13 @@ private function prepareAnswerDetails($question, $userAnswerText, $isCorrect, $u
             'D' => $question->option_d,
         ],
         'your_answer'    => $userAnswerText,
+        'your_letter'    => $userAnswerLetter,
         'correct_answer' => $question->{$correctOptionColumn},
-        'is_correct'     => $isCorrect,
-        'skipped'        => empty($userAnswerLetter) || !$this->isValidAnswer($userAnswerLetter),
         'correct_letter' => $correctLetter,
-        'user_letter'    => $userAnswerLetter,
+        'is_correct'     => $isCorrect,
+        'points'         => $question->points,
+        'points_earned'  => $pointsEarned,
+        'skipped'        => empty($userAnswerLetter) || !$this->isValidAnswer($userAnswerLetter),
     ];
 }
 
@@ -247,9 +337,9 @@ private function isPassed($percentage, $quiz): bool
 /**
  * Get next attempt number
  */
-private function getNextAttemptNumber($quizId): int
+private function getNextAttemptNumber($quizId, $studentId): int
 {
-    $lastAttempt = Result::where('student_id', Auth::id())
+    $lastAttempt = Result::where('student_id', $studentId)
         ->where('quiz_id', $quizId)
         ->max('attempt_number');
 
@@ -261,42 +351,73 @@ private function getNextAttemptNumber($quizId): int
  */
 private function sendNotifications($result, $quiz, $score, $total, $percentage, $passed): void
 {
+    $user = Auth::user();
+
+    if (!$user) {
+        \Log::warning('Cannot send notifications: User not authenticated');
+        return;
+    }
+
     // Email notification
     try {
-        Mail::to(Auth::user()->email)->send(new StudentResultMail($result, $quiz));
+        Mail::to($user->email)->send(new StudentResultMail($result, $quiz));
+        \Log::info('Result email sent', ['email' => $user->email]);
     } catch (\Exception $e) {
         \Log::error('Email failed: ' . $e->getMessage());
     }
 
     // In-app notification
     try {
-        Notification::create([
-            'student_id' => Auth::id(),
-            'title' => 'Quiz Completed',
-            'message' => "You scored {$score}/{$total} ({$percentage}%) on {$quiz->title}",
+        // Make sure you have a Notification model with these fields
+        \App\Models\Notification::create([
+            'student_id' => $user->id,
+            'title' => 'Quiz Completed: ' . $quiz->title,
+            'message' => "You scored {$score}/{$total} points ({$percentage}%)",
             'type' => $passed ? 'success' : 'warning',
             'is_read' => false,
+            'data' => json_encode([
+                'quiz_id' => $quiz->id,
+                'result_id' => $result->id,
+                'score' => $score,
+                'percentage' => $percentage,
+                'passed' => $passed
+            ]),
         ]);
+        \Log::info('In-app notification created');
     } catch (\Exception $e) {
-        \Log::error('Notification failed: ' . $e->getMessage());
+        \Log::error('Notification creation failed: ' . $e->getMessage());
     }
 }
 
 /**
- * Log quiz submission
+ * Log quiz submission details
  */
-private function logQuizSubmission($quiz, $score, $total, $answers): void
+private function logQuizSubmission($quiz, $score, $totalPoints, $answers): void
 {
-    \Log::info('Quiz submission logged', [
-        'quiz' => $quiz->title,
+    \Log::info('Quiz Submission Details', [
+        'quiz_id' => $quiz->id,
+        'quiz_title' => $quiz->title,
+        'student_id' => Auth::id(),
+        'student_name' => Auth::user()->name ?? 'Unknown',
         'score' => $score,
-        'total' => $total,
+        'total_points' => $totalPoints,
+        'percentage' => round(($score / max($totalPoints, 1)) * 100, 2),
+        'answers_submitted' => count($answers),
+        'answers_summary' => array_map(function($answer) {
+            return strtoupper(trim($answer));
+        }, $answers)
     ]);
 }
 
 
 public function results(Quiz $quiz)
 {
+    $quiz->loadMissing('module', 'topic.module');
+
+    if (!$this->canAccessQuiz($quiz)) {
+        return $this->denyQuizAccess($quiz);
+    }
+
     $result = Result::where('student_id', Auth::id())
         ->where('quiz_id', $quiz->id)
         ->with(['quiz' => function($query) {
@@ -329,9 +450,13 @@ public function resultShow(Result $result)
 
     // Eager load with specific columns for performance
     $result->load(['quiz' => function($query) {
-        $query->select('id', 'title', 'description', 'time_limit')
+        $query->select('id', 'title', 'description', 'time_limit', 'course_id', 'module_id', 'topic_id')
               ->withCount('questions');
-    }]);
+    }, 'quiz.module', 'quiz.topic.module']);
+
+    if (!$this->canAccessQuiz($result->quiz)) {
+        return $this->denyQuizAccess($result->quiz);
+    }
 
     // Process result details
     $this->processResultDetails($result);
@@ -354,38 +479,80 @@ public function resultShow(Result $result)
 /**
  * Process and validate result details
  */
+/**
+ * Process result details to ensure consistent structure
+ */
 private function processResultDetails(Result &$result): void
 {
     // Handle different data formats
-    if (is_string($result->details)) {
-        $result->details = json_decode($result->details, true);
+    $details = $result->details;
+    
+    if (is_string($details)) {
+        $details = json_decode($details, true);
     }
 
     // Ensure details is an array
-    $result->details = is_array($result->details) ? $result->details : [];
+    $details = is_array($details) ? $details : [];
 
     // Validate and sanitize details structure
-    foreach ($result->details as &$detail) {
-        $detail = $this->sanitizeAnswerDetail($detail);
+    $sanitizedDetails = [];
+    foreach ($details as $detail) {
+        $sanitizedDetails[] = $this->sanitizeAnswerDetail($detail);
     }
+
+    // Assign back to result
+    $result->details = $sanitizedDetails;
 }
 
 /**
  * Sanitize answer detail structure
  */
-private function sanitizeAnswerDetail(array $detail): array
+private function sanitizeAnswerDetail($detail): array
 {
+    if (!is_array($detail)) {
+        return [
+            'question' => '',
+            'options' => [
+                'A' => '',
+                'B' => '',
+                'C' => '',
+                'D' => '',
+            ],
+            'your_answer' => '',
+            'correct_answer' => '',
+            'is_correct' => false,
+            'skipped' => true,
+            'user_letter' => '',
+            'correct_letter' => '',
+            'points' => 0,
+            'points_earned' => 0,
+        ];
+    }
+
+    // Ensure all required fields exist with default values
     return [
-        'question' => $detail['question'] ?? 'Question not available',
-        'options' => $detail['options'] ?? [],
-        'your_answer' => $detail['your_answer'] ?? null,
-        'correct_answer' => $detail['correct_answer'] ?? null,
-        'is_correct' => $detail['is_correct'] ?? false,
-        'skipped' => $detail['skipped'] ?? true,
-        'correct_letter' => $detail['correct_letter'] ?? ($detail['debug']['correct_letter'] ?? ''),
-        'user_letter' => $detail['user_letter'] ?? ($detail['debug']['user_selected_letter'] ?? ''),
+        'question_id' => $detail['question_id'] ?? 0,
+        'question' => $detail['question'] ?? '',
+        'options' => array_merge(
+            [
+                'A' => '',
+                'B' => '',
+                'C' => '',
+                'D' => '',
+            ],
+            $detail['options'] ?? []
+        ),
+        'your_answer' => $detail['your_answer'] ?? '',
+        'correct_answer' => $detail['correct_answer'] ?? '',
+        'is_correct' => (bool) ($detail['is_correct'] ?? false),
+        'skipped' => (bool) ($detail['skipped'] ?? true),
+        'user_letter' => $detail['user_letter'] ?? '',
+        'correct_letter' => $detail['correct_letter'] ?? '',
+        'points' => (int) ($detail['points'] ?? 0),
+        'points_earned' => (int) ($detail['points_earned'] ?? 0),
     ];
 }
+
 public function resultsIndex()
 {
     $student = Auth::user();
@@ -530,5 +697,46 @@ public function statistics()
         ->get();
 
     return view('students.statistics', compact('stats', 'recentResults'));
+}
+
+private function canAccessQuiz(Quiz $quiz): bool
+{
+    $student = Auth::user();
+    $courseId = $this->resolveQuizCourseId($quiz);
+
+    if (!$student || !$courseId) {
+        return false;
+    }
+
+    return $student->enrollments()->where('course_id', $courseId)->exists();
+}
+
+private function resolveQuizCourseId(Quiz $quiz): ?int
+{
+    if ($quiz->course_id) {
+        return (int) $quiz->course_id;
+    }
+
+    if ($quiz->module?->course_id) {
+        return (int) $quiz->module->course_id;
+    }
+
+    if ($quiz->topic?->module?->course_id) {
+        return (int) $quiz->topic->module->course_id;
+    }
+
+    return null;
+}
+
+private function denyQuizAccess(Quiz $quiz)
+{
+    \Log::warning('Blocked quiz access for unenrolled student.', [
+        'quiz_id' => $quiz->id,
+        'student_id' => Auth::id(),
+        'resolved_course_id' => $this->resolveQuizCourseId($quiz),
+    ]);
+
+    return redirect()->route('students.courses')
+        ->with('error', 'You must enroll in this course before viewing its quizzes or materials.');
 }
 }

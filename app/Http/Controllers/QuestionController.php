@@ -3,501 +3,358 @@
 namespace App\Http\Controllers;
 
 use App\Models\Question;
-use App\Models\Option;
 use App\Models\Quiz;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\pagination\Paginator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class QuestionController extends Controller
 {
-   public function import(Request $request, $quiz)
-{
-    \Log::info('Import process started', ['quiz_id' => $quiz]);
-
-    try {
-        $request->validate([
-            'file' => 'required|mimes:csv,txt,xlsx,xls',
-        ]);
-
-        \Log::debug('File validation passed', [
-            'original_name' => $request->file('file')->getClientOriginalName(),
-            'size' => $request->file('file')->getSize(),
-            'mime_type' => $request->file('file')->getMimeType()
-        ]);
-
-        $extension = $request->file('file')->getClientOriginalExtension();
-        \Log::debug('File extension detected', ['extension' => $extension]);
-
-        $successCount = 0;
-        if (in_array($extension, ['csv', 'txt'])) {
-            \Log::info('Processing CSV file');
-            $successCount = $this->importFromCsv($request->file('file')->getRealPath(), $quiz);
-        } else {
-            \Log::info('Processing Excel file');
-            $successCount = $this->importFromExcel($request->file('file'), $quiz);
-        }
-
-        \Log::info('Import process completed successfully', [
-            'quiz_id' => $quiz,
-            'imported_count' => $successCount
-        ]);
-
-        // Return JSON response for AJAX requests
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Questions imported successfully!',
-                'count' => $successCount
-            ]);
-        }
-
-        return redirect()->route('questions.index', $quiz)
-                        ->with('success', 'Questions imported successfully! ' . $successCount . ' questions added.');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        \Log::error('Validation failed during import', [
-            'errors' => $e->errors(),
-            'quiz_id' => $quiz
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
-        }
-
-        throw $e;
-
-    } catch (\Exception $e) {
-        \Log::error('Import process failed', [
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'quiz_id' => $quiz
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Import failed: ' . $e->getMessage()
-            ], 500);
-        }
-
-        return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
-    }
-}
-
-private function importFromCsv($path, $quiz)
-{
-    \Log::debug('Starting CSV import', ['file_path' => $path, 'quiz_id' => $quiz]);
-
-    $file = fopen($path, 'r');
-    if (!$file) {
-        \Log::error('Failed to open CSV file', ['file_path' => $path]);
-        throw new \Exception("Could not open CSV file");
-    }
-
-    // Read and validate header
-    $header = fgetcsv($file);
-    \Log::debug('CSV header', ['header' => $header]);
-
-    if (empty($header)) {
-        fclose($file);
-        throw new \Exception("CSV file is empty or has invalid format");
-    }
-
-    // Validate header has at least 7 columns
-    if (count($header) < 7) {
-        fclose($file);
-        throw new \Exception("CSV must have 7 columns: question_text, option_a, option_b, option_c, option_d, correct_option, points");
-    }
-
-    $rowCount = 0;
-    $successCount = 0;
-    $errorCount = 0;
-    $errors = [];
-
-    while (($row = fgetcsv($file)) !== false) {
-        $rowCount++;
-
-        try {
-            // Skip empty rows
-            if (empty($row) || count(array_filter($row, function($value) {
-                return $value !== null && $value !== '';
-            })) === 0) {
-                \Log::debug('Skipping empty row', ['row_number' => $rowCount]);
-                continue;
-            }
-
-            // Ensure row has exactly 7 columns
-            $row = array_pad($row, 7, '');
-
-            // Trim all values
-            $row = array_map('trim', $row);
-
-            \Log::debug('Processing CSV row', ['row_number' => $rowCount, 'data' => $row]);
-
-            // Extract values with proper index checking
-            $questionText = $row[0] ?? '';
-            $opt1 = $row[1] ?? '';
-            $opt2 = $row[2] ?? '';
-            $opt3 = $row[3] ?? '';
-            $opt4 = $row[4] ?? '';
-            $correct = $row[5] ?? '';
-            $points = $row[6] ?? '1'; // Default to 1 if empty
-
-            // Validate required fields
-            if (empty($questionText)) {
-                $errors[] = "Row $rowCount: Empty question text";
-                $errorCount++;
-                continue;
-            }
-
-            // Validate all options are not empty
-            if (empty($opt1) || empty($opt2) || empty($opt3) || empty($opt4)) {
-                $errors[] = "Row $rowCount: All four options (A, B, C, D) are required";
-                $errorCount++;
-                continue;
-            }
-
-            // Normalize correct option
-            $correctOption = $this->normalizeCorrectOption($correct, $rowCount);
-
-            // Validate points
-            $pointsValue = (int) $points;
-            if ($pointsValue <= 0) {
-                $pointsValue = 1; // Default to 1 if invalid
-                \Log::warning("Invalid points value '$points' in row $rowCount, defaulting to 1");
-            }
-
-            \Log::debug('Creating question', [
-                'row' => $rowCount,
-                'question' => strlen($questionText) > 30 ? substr($questionText, 0, 30) . '...' : $questionText,
-                'correct' => $correctOption,
-                'points' => $pointsValue
-            ]);
-
-            // Create the question
-            $question = Question::create([
-                'quiz_id' => $quiz,
-                'question_text' => $questionText,
-                'option_a' => $opt1,
-                'option_b' => $opt2,
-                'option_c' => $opt3,
-                'option_d' => $opt4,
-                'correct_option' => $correctOption,
-                'points' => $pointsValue,
-            ]);
-
-            $successCount++;
-
-        } catch (\Exception $e) {
-            $errorCount++;
-            $errors[] = "Row $rowCount: " . $e->getMessage();
-            \Log::error('Error processing CSV row', [
-                'row_number' => $rowCount,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'data' => $row ?? []
-            ]);
-        }
-    }
-
-    fclose($file);
-
-    // Log import summary
-    \Log::info('CSV import completed', [
-        'total_rows_processed' => $rowCount,
-        'successful' => $successCount,
-        'failed' => $errorCount,
-        'quiz_id' => $quiz
-    ]);
-
-    // Log all errors if any
-    if (!empty($errors)) {
-        \Log::warning('Import errors', ['errors' => $errors]);
-    }
-
-    // Return import summary
-    return [
-        'total' => $rowCount,
-        'successful' => $successCount,
-        'failed' => $errorCount,
-        'errors' => $errors
-    ];
-}
-
-private function importFromExcel($file, $quiz)
-{
-    \Log::debug('Starting Excel import', [
-        'file_name' => $file->getClientOriginalName(),
-        'quiz_id' => $quiz
-    ]);
-
-    try {
-        $rows = Excel::toArray([], $file)[0];
-        \Log::debug('Excel file loaded', ['total_rows' => count($rows)]);
-
-        if (empty($rows) || count($rows) < 2) {
-            \Log::warning('Excel file is empty or has no data rows');
-            return;
-        }
-
-        // Skip header row
-        $header = $rows[0];
-        \Log::debug('Excel header', ['header' => $header]);
-        unset($rows[0]);
-
-        $rowCount = 0;
-        $successCount = 0;
-        $errorCount = 0;
-        $errors = [];
-
-        foreach ($rows as $index => $row) {
-            $rowCount++;
-
-            try {
-                // Skip empty rows
-                if (empty($row) || count(array_filter($row, 'strlen')) === 0) {
-                    \Log::debug('Skipping empty row', ['row_number' => $rowCount]);
-                    continue;
-                }
-
-                // Pad row to ensure at least 7 elements
-                $row = array_pad($row, 7, '');
-
-                \Log::debug('Processing Excel row', [
-                    'row_number' => $rowCount,
-                    'excel_index' => $index,
-                    'data' => $row
-                ]);
-
-                $questionText = trim($row[0] ?? '');
-                $opt1 = trim($row[1] ?? '');
-                $opt2 = trim($row[2] ?? '');
-                $opt3 = trim($row[3] ?? '');
-                $opt4 = trim($row[4] ?? '');
-                $correct = trim($row[5] ?? '');
-                $points = trim($row[6] ?? 1);
-
-                // Validate required fields
-                if (empty($questionText)) {
-                    $errors[] = "Row $rowCount: Empty question text";
-                    $errorCount++;
-                    continue;
-                }
-
-                // Validate options are not empty
-                if (empty($opt1) || empty($opt2) || empty($opt3) || empty($opt4)) {
-                    $errors[] = "Row $rowCount: One or more options are empty";
-                    $errorCount++;
-                    continue;
-                }
-
-                // Convert numeric correct_option to letter if needed
-                $correctOption = $this->normalizeCorrectOption($correct, $rowCount);
-
-                $question = Question::create([
-                    'quiz_id' => $quiz,
-                    'question_text' => $questionText,
-                    'option_a' => $opt1,
-                    'option_b' => $opt2,
-                    'option_c' => $opt3,
-                    'option_d' => $opt4,
-                    'correct_option' => $correctOption, // This is now a string
-                    'points' => (int) $points ?: 1,
-                ]);
-
-                $successCount++;
-
-            } catch (\Exception $e) {
-                $errorCount++;
-                $errors[] = "Row $rowCount: " . $e->getMessage();
-                \Log::error('Error processing Excel row', [
-                    'row_number' => $rowCount,
-                    'excel_index' => $index,
-                    'error' => $e->getMessage(),
-                    'data' => $row
-                ]);
-            }
-        }
-
-        \Log::info('Excel import completed', [
-            'total_rows' => $rowCount,
-            'successful' => $successCount,
-            'failed' => $errorCount,
-            'quiz_id' => $quiz
-        ]);
-
-        // Log all errors
-        if (!empty($errors)) {
-            \Log::warning('Import errors', ['errors' => $errors]);
-        }
-
-    } catch (\Exception $e) {
-        \Log::error('Failed to process Excel file', [
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'quiz_id' => $quiz
-        ]);
-        throw new \Exception("Excel processing failed: " . $e->getMessage());
-    }
-}
-
-/**
- * Helper function to normalize correct_option values
- * Converts numbers to letters (1->A, 2->B, etc.)
- */
-private function normalizeCorrectOption($value, $rowNumber)
-{
-    $value = trim((string) $value);
-
-    if ($value === '') {
-        \Log::warning("Empty correct_option in row $rowNumber, defaulting to 'A'");
-        return 'A';
-    }
-
-    $value = strtoupper($value);
-
-    // If it's already A, B, C, D, return as is
-    if (in_array($value, ['A', 'B', 'C', 'D'])) {
-        return $value;
-    }
-
-    // Convert numeric values (1,2,3,4) to letters
-    $numberMap = [
-        '1' => 'A',
-        '2' => 'B',
-        '3' => 'C',
-        '4' => 'D'
-    ];
-
-    if (isset($numberMap[$value])) {
-        \Log::debug("Converted numeric correct_option '$value' to '{$numberMap[$value]}'", ['row' => $rowNumber]);
-        return $numberMap[$value];
-    }
-
-    // Try to convert word representations
-    $wordMap = [
-        'FIRST' => 'A',
-        'SECOND' => 'B',
-        'THIRD' => 'C',
-        'FOURTH' => 'D',
-        'ONE' => 'A',
-        'TWO' => 'B',
-        'THREE' => 'C',
-        'FOUR' => 'D'
-    ];
-
-    if (isset($wordMap[$value])) {
-        \Log::debug("Converted word correct_option '$value' to '{$wordMap[$value]}'", ['row' => $rowNumber]);
-        return $wordMap[$value];
-    }
-
-    // If value is invalid, default to 'A' with warning
-    \Log::warning("Invalid correct_option value '$value' in row $rowNumber, defaulting to 'A'");
-    return 'A';
-}
-// List questions for a specific quiz
     public function index($quiz)
     {
         $quiz = Quiz::findOrFail($quiz);
+        $questionCount = Question::where('quiz_id', $quiz->id)->count();
+        $questionLimit = $this->resolveQuestionLimit($quiz);
 
         $questions = Question::where('quiz_id', $quiz->id)
-                             ->paginate(5);
-        return view('questions.manage', compact('questions', 'quiz'));
+            ->latest()
+            ->paginate(20);
+
+        return view('questions.manage', compact('questions', 'quiz', 'questionCount', 'questionLimit'));
     }
 
-    // Show create question form
-    // In your controller
-    public function create(Quiz $quiz) // Type-hint the Quiz model
+    public function create(Quiz $quiz)
     {
-        return view('questions.questionform', [
-            // 'quiz' => $quizId->id,
-            'quiz' => $quiz,
-        ]);
+        return view('questions.questionform', ['quiz' => $quiz]);
     }
 
-    // Store a new question
-   public function store(Request $request, $quiz)
+    public function store(Request $request, $quiz)
     {
+        $quiz = Quiz::findOrFail($quiz);
+
+        if (! $this->canAddMoreQuestions($quiz)) {
+            return redirect()->back()->withInput()->with(
+                'error',
+                "Question bank limit reached for this quiz ({$this->resolveQuestionLimit($quiz)} questions)."
+            );
+        }
+
         $data = $request->validate([
             'question_text' => 'required|string',
-            'options' => 'required|array|min:2',
-            'options.*' => 'required|string',
-            'correct_option' => 'required|integer|min:0',
+            'option_a' => 'required|string',
+            'option_b' => 'required|string',
+            'option_c' => 'required|string',
+            'option_d' => 'required|string',
+            'correct_option' => 'required|string',
             'points' => 'nullable|integer|min:1',
         ]);
 
-        $question = Question::create([
-            'quiz_id' => $quiz,
+        Question::create([
+            'quiz_id' => $quiz->id,
             'question_text' => $data['question_text'],
+            'option_a' => $data['option_a'],
+            'option_b' => $data['option_b'],
+            'option_c' => $data['option_c'],
+            'option_d' => $data['option_d'],
+            'correct_option' => $this->normalizeCorrectOption($data['correct_option'], 0),
             'points' => $data['points'] ?? 1,
-            'correct_option' => $data['correct_option'],
         ]);
 
-        // Save options - assuming you have an options relationship
-        foreach ($data['options'] as $index => $optionText) {
-            $question->options()->create([
-                'option_text' => $optionText,
-                'is_correct' => $index == $data['correct_option']
-            ]);
-        }
-
-        return redirect()->route('questions.index', $quiz)
-                        ->with('success', 'Question added successfully!');
+        return redirect()->route('questions.index', $quiz->id)
+            ->with('success', 'Question added successfully!');
     }
 
-    public function update($quiz, $id)
+    public function edit($quiz, $question)
     {
         $quiz = Quiz::findOrFail($quiz);
-        $question = Question::with('options')->findOrFail($id);
+        $question = Question::where('quiz_id', $quiz->id)->findOrFail($question);
+
         return view('questions.edit', compact('question', 'quiz'));
     }
 
-    public function edit(Request $request, $quiz, $id)
+    public function update(Request $request, $quiz, $question)
     {
+        $quiz = Quiz::findOrFail($quiz);
+        $question = Question::where('quiz_id', $quiz->id)->findOrFail($question);
+
         $data = $request->validate([
             'question_text' => 'required|string',
-            'options' => 'required|array|min:2',
-            'options.*' => 'reqired|string',
-            'correct_option' => 'required|integer|min:0',
+            'option_a' => 'required|string',
+            'option_b' => 'required|string',
+            'option_c' => 'required|string',
+            'option_d' => 'required|string',
+            'correct_option' => 'required|string',
             'points' => 'nullable|integer|min:1',
         ]);
 
-        $question = Question::findOrFail($id);
         $question->update([
             'question_text' => $data['question_text'],
+            'option_a' => $data['option_a'],
+            'option_b' => $data['option_b'],
+            'option_c' => $data['option_c'],
+            'option_d' => $data['option_d'],
+            'correct_option' => $this->normalizeCorrectOption($data['correct_option'], 0),
             'points' => $data['points'] ?? 1,
         ]);
 
-        // Update options
-        foreach ($data['options'] as $index => $optionText) {
-            $option = Option::where('question_id', $question->id)
-                            ->where('id', $request->input("option_ids.$index"))
-                            ->first();
+        return redirect()->route('questions.index', $quiz->id)
+            ->with('success', 'Question updated successfully!');
+    }
 
-            if ($option) {
-                $option->update([
-                    'option_text' => $optionText,
-                    'is_correct' => $index == $data['correct_option'],
+    public function destroy($quiz, $question)
+    {
+        $quiz = Quiz::findOrFail($quiz);
+        $question = Question::where('quiz_id', $quiz->id)->findOrFail($question);
+        $question->delete();
+
+        return redirect()->route('questions.index', $quiz->id)
+            ->with('success', 'Question deleted successfully!');
+    }
+
+    public function import(Request $request, $quiz)
+    {
+        $quiz = Quiz::findOrFail($quiz);
+        Log::info('Import process started', ['quiz_id' => $quiz->id]);
+
+        try {
+            $request->validate([
+                'file' => 'required|mimes:csv,txt,xlsx,xls',
+            ]);
+
+            $extension = strtolower($request->file('file')->getClientOriginalExtension());
+            $summary = in_array($extension, ['csv', 'txt'], true)
+                ? $this->importFromCsv($request->file('file')->getRealPath(), $quiz)
+                : $this->importFromExcel($request->file('file'), $quiz);
+
+            $message = "Questions imported successfully. Added {$summary['imported']} question(s).";
+
+            if ($summary['failed'] > 0) {
+                $message .= " {$summary['failed']} row(s) failed.";
+            }
+
+            if ($summary['limit_reached']) {
+                $message .= " Question bank limit reached for this quiz.";
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'count' => $summary['imported'],
+                    'summary' => $summary,
                 ]);
-            } else {
-                Option::create([
-                    'question_id' => $question->id,
-                    'option_text' => $optionText,
-                    'is_correct' => $index == $data['correct_option'],
+            }
+
+            return redirect()->route('questions.index', $quiz->id)->with('success', $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Import process failed', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'quiz_id' => $quiz->id,
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Import failed: '.$e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Import failed: '.$e->getMessage());
+        }
+    }
+
+    private function importFromCsv(string $path, Quiz $quiz): array
+    {
+        $file = fopen($path, 'r');
+        if (! $file) {
+            throw new \Exception('Could not open CSV file.');
+        }
+
+        $header = fgetcsv($file);
+        if (empty($header) || count($header) < 7) {
+            fclose($file);
+            throw new \Exception('CSV must have at least 7 columns: question_text, option_a, option_b, option_c, option_d, correct_option, points.');
+        }
+
+        $rows = [];
+        while (($row = fgetcsv($file)) !== false) {
+            $rows[] = $row;
+        }
+        fclose($file);
+
+        return $this->importRows($rows, $quiz);
+    }
+
+    private function importFromExcel($file, Quiz $quiz): array
+    {
+        $sheets = Excel::toArray([], $file);
+        $rows = $sheets[0] ?? [];
+
+        if (count($rows) < 2) {
+            return [
+                'total' => 0,
+                'imported' => 0,
+                'failed' => 0,
+                'errors' => [],
+                'limit_reached' => false,
+            ];
+        }
+
+        array_shift($rows);
+
+        return $this->importRows($rows, $quiz);
+    }
+
+    private function importRows(array $rows, Quiz $quiz): array
+    {
+        $summary = [
+            'total' => 0,
+            'imported' => 0,
+            'failed' => 0,
+            'errors' => [],
+            'limit_reached' => false,
+        ];
+
+        $limit = $this->resolveQuestionLimit($quiz);
+        $currentCount = Question::where('quiz_id', $quiz->id)->count();
+        $remainingSlots = max($limit - $currentCount, 0);
+
+        if ($remainingSlots === 0) {
+            $summary['limit_reached'] = true;
+            $summary['errors'][] = "This quiz already reached its question limit ({$limit}).";
+            return $summary;
+        }
+
+        foreach ($rows as $index => $row) {
+            if ($summary['imported'] >= $remainingSlots) {
+                $summary['limit_reached'] = true;
+                break;
+            }
+
+            $rowNumber = $index + 2; // Account for header row in files.
+            $row = array_pad($row, 7, '');
+            $row = array_map(static fn ($value) => trim((string) $value), $row);
+
+            if ($this->isRowEmpty($row)) {
+                continue;
+            }
+
+            $summary['total']++;
+
+            try {
+                $questionText = $row[0];
+                $optionA = $row[1];
+                $optionB = $row[2];
+                $optionC = $row[3];
+                $optionD = $row[4];
+                $correct = $row[5];
+                $points = (int) ($row[6] ?? 1);
+
+                if ($questionText === '') {
+                    throw new \Exception("Row {$rowNumber}: Empty question text.");
+                }
+
+                if ($optionA === '' || $optionB === '' || $optionC === '' || $optionD === '') {
+                    throw new \Exception("Row {$rowNumber}: Options A, B, C and D are required.");
+                }
+
+                if ($points <= 0) {
+                    $points = 1;
+                }
+
+                Question::create([
+                    'quiz_id' => $quiz->id,
+                    'question_text' => $questionText,
+                    'option_a' => $optionA,
+                    'option_b' => $optionB,
+                    'option_c' => $optionC,
+                    'option_d' => $optionD,
+                    'correct_option' => $this->normalizeCorrectOption($correct, $rowNumber),
+                    'points' => $points,
+                ]);
+
+                $summary['imported']++;
+            } catch (\Throwable $e) {
+                $summary['failed']++;
+                $summary['errors'][] = $e->getMessage();
+                Log::warning('Question import row failed', [
+                    'quiz_id' => $quiz->id,
+                    'row' => $rowNumber,
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
-        return redirect()->route('questions.index', $quiz)
-                         ->with('success', 'Question updated successfully!');
-}
+        return $summary;
+    }
+
+    private function normalizeCorrectOption($value, int $rowNumber): string
+    {
+        $value = strtoupper(trim((string) $value));
+        $normalized = str_replace([' ', '-'], '_', $value);
+
+        $map = [
+            'A' => 'A',
+            'B' => 'B',
+            'C' => 'C',
+            'D' => 'D',
+            'OPTION_A' => 'A',
+            'OPTION_B' => 'B',
+            'OPTION_C' => 'C',
+            'OPTION_D' => 'D',
+            '1' => 'A',
+            '2' => 'B',
+            '3' => 'C',
+            '4' => 'D',
+            'FIRST' => 'A',
+            'SECOND' => 'B',
+            'THIRD' => 'C',
+            'FOURTH' => 'D',
+            'ONE' => 'A',
+            'TWO' => 'B',
+            'THREE' => 'C',
+            'FOUR' => 'D',
+        ];
+
+        if (isset($map[$normalized])) {
+            return $map[$normalized];
+        }
+
+        Log::warning("Invalid correct_option value '{$value}' in row {$rowNumber}; defaulting to A.");
+        return 'A';
+    }
+
+    private function canAddMoreQuestions(Quiz $quiz): bool
+    {
+        $currentCount = Question::where('quiz_id', $quiz->id)->count();
+        return $currentCount < $this->resolveQuestionLimit($quiz);
+    }
+
+    private function resolveQuestionLimit(Quiz $quiz): int
+    {
+        return max((int) ($quiz->question_limit ?? 60), 1);
+    }
+
+    private function isRowEmpty(array $row): bool
+    {
+        foreach ($row as $value) {
+            if ($value !== '' && $value !== null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

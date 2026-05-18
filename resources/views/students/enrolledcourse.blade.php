@@ -48,6 +48,18 @@
                             Enrolled: {{ $enrollment->enrolled_at?->format('M d, Y') ?? $enrollment->updated_at?->format('M d, Y') ?? 'Not specified' }}
                         </div>
 
+                        <div class="text-sm text-gray-600 mb-4">
+                            @if(($enrollment->payment_status ?? 'free') === 'paid')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold">
+                                    Paid • GHS {{ number_format((float) ($enrollment->price_paid ?? $course->price ?? 0), 2) }}
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+                                    Free Enrollment
+                                </span>
+                            @endif
+                        </div>
+
                         <!-- Action Buttons -->
                         <div class="flex flex-wrap gap-2">
                             <!-- View Materials Button -->

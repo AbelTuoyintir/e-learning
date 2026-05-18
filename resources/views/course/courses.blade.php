@@ -89,6 +89,7 @@
                     <th class="px-6 py-4 text-sm font-semibold text-slate-700">Course</th>
                     <th class="px-6 py-4 text-sm font-semibold text-slate-700">Category</th>
                     <th class="px-6 py-4 text-sm font-semibold text-slate-700">Duration</th>
+                    <th class="px-6 py-4 text-sm font-semibold text-slate-700">Price</th>
                     <th class="px-6 py-4 text-sm font-semibold text-slate-700">Enrolled</th>
                     <th class="px-6 py-4 text-sm font-semibold text-slate-700">Status</th>
                     <th class="px-6 py-4 text-sm font-semibold text-slate-700 text-right">Actions</th>
@@ -113,6 +114,13 @@
                     </td>
                     <td class="px-6 py-4 text-sm text-slate-600">{{ $course->category }}</td>
                     <td class="px-6 py-4 text-sm text-slate-600">{{ $course->duration }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">
+                        @if((float) ($course->price ?? 0) > 0)
+                            GHS {{ number_format((float) $course->price, 2) }}
+                        @else
+                            Free
+                        @endif
+                    </td>
                     <td class="px-6 py-4 text-sm text-slate-600">324</td>
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
@@ -241,7 +249,7 @@
                     </div>
 
                     <!-- Two Column Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Instructor -->
                         <div>
                             <label for="instructor" class="block text-sm font-semibold text-slate-700 mb-2">Instructor</label>
@@ -262,6 +270,17 @@
                                    value="{{ old('duration') }}"
                                    placeholder="Course duration">
                             @error('duration')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="price" class="block text-sm font-semibold text-slate-700 mb-2">Price (GHS)</label>
+                            <input type="number" name="price" id="price" min="0" step="0.01"
+                                   class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition @error('price') border-red-300 @enderror"
+                                   value="{{ old('price', 0) }}"
+                                   placeholder="0.00 for free">
+                            @error('price')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

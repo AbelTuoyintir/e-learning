@@ -188,6 +188,26 @@
             </select>
           </div>
 
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube Video URL</label>
+            <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url ?? '') }}"
+                   placeholder="https://www.youtube.com/watch?v=..."
+                   class="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            @error('video_url')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Document (PDF or PPTX)</label>
+            <input type="file" name="document" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                   class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl">
+            <p class="text-xs text-gray-500 mt-1">Max size: 10MB</p>
+            @error('document')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+          </div>
+
         </div>
         <button type="submit"
                 class="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 font-semibold">
@@ -214,8 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let questionCounter = {{ count(old('questions', [])) }};
 
     // Add content block
-    document.getElementById('addContent').addEventListener('click', function() {
+    const addContentBtn = document.getElementById('addContent');
+    if (addContentBtn) {
+      addContentBtn.addEventListener('click', function() {
         const contentsList = document.getElementById('contentsList');
+        if (!contentsList) return;
         const index = contentCounter++;
 
         const contentHTML = `
@@ -238,11 +261,15 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         contentsList.insertAdjacentHTML('beforeend', contentHTML);
-    });
+      });
+    }
 
     // Add question block
-    document.getElementById('addQuestion').addEventListener('click', function() {
+    const addQuestionBtn = document.getElementById('addQuestion');
+    if (addQuestionBtn) {
+      addQuestionBtn.addEventListener('click', function() {
         const questionsList = document.getElementById('questionsList');
+        if (!questionsList) return;
         const index = questionCounter++;
 
         const questionHTML = `
@@ -283,7 +310,8 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         questionsList.insertAdjacentHTML('beforeend', questionHTML);
-    });
+      });
+    }
 
     // Remove handlers (delegated)
     document.addEventListener('click', function(e) {
@@ -333,30 +361,39 @@ function showLoading() {
 }
 
 // Example: Show loading when a form is submitted
-document.getElementById('myForm').addEventListener('submit', function(event) {
-    showLoading();
-});
+const topicForm = document.getElementById('myForm');
+if (topicForm) {
+    topicForm.addEventListener('submit', function(event) {
+        showLoading();
+    });
+}
 
 
 const openBtn = document.getElementById("createTopicBtn");
 const modal = document.getElementById("topicModal");
 const closeBtn = document.getElementById("closeTopicModal");
 
-openBtn.addEventListener("click", () => {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-});
+if (openBtn && modal) {
+    openBtn.addEventListener("click", () => {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    });
+}
 
 // Close when clicking X
-closeBtn.addEventListener("click", () => {
-    modal.classList.add("hidden");
-});
+if (closeBtn && modal) {
+    closeBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+    });
+}
 
 // Close when clicking outside the popup box
-modal.addEventListener("click", (e) => {
-    if (e.target === modal) {
-        modal.classList.add("hidden");
-    }
-});
+if (modal) {
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.classList.add("hidden");
+        }
+    });
+}
 </script>
 @endsection

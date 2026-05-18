@@ -26,7 +26,7 @@
           </span>
           Available Courses
         </h2>
-        <span class="text-sm text-slate-500">3 courses open for enrolment</span>
+        <span class="text-sm text-slate-500">{{ $courses->total() }} course(s) open for enrolment</span>
       </div>
 
      @if($courses->isEmpty() && !request()->has('search'))
@@ -85,18 +85,40 @@
                 <div class="p-6">
                     <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $course->title }}</h3>
                     <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ $course->description ?? 'No description available' }}</p>
+                    <div class="mb-4">
+                        @if((float) ($course->price ?? 0) > 0)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-sm font-semibold">
+                                GHS {{ number_format((float) $course->price, 2) }}
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold">
+                                Free Course
+                            </span>
+                        @endif
+                    </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-slate-500 text-sm">
                             <i class="fas fa-clock"></i>
                             <span>{{ $course->duration ?? 'N/A' }} hours</span>
                         </div>
+
+                        @if((float) ($course->price ?? 0) > 0)
+                            <a href="{{ route('students.courses.checkout', $course->id) }}"
+                               class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition transform group-hover:scale-105"
+                               data-course-id="{{ $course->id }}">
+                                <i class="fas fa-credit-card mr-2"></i>Buy Now
+                            </a>
+                        @else
                             <form action="/students/course-enrollment" method="POST" class="inline">
-                            @csrf
-                            <input type="hidden" name="course_id" value="{{ $course->id }}">
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition transform group-hover:scale-105">
-                                <i class="fas fa-plus-circle mr-2"></i>Enroll Now
-                            </button>
-                        </form>
+                                @csrf
+                                <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                <button type="submit"
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition transform group-hover:scale-105"
+                                        data-course-id="{{ $course->id }}">
+                                    <i class="fas fa-plus-circle mr-2"></i>Enroll Now
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>

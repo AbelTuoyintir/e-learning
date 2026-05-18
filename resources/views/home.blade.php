@@ -13,6 +13,8 @@
     <!-- Tailwind CDN (swap to npm/your build later) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+   @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <!-- Tiny config so “sky” becomes your primary blue -->
     <script>
     tailwind.config = {

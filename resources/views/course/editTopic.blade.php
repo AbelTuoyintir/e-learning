@@ -1,246 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Topic</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SweetAlert CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        indigo: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#312e81',
-                        },
-                        purple: {
-                            600: '#9333ea',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .gradient-text {
-            background: linear-gradient(to right, #4f46e5, #9333ea);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .form-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .btn-loading {
-            position: relative;
-            color: transparent !important;
-        }
-        .btn-loading::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            top: 50%;
-            left: 50%;
-            margin-left: -10px;
-            margin-top: -10px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body class="bg-gray-50 min-h-screen py-8">
-    <div class="container mx-auto px-4">
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Topic Management</h1>
-                <p class="text-gray-600">Edit existing topic details</p>
-            </div>
-            <a href="{{ route('admin.topics.create', $topic->module_id) }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                <i class="fas fa-arrow-left mr-2"></i>
-                Back to Topics
-            </a>
-        </div>
+@extends('layouts.app')
 
-        <!-- Edit Form -->
-        <div class="bg-white w-full max-w-4xl mx-auto rounded-2xl form-shadow overflow-hidden">
-            <!-- Form Header -->
-            <div class="border-b border-gray-200 px-6 py-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-extrabold tracking-tight gradient-text">Edit Topic</h2>
-                    <button class="text-gray-500 hover:text-gray-700 text-xl transition">
-                        &times;
-                    </button>
-                </div>
-            </div>
+@section('title', 'Edit Topic')
 
-            <!-- Form Content -->
-            <form method="POST" action="{{ route('admin.topics.update', $topic->id) }}" enctype="multipart/form-data" class="p-6 space-y-6" id="editTopicForm">
-                @csrf
-                @method('PUT')
-
-                <input type="hidden" name="module_id" value="{{ $topic->module_id }}">
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- Left Column: Topic Details -->
-                    <div class="md:col-span-2 space-y-6">
-                        <div class="bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-5">
-                            <!-- Title -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Topic Title *</label>
-                                <input type="text" name="title" value="{{ old('title', $topic->title) }}" required
-                                       class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                <p class="text-red-600 text-sm mt-1 hidden">The title field is required.</p>
-                            </div>
-
-                            <!-- Order -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Order</label>
-                                <input type="number" name="order" min="0"
-                                       class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                                       value="{{ old('order', $topic->order) }}">
-                            </div>
-
-                            <!-- Status -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                                <select name="is_active"
-                                        class="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                                    <option value="1" {{ $topic->is_active ? 'selected' : '' }}>Active</option>
-                                    <option value="0" {{ !$topic->is_active ? 'selected' : '' }}>Draft</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
-                    <button type="button" class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition font-medium">
-                        Cancel
-                    </button>
-                    <button type="submit" id="submitBtn" class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium flex items-center justify-center">
-                        <i class="fas fa-save mr-2"></i>Update Topic
-                    </button>
-                </div>
-            </form>
-        </div>
+@section('content')
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Edit Topic</h1>
+        <a href="{{ route('admin.topics.create', $topic->module_id) }}"
+           class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
+            Back to Topics
+        </a>
     </div>
 
-    <!-- SweetAlert JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+        <form method="POST" action="{{ route('admin.topics.update', $topic->id) }}" enctype="multipart/form-data" class="space-y-6">
+            @csrf
+            @method('PUT')
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('editTopicForm');
-            const submitBtn = document.getElementById('submitBtn');
+            <input type="hidden" name="module_id" value="{{ $topic->module_id }}">
 
-            // Close button functionality
-            document.querySelector('button.text-xl').addEventListener('click', function() {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'You have unsaved changes that will be lost.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#4f46e5',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes, close it!',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '#'; // Replace with actual back URL
-                    }
-                });
-            });
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Topic Title *</label>
+                <input type="text" name="title" value="{{ old('title', $topic->title) }}" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                @error('title')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-            // Cancel button functionality
-            document.querySelector('button.bg-white').addEventListener('click', function() {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'You have unsaved changes that will be lost.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#4f46e5',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Yes, cancel!',
-                    cancelButtonText: 'Continue editing'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '#'; // Replace with actual back URL
-                    }
-                });
-            });
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Order</label>
+                    <input type="number" name="order" min="0" value="{{ old('order', $topic->order) }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    @error('order')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
-            // Form submission
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <select name="is_active"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="1" {{ old('is_active', $topic->is_active) ? 'selected' : '' }}>Active</option>
+                        <option value="0" {{ !old('is_active', $topic->is_active) ? 'selected' : '' }}>Draft</option>
+                    </select>
+                    @error('is_active')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
 
-                // Show loading state
-                submitBtn.classList.add('btn-loading');
-                submitBtn.disabled = true;
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube Video URL</label>
+                <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url) }}"
+                       placeholder="https://www.youtube.com/watch?v=..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                @error('video_url')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-                // Simulate form submission (replace with actual AJAX/fetch call)
-                setTimeout(() => {
-                    // This is where you would make your actual API call
-                    // For demonstration, we'll simulate both success and error scenarios
-                    const isSuccess = Math.random() > 0.3; // 70% success rate for demo
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Document (PDF or PPTX)</label>
+                <input type="file" name="document" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-xl">
+                <p class="text-xs text-gray-500 mt-1">Uploading a new file replaces the current one. Max size: 10MB.</p>
+                @if($topic->file_name)
+                    <p class="text-sm text-gray-700 mt-2">Current document: <span class="font-medium">{{ $topic->file_name }}</span></p>
+                @endif
+                @error('document')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+            </div>
 
-                    if (isSuccess) {
-                        // Success message
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Topic has been updated successfully.',
-                            icon: 'success',
-                            confirmButtonColor: '#4f46e5',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            // Redirect or do something else on success
-                            window.location.href = '#'; // Replace with success URL
-                        });
-                    } else {
-                        // Error message
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'There was a problem updating the topic. Please try again.',
-                            icon: 'error',
-                            confirmButtonColor: '#4f46e5',
-                            confirmButtonText: 'Try Again'
-                        });
-
-                        // Remove loading state on error
-                        submitBtn.classList.remove('btn-loading');
-                        submitBtn.disabled = false;
-                    }
-                }, 1500); // Simulate network delay
-            });
-
-            // Validation example
-            const titleInput = document.querySelector('input[name="title"]');
-            const errorMessage = document.querySelector('.text-red-600');
-
-            titleInput.addEventListener('blur', function() {
-                if (!this.value.trim()) {
-                    errorMessage.classList.remove('hidden');
-                    this.classList.add('border-red-500');
-                } else {
-                    errorMessage.classList.add('hidden');
-                    this.classList.remove('border-red-500');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+            <div class="flex justify-end gap-3 pt-2">
+                <a href="{{ route('admin.topics.create', $topic->module_id) }}"
+                   class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                    Update Topic
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

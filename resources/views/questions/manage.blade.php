@@ -8,6 +8,10 @@
     <h1 class="text-2xl font-bold text-gray-800 mb-6">
         Questions for Quiz: <span class="text-blue-600">{{ $quiz->title }}</span>
     </h1>
+    <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+        Question bank usage: <strong>{{ $questionCount ?? $questions->total() }}</strong> /
+        <strong>{{ $questionLimit ?? ($quiz->question_limit ?? 60) }}</strong>
+    </div>
 
     <!-- Add New Question Button -->
     <div class="mb-6 flex space-x-4">
@@ -17,7 +21,7 @@
         </a>
 
         <!-- Optional: Add Import CSV Button -->
-        <a href="{{ route('questions.import', $quiz->id) }}"
+        <a href="{{ route('questions.create', $quiz->id) }}#bulk-upload"
            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow">
             📁 Import CSV
         </a>

@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Topic;
 use App\Models\Module;
-use App\Models\TopicContent; // Fixed import name
-use App\Models\Question; // Add this import
+use App\Models\TopicContent;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
-// Remove the wrong import: use Illuminate\Database\Eloquent\pagination;
+use Illuminate\Support\Str;
 
 class TopicController extends Controller
 {
@@ -53,9 +51,7 @@ class TopicController extends Controller
             'order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'video_url' => 'nullable|url',
-            'quiz_id' => 'nullable|exists:quizzes,id',
-            'contents' => 'nullable|array',
-            'questions' => 'nullable|array',
+            'document' => 'nullable|file|mimes:pdf,pptx|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -63,15 +59,34 @@ class TopicController extends Controller
         }
 
         try {
+            if ($request->filled('video_url') && ! $this->isYoutubeUrl($request->video_url)) {
+                return back()->withErrors([
+                    'video_url' => 'Please provide a valid YouTube URL (youtube.com or youtu.be).',
+                ])->withInput();
+            }
+
+            $filePath = null;
+            $fileName = null;
+
+            if ($request->hasFile('document')) {
+                $file = $request->file('document');
+                $filePath = $file->store('topic-materials', 'local');
+                $fileName = $file->getClientOriginalName();
+            }
+
             // Create the topic
-            $topic = Topic::create([
+            Topic::create([
                 'module_id' => $request->module_id,
                 'title' => $request->title,
                 'order' => $request->order ?? 0,
                 'is_active' => $request->is_active ?? true,
+                'video_url' => $request->video_url,
+                'file_path' => $filePath,
+                'file_name' => $fileName,
             ]);
 
-            return redirect()->route('admin.topics.create')->with('success', 'Topic created successfully!');
+            return redirect()->route('admin.topics.create', $request->module_id)
+                ->with('success', 'Topic created successfully!');
 
         } catch (\Exception $e) {
             \Log::error('Topic creation failed: ' . $e->getMessage());
@@ -102,26 +117,41 @@ class TopicController extends Controller
     /**
      * Update the specified resource in storage.
      */
-     public function update(Request $request, $id): RedirectResponse
+    public function update(Request $request, $id): RedirectResponse
     {
         try {
             // Validate the request
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'description' => 'nullable|string',
                 'order' => 'nullable|integer|min:0',
                 'is_active' => 'required|boolean',
-                'module_id' => 'required|exists:modules,id'
+                'module_id' => 'required|exists:modules,id',
+                'video_url' => 'nullable|url',
+                'document' => 'nullable|file|mimes:pdf,pptx|max:10240',
             ]);
 
             // Find the topic
             $topic = Topic::findOrFail($id);
 
+            if ($request->filled('video_url') && ! $this->isYoutubeUrl($request->video_url)) {
+                return back()->withErrors([
+                    'video_url' => 'Please provide a valid YouTube URL (youtube.com or youtu.be).',
+                ])->withInput();
+            }
+
+            if ($request->hasFile('document')) {
+                $this->deleteTopicFileIfExists($topic->file_path);
+
+                $file = $request->file('document');
+                $validated['file_path'] = $file->store('topic-materials', 'local');
+                $validated['file_name'] = $file->getClientOriginalName();
+            }
+
             // Update the topic
             $topic->update($validated);
 
             // For web requests, use redirect instead of JSON
-           return redirect()->back()->with('success', 'Topic updated successfully!');
+            return redirect()->back()->with('success', 'Topic updated successfully!');
 
         } catch (\Exception $e) {
             \Log::error('Topic update failed: ' . $e->getMessage());
@@ -134,10 +164,7 @@ class TopicController extends Controller
     public function destroy(Topic $topic)
     {
         try {
-            // Delete associated file
-            if ($topic->file_path) {
-                Storage::disk('public')->delete($topic->file_path);
-            }
+            $this->deleteTopicFileIfExists($topic->file_path);
 
             // Delete associated contents and questions
             $topic->contents()->delete();
@@ -207,6 +234,36 @@ class TopicController extends Controller
                 'success' => false,
                 'message' => 'Failed to update topic order: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    private function isYoutubeUrl(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+        if (! $host) {
+            return false;
+        }
+
+        $normalizedHost = Str::lower($host);
+        $normalizedHost = str_replace('www.', '', $normalizedHost);
+
+        return in_array($normalizedHost, ['youtube.com', 'm.youtube.com', 'youtu.be'], true)
+            || Str::endsWith($normalizedHost, '.youtube.com');
+    }
+
+    private function deleteTopicFileIfExists(?string $filePath): void
+    {
+        if (! $filePath) {
+            return;
+        }
+
+        if (Storage::disk('local')->exists($filePath)) {
+            Storage::disk('local')->delete($filePath);
+            return;
+        }
+
+        if (Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
         }
     }
 

@@ -111,6 +111,14 @@
         </div>
     </div>
 
+    <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Question Bank Limit</label>
+        <input type="number" name="question_limit" min="1" max="1000" required
+               value="{{ old('question_limit', $quiz->question_limit ?? 60) }}"
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        <p class="text-xs text-gray-500 mt-1">Set how many questions this quiz can hold (e.g. 60 or 120).</p>
+    </div>
+
     <!-- Submit -->
     <div class="pt-4">
         <button type="submit"
