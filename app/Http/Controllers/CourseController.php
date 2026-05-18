@@ -36,6 +36,7 @@ class CourseController extends Controller
 
    public function store(Request $request)
 {
+    
     try {
         // Validate and store course data
         $validated = $request->validate([
