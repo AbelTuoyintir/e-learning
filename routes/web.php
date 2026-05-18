@@ -12,7 +12,11 @@ use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return view('home');
-});
+})->name('home');
+Route::get('/about', function(){ return view('about');})->name('about');
+Route::get('/privacy', function(){ return view('privacy');})->name('privacy');
+Route::get('/contact', function(){ return view('contact');})->name('contact');
+Route::get('/accessibility', function(){ return view('accessibility');})->name('accessibility');
 
 // Route::get('/', [QuizController::class, 'index'])->name('admin.dashboard');
 // Admin Authentication Routes (using web guard)
