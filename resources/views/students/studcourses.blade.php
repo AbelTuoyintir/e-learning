@@ -78,12 +78,20 @@
         @foreach ($courses as $course)
             <!-- Course Card -->
             <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
-                <div class="h-40 bg-gradient-to-br from-cyan-400 to-blue-600 relative">
-                    <div class="absolute inset-0 bg-black/10"></div>
-                    <div class="absolute top-4 right-4 bg-white/90 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Available</div>
-                </div>
+                 @if($course->image)
+                        <div class="h-48 overflow-hidden">
+                            <img src="{{ asset('storage/' . $course->image) }}"
+                                 alt="{{ $course->title }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                    @endif
                 <div class="p-6">
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $course->title }}</h3>
+                    <div class="flex">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $course->title }}</h3>
+                        @if($course->enrollments()->where('student_id', auth()->user()->id)->exists())
+                            <span class="ml-auto px-2 py-2 bg-green-100 rounded-lg text-sm text-green-600">Enrolled</span>
+                        @endif
+                    </div>
                     <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ $course->description ?? 'No description available' }}</p>
                     <div class="mb-4">
                         @if((float) ($course->price ?? 0) > 0)
@@ -99,7 +107,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-slate-500 text-sm">
                             <i class="fas fa-clock"></i>
-                            <span>{{ $course->duration ?? 'N/A' }} hours</span>
+                            <span>{{ $course->duration ?? "60" }} hours a week</span>
                         </div>
 
                         @if((float) ($course->price ?? 0) > 0)

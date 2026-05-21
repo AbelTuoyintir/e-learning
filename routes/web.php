@@ -115,6 +115,11 @@ Route::middleware('auth:student')->group(function () {
     Route::get('/students/notifications', [StudentController::class, 'getNotifications'])->name('students.notifications');
     Route::post('/students/notifications/{notification}/read', [StudentController::class, 'markNotificationAsRead'])->name('students.notifications.read');
     Route::post('/students/notifications/mark-all-read', [StudentController::class, 'markAllNotificationsAsRead'])->name('students.notifications.markAllRead');
+    
+
+    Route::get('/student/statistics', [StudentController::class, 'statistics'])->name('student.statistics');
+    Route::get('/student/results', [StudentController::class, 'results'])->name('student.results');
+    Route::get('/student/quizzes', [StudentController::class, 'quizzes'])->name('student.quizzes');
 });
 
 // Admin Logout
@@ -129,6 +134,8 @@ Route::post('/student/logout', [AuthController::class, 'studentLogout'])->name('
 //admin routes with middleware
 
 Route::prefix('admin')->group(function () {
+ // Add this to your authenticated student routes group
+    Route::get('/student/{student}/details', [StudentController::class, 'getStudentDetails'])->name('student.details');
 Route::get('manage/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
 Route::get('quiz/create', [QuizController::class, 'create'])->name('quizzes.create');
 Route::post('quiz', [QuizController::class, 'store'])->name('quizzes.store');
@@ -153,6 +160,11 @@ Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'
 Route::put('/modules/{module}', [ModuleController::class, 'update'])
      ->name('modules.update');
 Route::delete('/modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('modules.destroy');
+
+Route::patch('/modules/{module}/status', [ModuleController::class, 'updateStatus'])->name('modules.status');
+Route::post('/modules/bulk-status', [ModuleController::class, 'bulkStatus'])->name('modules.bulk-status');
+Route::delete('/modules/bulk-delete', [ModuleController::class, 'bulkDelete'])->name('modules.bulk-delete');
+
 Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name('topics.index');
 
    Route::get('/topics/create/{module}', [TopicController::class, 'create'])

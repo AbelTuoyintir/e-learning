@@ -15,8 +15,10 @@ class QuizAttempt extends Model
         'started_at',
         'completed_at',
         'answers',
+        'question_ids',
         'status'
     ];
+
 
     protected $casts = [
         'answers' => 'array',

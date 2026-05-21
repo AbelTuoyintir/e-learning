@@ -60,7 +60,10 @@
                         <td class="px-6 py-4 text-slate-600">{{ $student->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-4">
                             <div class="flex space-x-2">
-                                <button class="text-indigo-600 hover:text-indigo-800 p-2 rounded-lg hover:bg-indigo-50">
+                                <button onclick="showStudentDetails(this)" 
+                                        data-student-id="{{ $student->id }}"
+                                        data-route="{{ route('student.details', ['student' => $student->id]) }}"
+                                        class="text-indigo-600 hover:text-indigo-800 p-2 rounded-lg hover:bg-indigo-50">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <button class="text-slate-600 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-50">
@@ -86,4 +89,262 @@
     </div>
 
 </div>
+<!-- Student Details Modal -->
+<div id="studentDetailsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden overflow-y-auto">
+    <div class="min-h-screen px-4 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative">
+            
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-user-graduate text-indigo-600"></i>
+                    Student Details
+                </h2>
+                <button onclick="closeStudentModal()" class="text-slate-400 hover:text-red-500 transition text-2xl">
+                    &times;
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6" id="studentDetailsContent">
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i>
+                    <p class="mt-2 text-slate-500">Loading student details...</p>
+                </div>
+                
+                <!-- Content will be injected here -->
+                <div id="detailsContent" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Student Details Modal Functions
+let currentStudentId = null;
+
+function showStudentDetails(button) {
+    const studentId = button.getAttribute('data-student-id');
+    const url = button.getAttribute('data-route');
+
+    currentStudentId = studentId;
+
+    const modal = document.getElementById('studentDetailsModal');
+    const loadingState = document.getElementById('loadingState');
+    const detailsContent = document.getElementById('detailsContent');
+
+    // Show modal and loading state
+    modal.classList.remove('hidden');
+    loadingState.classList.remove('hidden');
+    detailsContent.classList.add('hidden');
+
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            renderStudentDetails(data);
+            loadingState.classList.add('hidden');
+            detailsContent.classList.remove('hidden');
+        } else {
+            throw new Error('Failed to load student details');
+        }
+    })
+    .catch(() => {
+        loadingState.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+                <p class="mt-2 text-red-600">Error loading student details</p>
+                <button onclick="closeStudentModal()" class="mt-4 px-4 py-2 bg-slate-200 rounded-lg">Close</button>
+            </div>
+        `;
+    });
+}
+
+function renderStudentDetails(data) {
+    const student = data.student;
+    const enrolledCourses = data.enrolled_courses;
+    const paymentHistory = data.payment_history;
+    const recentResults = data.recent_results;
+    const stats = data.statistics;
+    
+    const html = `
+        <!-- Profile Header -->
+        <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-200">
+            <img src="${student.avatar}" alt="${student.fullname}" class="w-20 h-20 rounded-full object-cover border-4 border-indigo-200">
+            <div>
+                <h3 class="text-2xl font-bold text-slate-800">${student.fullname}</h3>
+                <p class="text-slate-500">${student.email}</p>
+                <p class="text-slate-500 text-sm">${student.phone}</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="px-2 py-0.5 ${student.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} text-xs rounded-full">
+                        ${student.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                    <span class="text-xs text-slate-400">Registered: ${student.registration_date}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-indigo-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-indigo-600">${stats.total_courses}</p>
+                <p class="text-xs text-slate-600">Courses Enrolled</p>
+            </div>
+            <div class="bg-green-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-green-600">${stats.completed_courses}</p>
+                <p class="text-xs text-slate-600">Courses Completed</p>
+            </div>
+            <div class="bg-purple-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-purple-600">${stats.total_quizzes_taken}</p>
+                <p class="text-xs text-slate-600">Quizzes Taken</p>
+            </div>
+            <div class="bg-yellow-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-yellow-600">${stats.average_score}%</p>
+                <p class="text-xs text-slate-600">Average Score</p>
+            </div>
+        </div>
+        
+        <!-- Program Info -->
+        <div class="bg-slate-50 rounded-xl p-4 mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <i class="fas fa-graduation-cap text-indigo-600"></i>
+                <h4 class="font-semibold text-slate-700">Program Information</h4>
+            </div>
+            <p class="text-slate-700">${student.program}</p>
+        </div>
+        
+        <!-- Enrolled Courses -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="fas fa-book-open text-indigo-600"></i>
+                    Enrolled Courses (${enrolledCourses.length})
+                </h4>
+            </div>
+            <div class="space-y-3">
+                ${enrolledCourses.map(course => `
+                    <div class="border border-slate-200 rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <p class="font-semibold text-slate-800">${course.title}</p>
+                                <p class="text-xs text-slate-500">Code: ${course.code} | Enrolled: ${course.enrolled_at}</p>
+                            </div>
+                            <span class="text-sm font-semibold ${course.progress >= 100 ? 'text-green-600' : 'text-indigo-600'}">
+                                ${course.progress}% Complete
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: ${course.progress}%"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">${course.completed_quizzes}/${course.total_quizzes} quizzes completed</p>
+                    </div>
+                `).join('')}
+                ${enrolledCourses.length === 0 ? '<p class="text-slate-500 text-center py-4">No courses enrolled yet.</p>' : ''}
+            </div>
+        </div>
+        
+        <!-- Payment History -->
+        <div class="mb-6">
+            <h4 class="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                <i class="fas fa-credit-card text-indigo-600"></i>
+                Payment History
+            </h4>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="text-left py-2 px-3">Date</th>
+                            <th class="text-left py-2 px-3">Reference</th>
+                            <th class="text-right py-2 px-3">Amount</th>
+                            <th class="text-center py-2 px-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${paymentHistory.map(payment => `
+                            <tr class="border-b border-slate-100">
+                                <td class="py-2 px-3 text-slate-600">${payment.date}</td>
+                                <td class="py-2 px-3 text-slate-600 text-xs">${payment.reference}</td>
+                                <td class="py-2 px-3 text-right font-medium">₵${payment.amount}</td>
+                                <td class="py-2 px-3 text-center">
+                                    <span class="px-2 py-0.5 ${payment.status === 'successful' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} text-xs rounded-full">
+                                        ${payment.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                        ${paymentHistory.length === 0 ? '<tr><td colspan="4" class="text-center py-4 text-slate-500">No payment records found.</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Recent Results -->
+        <div class="mb-6">
+            <h4 class="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                <i class="fas fa-chart-line text-indigo-600"></i>
+                Recent Quiz Results
+            </h4>
+            <div class="space-y-2">
+                ${recentResults.map(result => `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-slate-700">${result.quiz_title}</p>
+                            <p class="text-xs text-slate-500">${result.completed_at}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold ${result.passed ? 'text-green-600' : 'text-red-600'}">${result.score}%</span>
+                            <span class="ml-2 ${result.passed ? 'text-green-500' : 'text-red-500'}">
+                                <i class="fas ${result.passed ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                            </span>
+                        </div>
+                    </div>
+                `).join('')}
+                ${recentResults.length === 0 ? '<p class="text-slate-500 text-center py-4">No quiz attempts yet.</p>' : ''}
+            </div>
+        </div>
+        
+        <!-- Total Paid Summary -->
+        <div class="bg-indigo-50 rounded-xl p-4">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold text-slate-700">Total Amount Paid:</span>
+                <span class="text-2xl font-bold text-indigo-600">₵${stats.total_paid}</span>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('detailsContent').innerHTML = html;
+}
+
+function closeStudentModal() {
+    const modal = document.getElementById('studentDetailsModal');
+    modal.classList.add('hidden');
+    currentStudentId = null;
+    
+    // Reset content
+    document.getElementById('loadingState').classList.remove('hidden');
+    document.getElementById('detailsContent').classList.add('hidden');
+    document.getElementById('detailsContent').innerHTML = '';
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeStudentModal();
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('studentDetailsModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStudentModal();
+    }
+});
+</script>
 @endsection

@@ -24,9 +24,12 @@ class Quiz extends Model
         'max_attempts',
         'passing_score',
         'is_active',
+        'question_distribution',
+        'type',
         'related_to_id',     // For polymorphic relationship
         'related_to_type'    // For polymorphic relationship
     ];
+
 
     protected $casts = [
         'due_at' => 'datetime',
@@ -35,13 +38,20 @@ class Quiz extends Model
         'time_per_question' => 'integer',
         'question_limit' => 'integer',
         'max_attempts' => 'integer',
-        'passing_score' => 'integer'
+        'passing_score' => 'integer',
+        'question_distribution' => 'array',
     ];
+
+
+
+
+
 
     public function questions()
     {
         return $this->hasMany(Question::class);
     }
+
 
     public function results()
     {

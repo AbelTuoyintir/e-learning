@@ -15,7 +15,7 @@
                     <!-- Course Image (if any) -->
                     @if($course->image)
                         <div class="h-48 overflow-hidden">
-                            <img src="{{ Storage::url($course->image) }}"
+                            <img src="{{ asset('storage/' . $course->image) }}"
                                  alt="{{ $course->title }}"
                                  class="w-full h-full object-cover">
                         </div>

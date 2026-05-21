@@ -13,11 +13,23 @@
     @endphp
 
     @forelse($course->modules ?? [] as $module)
-        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            <div class="p-6 border-b">
+        @php
+            $isLocked = isset($lockedModuleIds) && in_array((int)$module->id, (array)$lockedModuleIds, true);
+        @endphp
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6 {{ $isLocked ? 'opacity-60 pointer-events-none' : '' }}">
+            <div class="p-6 border-b flex items-start justify-between gap-4">
                 <h2 class="text-2xl font-semibold text-gray-800">
                     Module {{ $loop->iteration }}: {{ $module->title }}
                 </h2>
+
+                @if($isLocked)
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-50 text-red-700 text-xs font-semibold whitespace-nowrap">
+                        Locked
+                    </span>
+                @endif
+            </div>
+
                 @if($module->description)
                     <p class="text-gray-600 mt-2">{{ $module->description }}</p>
                 @endif

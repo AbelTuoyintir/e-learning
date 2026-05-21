@@ -39,9 +39,19 @@
     <form id="quiz-form" action="{{ route('quiz.submit', $quiz->id) }}" method="POST">
         @csrf
         
+        @php
+            $lockedQuestionIds = $questions->pluck('id')->values()->all();
+        @endphp
+
+        {{-- Lock the chosen question set for this attempt so refresh/submit is consistent --}}
+        @foreach($lockedQuestionIds as $qid)
+            <input type="hidden" name="locked_question_ids[]" value="{{ $qid }}" />
+        @endforeach
+
         @foreach($questions as $index => $question)
         <div class="question-section bg-white rounded-lg shadow-md p-6 mb-6 @if($index !== 0) hidden @endif"
              data-question-id="{{ $question->id }}" data-index="{{ $index + 1 }}">
+
 
             <!-- Question -->
             <div class="mb-6">

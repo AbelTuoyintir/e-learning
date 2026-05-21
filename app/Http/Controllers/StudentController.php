@@ -78,7 +78,42 @@ public function showQuiz(Quiz $quiz)
         return $this->denyQuizAccess($quiz);
     }
 
-    $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
+    // If the quiz has a distribution, dynamically select questions and lock them per attempt.
+    $distribution = $quiz->question_distribution;
+    $questionIdsLocked = null;
+
+    if (is_array($distribution) && !empty($distribution)) {
+        // Create (or reuse) an in-progress attempt so refresh won't change questions.
+        $attempt = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'in_progress')
+            ->latest('started_at')
+            ->first();
+
+        if ($attempt && is_array($attempt->question_ids) && !empty($attempt->question_ids)) {
+            $questionIdsLocked = array_values(array_map('intval', $attempt->question_ids));
+        } else {
+            $questionIdsLocked = $this->selectQuestionIdsByDistribution($quiz, $distribution);
+
+            $attempt = \App\Models\QuizAttempt::create([
+                'quiz_id' => $quiz->id,
+                'user_id' => Auth::id(),
+                'started_at' => now(),
+                'status' => 'in_progress',
+                'question_ids' => array_values($questionIdsLocked),
+            ]);
+        }
+
+        $questions = $quiz->questions()
+            ->whereIn('id', $questionIdsLocked)
+            ->get();
+
+        // Ensure question order follows locked ids.
+        $questions = $questions->sortBy(fn($q) => array_search($q->id, $questionIdsLocked, true))->values();
+    } else {
+        // Legacy behavior (fixed quiz questions, shuffled).
+        $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
+    }
 
     foreach ($questions as $question) {
         $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
@@ -88,6 +123,7 @@ public function showQuiz(Quiz $quiz)
 
     return view('students.question', compact('quiz', 'questions'));
 }
+
 
 
 public function submit(Request $request, Quiz $quiz)
@@ -133,7 +169,18 @@ public function submit(Request $request, Quiz $quiz)
                 'question_ids' => $quiz->questions->pluck('id')->toArray()
             ]);
 
-            foreach ($quiz->questions as $question) {
+            $lockedQuestionIds = null;
+            if (is_array($request->input('locked_question_ids'))) {
+                $lockedQuestionIds = array_values(array_map('intval', $request->input('locked_question_ids')));
+            }
+
+            $questionsToScore = $quiz->questions;
+            if ($lockedQuestionIds && !empty($lockedQuestionIds)) {
+                $questionsToScore = $quiz->questions()->whereIn('id', $lockedQuestionIds)->get();
+            }
+
+            foreach ($questionsToScore as $question) {
+
                 // Get user answer from validated data
                 $userAnswerLetter = isset($validated['answers'][$question->id])
                     ? strtoupper(trim($validated['answers'][$question->id]))
@@ -329,10 +376,11 @@ private function calculatePercentage($score, $total): float
  */
 private function isPassed($percentage, $quiz): bool
 {
-    // Check if quiz has custom pass percentage
-    $passPercentage = $quiz->pass_percentage ?? 70;
-    return $percentage >= $passPercentage;
+    // Strict final quiz rule: use quizzes.passing_score (default 65).
+    // Practice quizzes are non-gating (still computed, but module progression ignores it).
+    $passPercentage = $quiz->passing_score ?? 65;
 }
+
 
 /**
  * Get next attempt number
@@ -739,4 +787,163 @@ private function denyQuizAccess(Quiz $quiz)
     return redirect()->route('students.courses')
         ->with('error', 'You must enroll in this course before viewing its quizzes or materials.');
 }
+
+/**
+ * Select question ids based on quiz->question_distribution.
+ * Expected format: {"topic_id": 5, "topic_id2": 10} (counts per topic)
+ */
+private function selectQuestionIdsByDistribution(Quiz $quiz, array $distribution): array
+{
+    $distribution = array_filter($distribution, fn($count) => is_numeric($count) && (int)$count > 0);
+
+    if (empty($distribution)) {
+        return $quiz->questions()->pluck('id')->toArray();
+    }
+
+    $selected = [];
+
+    foreach ($distribution as $topicIdRaw => $countRaw) {
+        $topicId = (int) $topicIdRaw;
+        $count = (int) $countRaw;
+
+        if ($count <= 0 || $topicId <= 0) {
+            continue;
+        }
+
+        $ids = Question::query()
+            ->where('topic_id', $topicId)
+            ->inRandomOrder()
+            ->limit($count)
+            ->pluck('id')
+            ->toArray();
+
+        $selected = array_merge($selected, $ids);
+    }
+
+    // De-duplicate and enforce quiz->question_limit if present.
+    $selected = array_values(array_unique($selected));
+
+    $limit = $quiz->question_limit ?? null;
+    if ($limit && (int)$limit > 0) {
+        $selected = array_slice($selected, 0, (int) $limit);
+    }
+
+return $selected;
 }
+
+//Add this method to your StudentController.php
+
+public function getStudentDetails($studentId)
+{
+    dd($studentId);
+    try{
+        $student = Student::with(['enrollments.course', 'results.quiz'])
+        ->findOrFail($studentId);
+
+        
+    
+    // Get enrolled courses with progress
+    $enrolledCourses = $student->enrollments->map(function($enrollment) {
+        $course = $enrollment->course;
+        
+        // Get completed quizzes for this course
+        $completedQuizzes = Result::where('student_id', $student->id)
+            ->whereHas('quiz', function($query) use ($course) {
+                $query->where('course_id', $course->id);
+            })
+            ->where('passed', 1)
+            ->count();
+        
+        $totalQuizzes = Quiz::where('course_id', $course->id)->count();
+        
+        return [
+            'id' => $course->id,
+            'title' => $course->title,
+            'code' => $course->code ?? 'N/A',
+            'enrolled_at' => $enrollment->created_at->format('M d, Y'),
+            'progress' => $totalQuizzes > 0 ? round(($completedQuizzes / $totalQuizzes) * 100) : 0,
+            'completed_quizzes' => $completedQuizzes,
+            'total_quizzes' => $totalQuizzes,
+        ];
+    });
+    
+    // Get completed courses (courses where all quizzes are passed)
+    $completedCourses = $enrolledCourses->filter(function($course) {
+        return $course['progress'] >= 100;
+    });
+    
+    // Get payment history (assuming you have a payments table)
+    $paymentHistory = $student->payments()
+        ->orderBy('created_at', 'desc')
+        ->get(['amount', 'status', 'reference', 'created_at'])
+        ->map(function($payment) {
+            return [
+                'amount' => number_format($payment->amount, 2),
+                'status' => $payment->status,
+                'reference' => $payment->reference,
+                'date' => $payment->created_at->format('M d, Y h:i A'),
+            ];
+        });
+    
+    // Get recent results
+    $recentResults = Result::where('student_id', $student->id)
+        ->with('quiz')
+        ->latest('completed_at')
+        ->take(5)
+        ->get()
+        ->map(function($result) {
+            return [
+                'quiz_title' => $result->quiz->title,
+                'score' => round($result->percentage),
+                'passed' => $result->passed,
+                'completed_at' => $result->completed_at->format('M d, Y'),
+            ];
+        });
+    
+    // Calculate statistics
+    $stats = [
+        'total_courses' => $enrolledCourses->count(),
+        'completed_courses' => $completedCourses->count(),
+        'total_quizzes_taken' => Result::where('student_id', $student->id)->count(),
+        'average_score' => round(Result::where('student_id', $student->id)->avg('percentage'), 1),
+        'total_paid' => number_format($student->payments()->where('status', 'successful')->sum('amount'), 2),
+    ];
+    
+    return response()->json([
+        'success' => true,
+        'student' => [
+            'id' => $student->id,
+            'fullname' => $student->firstname . ' ' . $student->lastname,
+            'firstname' => $student->firstname,
+            'lastname' => $student->lastname,
+            'email' => $student->email,
+            'phone' => $student->phone ?? 'Not provided',
+            'program' => $student->program ?? 'Not specified',
+            'registration_date' => $student->created_at->format('F d, Y'),
+            'status' => $student->status ?? 'active',
+            'avatar' => $student->avatar ?? 'https://ui-avatars.com/api/?background=6366f1&color=fff&name=' . urlencode($student->firstname . ' ' . $student->lastname),
+        ],
+        'enrolled_courses' => $enrolledCourses,
+        'completed_courses_count' => $completedCourses->count(),
+        'payment_history' => $paymentHistory,
+        'recent_results' => $recentResults,
+        'statistics' => $stats,
+    ]);
+    }catch(Exception $e){
+        \Log::error('Failed to get student details', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'student_id' => $studentId,
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to retrieve student details: ' . $e->getMessage()
+        ], 500);
+}
+
+}
+}
+
+
+

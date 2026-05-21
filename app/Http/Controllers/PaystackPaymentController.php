@@ -100,5 +100,46 @@ class PaystackPaymentController extends Controller
 
         return response()->json(['status' => 'ok']);
     }
+
+
+
+
+    public function quizzes()
+    {
+        $student = auth()->user();
+        
+        // Get enrolled course IDs
+        $enrolledCourseIds = $student->enrollments()->pluck('course_id')->all();
+        
+        // Get available quizzes from enrolled courses
+        $quizzes = Quiz::whereHas('questions')
+            ->where(function ($query) use ($enrolledCourseIds) {
+                $query->whereIn('course_id', $enrolledCourseIds)
+                    ->orWhereHas('module', function ($moduleQuery) use ($enrolledCourseIds) {
+                        $moduleQuery->whereIn('course_id', $enrolledCourseIds);
+                    })
+                    ->orWhereHas('topic.module', function ($moduleQuery) use ($enrolledCourseIds) {
+                        $moduleQuery->whereIn('course_id', $enrolledCourseIds);
+                    });
+            })
+            ->withCount('questions')
+            ->with('course')
+            ->paginate(12);
+        
+        // Get IDs of quizzes already completed by the student
+        $completedQuizIds = Result::where('student_id', $student->id)
+            ->pluck('quiz_id')
+            ->toArray();
+        
+        // Calculate progress for each quiz
+        foreach ($quizzes as $quiz) {
+            $quiz->is_completed = in_array($quiz->id, $completedQuizIds);
+            $quiz->best_score = Result::where('student_id', $student->id)
+                ->where('quiz_id', $quiz->id)
+                ->max('percentage');
+        }
+        
+        return view('students.quizzes', compact('quizzes', 'completedQuizIds'));
+    }
 }
 

@@ -102,6 +102,7 @@ public function courseReg(){
 }
 
 
+
 public function enroll(Request $request)
 {
     try {
@@ -423,20 +424,67 @@ public function getMaterials(Course $course)
 
     // Eager load all necessary relationships with their nested relationships
     $course->load([
-        'modules' => function($query) {
+        'modules' => function ($query) {
             $query->orderBy('order')
-                  ->where('is_active', true);
+                ->where('is_active', true);
         },
-        'modules.topics' => function($query) {
+        'modules.topics' => function ($query) {
             $query->orderBy('order')
-                  ->where('is_active', true);
+                ->where('is_active', true);
         },
-        'modules.topics.contents', // This loads topic contents
-        'modules.topics.quiz.questions' // This loads quiz with questions
+        'modules.topics.contents',
+        'modules.topics.quiz.questions'
     ]);
 
-    return view('students.materials', compact('course'));
+    // Module progression gating: module N is unlocked only if module (N-1)'s FINAL quiz is passed.
+    // Assumption: each module has one or more quizzes of type='final'. If any of them passed, module unlocks.
+    $modules = $course->modules ?? collect();
+    $modulesByOrder = $modules->values();
+
+    $unlockedModuleIds = [];
+    if ($modulesByOrder->isNotEmpty()) {
+        // First module always unlocked
+        $unlockedModuleIds[] = (int) $modulesByOrder[0]->id;
+    }
+
+    // Find all final quizzes for modules
+    $finalQuizzesByModuleId = \App\Models\Quiz::query()
+        ->where('course_id', $course->id)
+        ->where('type', 'final')
+        ->whereNotNull('module_id')
+        ->get()
+        ->groupBy(fn($q) => (int) $q->module_id);
+
+    for ($i = 1; $i < $modulesByOrder->count(); $i++) {
+        $prevModuleId = (int) $modulesByOrder[$i - 1]->id;
+        $currModuleId = (int) $modulesByOrder[$i]->id;
+
+        $finalQuizzes = $finalQuizzesByModuleId->get($prevModuleId, collect());
+
+        // If previous module has no FINAL quizzes, treat it as passed (keeps backward compatibility)
+        if ($finalQuizzes->isEmpty()) {
+            $unlockedModuleIds[] = $currModuleId;
+            continue;
+        }
+
+        $finalQuizIds = $finalQuizzes->pluck('id')->all();
+
+        $prevModulePassed = \App\Models\Result::query()
+            ->where('student_id', $user->id)
+            ->whereIn('quiz_id', $finalQuizIds)
+            ->where('passed', 1)
+            ->exists();
+
+        if ($prevModulePassed) {
+            $unlockedModuleIds[] = $currModuleId;
+        }
+    }
+
+    $lockedModuleIds = array_values(array_diff($modulesByOrder->pluck('id')->map(fn($m) => (int) $m)->all(), $unlockedModuleIds));
+
+    return view('students.materials', compact('course', 'lockedModuleIds', 'unlockedModuleIds'));
 }
+
 
 public function readMaterial(Course $course, TopicContent $content)
 {
