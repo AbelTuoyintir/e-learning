@@ -9,35 +9,27 @@ class AdminDashboardController extends Controller
     //
     public function index(){
         $activeStudents = \App\Models\Student::where('status', 'active')->count();
-        $totalResults = \App\Models\Result::count();
-        $modulePassRate = $totalResults > 0 ? (\App\Models\Result::where('passed', 1)->count() / $totalResults * 100) : 0;
+        $totalResultsCount = \App\Models\Result::count();
+        $modulePassRate = $totalResultsCount > 0 ? (\App\Models\Result::where('passed', 1)->count() / $totalResultsCount * 100) : 0;
         $averageScore = \App\Models\Result::avg('percentage') ?? 0;
         $aiUsageStats = \App\Models\AIChatSession::count();
         $courseCount = \App\Models\Course::count();
         $moduleCount = \App\Models\Module::count();
 
-        // Calculate course completion rate (students who passed all assessments in a course)
+        // Optimized Course Completion Rate calculation
         $courseCompletionRate = 0;
-        $enrolledStudents = \App\Models\Enrollment::with('course')->get();
-        if ($enrolledStudents->count() > 0) {
-            $completedCount = 0;
-            foreach ($enrolledStudents as $enrollment) {
-                $totalModuleQuizzes = \App\Models\Quiz::where('course_id', $enrollment->course_id)
-                    ->where('quiz_type', 'module_assessment')
-                    ->count();
-                $passedQuizzes = \App\Models\Result::where('student_id', $enrollment->student_id)
-                    ->whereHas('quiz', function($q) use ($enrollment) {
-                        $q->where('course_id', $enrollment->course_id)->where('quiz_type', 'module_assessment');
-                    })
-                    ->where('passed', 1)
-                    ->distinct('quiz_id')
-                    ->count();
+        $totalEnrollmentsCount = \App\Models\Enrollment::count();
+        if ($totalEnrollmentsCount > 0) {
+            $completedEnrollmentsCount = \App\Models\Enrollment::whereHas('course', function($q) {
+                $q->whereHas('quizzes', function($sq) { $sq->where('quiz_type', 'module_assessment'); });
+            })->whereDoesntHave('course.quizzes', function($q) {
+                $q->where('quiz_type', 'module_assessment')
+                  ->whereDoesntHave('results', function($sq) {
+                      $sq->where('passed', 1)->whereColumn('results.student_id', 'enrollments.student_id');
+                  });
+            })->count();
 
-                if ($totalModuleQuizzes > 0 && $passedQuizzes === $totalModuleQuizzes) {
-                    $completedCount++;
-                }
-            }
-            $courseCompletionRate = ($completedCount / $enrolledStudents->count()) * 100;
+            $courseCompletionRate = ($completedEnrollmentsCount / $totalEnrollmentsCount) * 100;
         }
 
         return view('admin.dashboard', compact(
