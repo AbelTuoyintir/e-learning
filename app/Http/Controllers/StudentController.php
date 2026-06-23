@@ -29,13 +29,10 @@ public function dashboard()
 
     // Completed quizzes count
     $completedQuizzesCount = Result::where('student_id', $student->id)->count();
-    $student = Student::find(auth()->id());
 
     // Average score
     $results = Result::where('student_id', $student->id)->get();
-    $averageScore = $results->count() > 0 ? $results->avg(function ($result) {
-        return ($result->score / $result->quiz->questions->count()) * 100;
-    }) : 0;
+    $averageScore = $results->count() > 0 ? $results->avg('percentage') : 0;
 
     // Recent results
     $recentResults = Result::where('student_id', $student->id)
@@ -61,12 +58,49 @@ public function dashboard()
         })
         ->get();
 
+    // Progress Tracking
+    $totalTopics = \App\Models\Topic::whereHas('module', function($q) use ($enrolledCourseIds) {
+        $q->whereIn('course_id', $enrolledCourseIds);
+    })->count();
+
+    $completedTopics = \App\Models\TopicProgress::where('student_id', $student->id)
+        ->where('status', 'Completed')
+        ->count();
+
+    $remainingTopics = $totalTopics - $completedTopics;
+    $completionPercentage = $totalTopics > 0 ? round(($completedTopics / $totalTopics) * 100) : 0;
+
+    // Academic Records
+    $passedModules = \App\Models\Result::where('student_id', $student->id)
+        ->where('passed', 1)
+        ->whereHas('quiz', function($q) { $q->where('quiz_type', 'module_assessment'); })
+        ->count();
+
+    $failedModules = \App\Models\Result::where('student_id', $student->id)
+        ->where('passed', 0)
+        ->whereHas('quiz', function($q) { $q->where('quiz_type', 'module_assessment'); })
+        ->count();
+
+    $retakeModules = \App\Models\ModuleProgress::where('student_id', $student->id)
+        ->where('status', 'Retake Required')
+        ->count();
+
+    $aiLearningSessions = \App\Models\AIChatSession::where('student_id', $student->id)->count();
+
     return view('students.dashboard', compact(
         'enrolledCoursesCount',
         'completedQuizzesCount',
         'averageScore',
         'recentResults',
-        'availableQuizzes'
+        'availableQuizzes',
+        'totalTopics',
+        'completedTopics',
+        'remainingTopics',
+        'completionPercentage',
+        'passedModules',
+        'failedModules',
+        'retakeModules',
+        'aiLearningSessions'
     ));
 }
 
@@ -76,6 +110,22 @@ public function showQuiz(Quiz $quiz)
 
     if (!$this->canAccessQuiz($quiz)) {
         return $this->denyQuizAccess($quiz);
+    }
+
+    // Check module progress/retake status
+    if ($quiz->module_id) {
+        $moduleProgress = \App\Models\ModuleProgress::firstOrCreate(
+            ['student_id' => Auth::id(), 'module_id' => $quiz->module_id]
+        );
+
+        if ($moduleProgress->status === 'Retake Required') {
+            return redirect()->back()->with('error', 'Module retake required. Please review all module topics before attempting the assessment again.');
+        }
+
+        if ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
+            $moduleProgress->update(['status' => 'Retake Required']);
+            return redirect()->back()->with('error', 'Maximum attempts reached. Module retake required.');
+        }
     }
 
     // If the quiz has a distribution, dynamically select questions and lock them per attempt.
@@ -111,8 +161,13 @@ public function showQuiz(Quiz $quiz)
         // Ensure question order follows locked ids.
         $questions = $questions->sortBy(fn($q) => array_search($q->id, $questionIdsLocked, true))->values();
     } else {
-        // Legacy behavior (fixed quiz questions, shuffled).
-        $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
+        // Rule 1 & 2: Randomly select 60 questions if > 60, else all.
+        $totalQuestionsInBank = $quiz->questions()->count();
+        if ($totalQuestionsInBank > 60) {
+            $questions = $quiz->questions()->inRandomOrder()->limit(60)->get();
+        } else {
+            $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
+        }
     }
 
     foreach ($questions as $question) {
@@ -221,6 +276,25 @@ public function submit(Request $request, Quiz $quiz)
             $passed = $this->isPassed($percentage, $quiz);
             $attemptNumber = $this->getNextAttemptNumber($quiz->id, Auth::id());
 
+            // Calculate grade
+            $grade = 'F';
+            if ($percentage >= 90) $grade = 'A';
+            elseif ($percentage >= 80) $grade = 'B';
+            elseif ($percentage >= 70) $grade = 'C';
+            elseif ($percentage >= 60) $grade = 'D';
+
+            // Estimate time taken (from attempt if exists)
+            $timeTaken = 0;
+            $attempt = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'in_progress')
+                ->latest('started_at')
+                ->first();
+            if ($attempt) {
+                $timeTaken = now()->diffInSeconds($attempt->started_at);
+                $attempt->update(['status' => 'completed', 'completed_at' => now()]);
+            }
+
             \Log::debug('Creating result', [
                 'score' => $score,
                 'total_possible_points' => $totalPossiblePoints,
@@ -234,12 +308,26 @@ public function submit(Request $request, Quiz $quiz)
                 'student_id' => Auth::id(),
                 'quiz_id' => $quiz->id,
                 'score' => $score,
-                'total_possible_points' => $totalPossiblePoints, // NEW: Store total possible points
+                'total_possible_points' => $totalPossiblePoints,
                 'percentage' => $percentage,
+                'grade' => $grade,
+                'time_taken' => $timeTaken,
                 'passed' => $passed,
                 'attempt_number' => $attemptNumber,
                 'completed_at' => now(),
                 'details' => json_encode($details),
+            ]);
+
+            \App\Models\LearningHistory::create([
+                'student_id' => Auth::id(),
+                'activity_type' => 'assessment_taken',
+                'activity_id' => $quiz->id,
+                'description' => "Took assessment for '{$quiz->title}'",
+                'metadata' => [
+                    'score' => $score,
+                    'percentage' => $percentage,
+                    'passed' => $passed,
+                ],
             ]);
 
             \Log::info('Result created', [
@@ -250,11 +338,47 @@ public function submit(Request $request, Quiz $quiz)
                 'percentage' => $result->percentage,
             ]);
 
+            // Update module progress attempts
+            if ($quiz->module_id) {
+                $moduleProgress = \App\Models\ModuleProgress::where('student_id', Auth::id())
+                    ->where('module_id', $quiz->module_id)
+                    ->first();
+                if ($moduleProgress) {
+                    $moduleProgress->increment('attempts_since_retake');
+                    if ($passed) {
+                        $moduleProgress->update(['status' => 'Completed']);
+
+                        \App\Models\LearningHistory::create([
+                            'student_id' => Auth::id(),
+                            'activity_type' => 'module_completed',
+                            'activity_id' => $quiz->module_id,
+                            'description' => "Completed module '{$quiz->module->title}'",
+                            'metadata' => ['percentage' => $percentage],
+                        ]);
+                    } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
+                        $moduleProgress->update(['status' => 'Retake Required']);
+                    }
+                }
+            }
+
             // Dispatch notifications asynchronously
             $this->sendNotifications($result, $quiz, $score, $totalPossiblePoints, $percentage, $passed);
 
             // Log for debugging
             $this->logQuizSubmission($quiz, $score, $totalPossiblePoints, $validated['answers']);
+
+            // Notify of retake requirement if max attempts reached and failed
+            $attemptCount = Result::where('student_id', Auth::id())
+                ->where('quiz_id', $quiz->id)
+                ->count();
+            if (!$passed && $attemptCount >= ($quiz->max_attempts ?? 4)) {
+                \App\Models\Notification::create([
+                    'student_id' => Auth::id(),
+                    'title' => 'Retake Required',
+                    'message' => "You have failed all 4 attempts for '{$quiz->title}'. Module retake is required.",
+                    'type' => 'error',
+                ]);
+            }
 
             \Log::info('Redirecting to results', [
                 'route_name' => 'quiz.results',
@@ -379,6 +503,7 @@ private function isPassed($percentage, $quiz): bool
     // Strict final quiz rule: use quizzes.passing_score (default 65).
     // Practice quizzes are non-gating (still computed, but module progression ignores it).
     $passPercentage = $quiz->passing_score ?? 65;
+    return $percentage >= $passPercentage;
 }
 
 

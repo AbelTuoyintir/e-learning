@@ -41,11 +41,27 @@
                 <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-gray-600 text-sm">Study Streak</p>
-                            <p class="text-3xl font-bold text-orange-600">7 days</p>
+                            <p class="text-gray-600 text-sm">Course Progress</p>
+                            <p class="text-3xl font-bold text-orange-600">{{ $completionPercentage }}%</p>
                         </div>
-                        <i class="fas fa-fire text-4xl text-orange-200"></i>
+                        <i class="fas fa-tasks text-4xl text-orange-200"></i>
                     </div>
+                </div>
+            </div>
+
+            <!-- Learning Progress Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                    <h4 class="font-bold text-blue-800">Topic Progress</h4>
+                    <p class="text-2xl font-bold">{{ $completedTopics }} / {{ $totalTopics }} Topics</p>
+                </div>
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                    <h4 class="font-bold text-green-800">Passed Modules</h4>
+                    <p class="text-2xl font-bold">{{ $passedModules }}</p>
+                </div>
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
+                    <h4 class="font-bold text-red-800">Retake Required</h4>
+                    <p class="text-2xl font-bold">{{ $retakeModules ?? 0 }}</p>
                 </div>
             </div>
 
@@ -106,6 +122,10 @@
                         <i class="fas fa-chart-bar text-2xl text-purple-600 mb-2"></i>
                         <span class="text-sm font-medium">View Results</span>
                     </button>
+                    <button onclick="openAIChat()" class="flex flex-col items-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition">
+                        <i class="fas fa-robot text-2xl text-red-600 mb-2"></i>
+                        <span class="text-sm font-medium">Chat with AI Tutor</span>
+                    </button>
                     <button class="flex flex-col items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition">
                         <i class="fas fa-calendar-plus text-2xl text-orange-600 mb-2"></i>
                         <span class="text-sm font-medium">Schedule Study</span>
@@ -113,4 +133,77 @@
                 </div>
             </div>
         </section>
+
+        <!-- AI Chat Modal (Basic Implementation) -->
+        <div id="aiChatModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg w-full max-w-2xl h-[600px] flex flex-col shadow-2xl">
+                <div class="p-4 border-b flex justify-between items-center bg-blue-600 text-white rounded-t-lg">
+                    <h3 class="font-bold"><i class="fas fa-robot mr-2"></i>AI Academic Tutor</h3>
+                    <button onclick="closeAIChat()" class="text-white hover:text-gray-200">&times;</button>
+                </div>
+                <div id="chatHistory" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                    <div class="bg-blue-100 p-3 rounded-lg max-w-[80%]">
+                        Hello! I am your AI academic tutor. How can I help you with your studies today?
+                    </div>
+                </div>
+                <div class="p-4 border-t bg-white">
+                    <form id="aiChatForm" class="flex gap-2">
+                        <input type="text" id="aiQuestion" class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask a question...">
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openAIChat() {
+                document.getElementById('aiChatModal').classList.remove('hidden');
+            }
+            function closeAIChat() {
+                document.getElementById('aiChatModal').classList.add('hidden');
+            }
+
+            document.getElementById('aiChatForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const question = document.getElementById('aiQuestion').value;
+                if (!question) return;
+
+                const chatHistory = document.getElementById('chatHistory');
+
+                // Add user question
+                const userMsg = document.createElement('div');
+                userMsg.className = 'bg-white p-3 rounded-lg max-w-[80%] ml-auto border shadow-sm';
+                userMsg.textContent = question;
+                chatHistory.appendChild(userMsg);
+                document.getElementById('aiQuestion').value = '';
+
+                // Add loading indicator
+                const loadingMsg = document.createElement('div');
+                loadingMsg.className = 'bg-blue-100 p-3 rounded-lg max-w-[80%] italic text-gray-500';
+                loadingMsg.textContent = 'Thinking...';
+                chatHistory.appendChild(loadingMsg);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                try {
+                    const response = await fetch('{{ route("student.ai.chat") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ question })
+                    });
+                    const data = await response.json();
+
+                    chatHistory.removeChild(loadingMsg);
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'bg-blue-100 p-3 rounded-lg max-w-[80%]';
+                    aiMsg.textContent = data.response;
+                    chatHistory.appendChild(aiMsg);
+                } catch (error) {
+                    loadingMsg.textContent = 'Error connecting to AI tutor.';
+                }
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            });
+        </script>
 @endsection
