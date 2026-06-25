@@ -41,5 +41,13 @@ return [
         'url' => env('PAYSTACK_URL', 'https://api.paystack.co'),
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    'ollama' => [
+        'url' => env('OLLAMA_CLOUD_URL', 'https://api.ollama.cloud'),
+    ],
+
 ];
 

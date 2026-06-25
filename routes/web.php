@@ -121,7 +121,11 @@ Route::middleware('auth:student')->group(function () {
 
     Route::get('/student/statistics', [StudentController::class, 'statistics'])->name('student.statistics');
     Route::get('/student/results', [StudentController::class, 'results'])->name('student.results');
-    Route::get('/student/quizzes', [StudentController::class, 'quizzes'])->name('student.quizzes');
+    Route::get('/student/quizzes', [\App\Http\Controllers\PaystackPaymentController::class, 'quizzes'])->name('student.quizzes');
+
+    // AI Chat
+    Route::post('/student/ai/chat', [\App\Http\Controllers\AIChatController::class, 'chat'])->name('student.ai.chat');
+    Route::get('/student/ai/history', [\App\Http\Controllers\AIChatController::class, 'history'])->name('student.ai.history');
 });
 
 // Admin Logout
@@ -134,6 +138,16 @@ Route::post('/student/logout', [AuthController::class, 'studentLogout'])->name('
 //     return view('dashboard');
 // })->name('admin.dashboard');
 //admin routes with middleware
+
+Route::prefix('tutor')->middleware(['auth:web', 'role:tutor'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\TutorDashboardController::class, 'index'])->name('tutor.dashboard');
+    Route::get('/course/{course}/students', [\App\Http\Controllers\TutorDashboardController::class, 'students'])->name('tutor.course.students');
+    Route::get('/course/{course}/student/{student}/performance', [\App\Http\Controllers\TutorDashboardController::class, 'studentPerformance'])->name('tutor.student.performance');
+
+    // Reuse existing controllers but with policy protection
+    Route::get('courses', [CourseController::class, 'index'])->name('tutor.courses.index');
+    Route::get('quizzes', [QuizController::class, 'index'])->name('tutor.quizzes.index');
+});
 
 Route::prefix('admin')->group(function () {
  // Add this to your authenticated student routes group
