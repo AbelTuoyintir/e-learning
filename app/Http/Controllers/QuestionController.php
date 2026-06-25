@@ -132,9 +132,9 @@ class QuestionController extends Controller
                 $message .= " {$summary['failed']} row(s) failed.";
             }
 
-            if ($summary['limit_reached']) {
-                $message .= " Question bank limit reached for this quiz.";
-            }
+            // if ($summary['limit_reached']) {
+            //     $message .= " Question bank limit reached for this quiz.";
+            // }
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([

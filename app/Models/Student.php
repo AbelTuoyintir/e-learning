@@ -11,6 +11,7 @@ class Student extends Authenticatable implements CanResetPassword
 {
     use HasFactory, Notifiable;
 
+
     // Table name (optional, Laravel will auto-detect "students")
     protected $table = 'students';
 
@@ -63,6 +64,13 @@ class Student extends Authenticatable implements CanResetPassword
         return $this->hasMany(Notification::class);
     }
 
+    /**
+     * A student can have many quiz results.
+     */
+    public function results()
+    {
+        return $this->hasMany(Result::class);
+    }
 
     /**
      * Get the email address for password reset.

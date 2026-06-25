@@ -379,7 +379,10 @@ private function isPassed($percentage, $quiz): bool
     // Strict final quiz rule: use quizzes.passing_score (default 65).
     // Practice quizzes are non-gating (still computed, but module progression ignores it).
     $passPercentage = $quiz->passing_score ?? 65;
+
+    return (float) $percentage >= (float) $passPercentage;
 }
+
 
 
 /**
@@ -820,116 +823,122 @@ private function selectQuestionIdsByDistribution(Quiz $quiz, array $distribution
         $selected = array_merge($selected, $ids);
     }
 
-    // De-duplicate and enforce quiz->question_limit if present.
+            // De-duplicate.
     $selected = array_values(array_unique($selected));
 
+    // Enforce quiz->question_limit, but only by limiting what we RETURN.
+    // This ensures the "limit" affects which questions are used for answering,
+    // not which questions exist in the quiz bank.
     $limit = $quiz->question_limit ?? null;
-    if ($limit && (int)$limit > 0) {
+    if ($limit !== null && (int) $limit > 0) {
         $selected = array_slice($selected, 0, (int) $limit);
     }
 
-return $selected;
+    return $selected;
 }
+
 
 //Add this method to your StudentController.php
 
 public function getStudentDetails($studentId)
-{
-    dd($studentId);
-    try{
-        $student = Student::with(['enrollments.course', 'results.quiz'])
-        ->findOrFail($studentId);
 
-        
-    
-    // Get enrolled courses with progress
-    $enrolledCourses = $student->enrollments->map(function($enrollment) {
-        $course = $enrollment->course;
-        
-        // Get completed quizzes for this course
-        $completedQuizzes = Result::where('student_id', $student->id)
-            ->whereHas('quiz', function($query) use ($course) {
-                $query->where('course_id', $course->id);
-            })
-            ->where('passed', 1)
-            ->count();
-        
-        $totalQuizzes = Quiz::where('course_id', $course->id)->count();
-        
-        return [
-            'id' => $course->id,
-            'title' => $course->title,
-            'code' => $course->code ?? 'N/A',
-            'enrolled_at' => $enrollment->created_at->format('M d, Y'),
-            'progress' => $totalQuizzes > 0 ? round(($completedQuizzes / $totalQuizzes) * 100) : 0,
-            'completed_quizzes' => $completedQuizzes,
-            'total_quizzes' => $totalQuizzes,
+{
+    try {
+        $student = Student::with(['enrollments.course', 'results.quiz'])->findOrFail($studentId);
+
+        // Get enrolled courses with progress
+        $enrolledCourses = $student->enrollments->map(function ($enrollment) {
+            $course = $enrollment->course;
+
+            // Get completed quizzes for this course
+            $completedQuizzes = Result::where('student_id', $enrollment->student_id ?? $enrollment->user_id ?? $student->id)
+                ->whereHas('quiz', function ($query) use ($course) {
+                    $query->where('course_id', $course->id);
+                })
+                ->where('passed', 1)
+                ->count();
+
+            $totalQuizzes = Quiz::where('course_id', $course->id)->count();
+
+            return [
+                'id' => $course->id,
+                'title' => $course->title,
+                'code' => $course->code ?? 'N/A',
+                'enrolled_at' => $enrollment->created_at?->format('M d, Y'),
+                'progress' => $totalQuizzes > 0 ? round(($completedQuizzes / $totalQuizzes) * 100) : 0,
+                'completed_quizzes' => $completedQuizzes,
+                'total_quizzes' => $totalQuizzes,
+            ];
+        });
+
+        // Get completed courses (courses where all quizzes are passed)
+        $completedCourses = $enrolledCourses->filter(fn ($course) => ($course['progress'] ?? 0) >= 100);
+
+        // If payments() relation exists, include it. Otherwise return empty array.
+        $paymentHistory = [];
+        if (method_exists($student, 'payments')) {
+            try {
+                $paymentHistory = $student->payments()
+                    ->orderBy('created_at', 'desc')
+                    ->get(['amount', 'status', 'reference', 'created_at'])
+                    ->map(function ($payment) {
+                        return [
+                            'amount' => number_format($payment->amount, 2),
+                            'status' => $payment->status,
+                            'reference' => $payment->reference,
+                            'date' => $payment->created_at?->format('M d, Y h:i A'),
+                        ];
+                    })->values()->all();
+            } catch (\Throwable $e) {
+                $paymentHistory = [];
+            }
+        }
+
+        // Get recent results
+        $recentResults = Result::where('student_id', $student->id)
+            ->with('quiz')
+            ->latest('completed_at')
+            ->take(5)
+            ->get()
+            ->map(function ($result) {
+                return [
+                    'quiz_title' => $result->quiz->title,
+                    'score' => round($result->percentage),
+                    'passed' => $result->passed,
+                    'completed_at' => $result->completed_at?->format('M d, Y'),
+                ];
+            });
+
+        // Calculate statistics
+        $stats = [
+            'total_courses' => $enrolledCourses->count(),
+            'completed_courses' => $completedCourses->count(),
+            'total_quizzes_taken' => Result::where('student_id', $student->id)->count(),
+            'average_score' => round(Result::where('student_id', $student->id)->avg('percentage') ?? 0, 1),
+            'total_paid' => 0,
         ];
-    });
-    
-    // Get completed courses (courses where all quizzes are passed)
-    $completedCourses = $enrolledCourses->filter(function($course) {
-        return $course['progress'] >= 100;
-    });
-    
-    // Get payment history (assuming you have a payments table)
-    $paymentHistory = $student->payments()
-        ->orderBy('created_at', 'desc')
-        ->get(['amount', 'status', 'reference', 'created_at'])
-        ->map(function($payment) {
-            return [
-                'amount' => number_format($payment->amount, 2),
-                'status' => $payment->status,
-                'reference' => $payment->reference,
-                'date' => $payment->created_at->format('M d, Y h:i A'),
-            ];
-        });
-    
-    // Get recent results
-    $recentResults = Result::where('student_id', $student->id)
-        ->with('quiz')
-        ->latest('completed_at')
-        ->take(5)
-        ->get()
-        ->map(function($result) {
-            return [
-                'quiz_title' => $result->quiz->title,
-                'score' => round($result->percentage),
-                'passed' => $result->passed,
-                'completed_at' => $result->completed_at->format('M d, Y'),
-            ];
-        });
-    
-    // Calculate statistics
-    $stats = [
-        'total_courses' => $enrolledCourses->count(),
-        'completed_courses' => $completedCourses->count(),
-        'total_quizzes_taken' => Result::where('student_id', $student->id)->count(),
-        'average_score' => round(Result::where('student_id', $student->id)->avg('percentage'), 1),
-        'total_paid' => number_format($student->payments()->where('status', 'successful')->sum('amount'), 2),
-    ];
-    
-    return response()->json([
-        'success' => true,
-        'student' => [
-            'id' => $student->id,
-            'fullname' => $student->firstname . ' ' . $student->lastname,
-            'firstname' => $student->firstname,
-            'lastname' => $student->lastname,
-            'email' => $student->email,
-            'phone' => $student->phone ?? 'Not provided',
-            'program' => $student->program ?? 'Not specified',
-            'registration_date' => $student->created_at->format('F d, Y'),
-            'status' => $student->status ?? 'active',
-            'avatar' => $student->avatar ?? 'https://ui-avatars.com/api/?background=6366f1&color=fff&name=' . urlencode($student->firstname . ' ' . $student->lastname),
-        ],
-        'enrolled_courses' => $enrolledCourses,
-        'completed_courses_count' => $completedCourses->count(),
-        'payment_history' => $paymentHistory,
-        'recent_results' => $recentResults,
-        'statistics' => $stats,
-    ]);
-    }catch(Exception $e){
+
+        return response()->json([
+            'success' => true,
+            'student' => [
+                'id' => $student->id,
+                'fullname' => ($student->firstname ?? '') . ' ' . ($student->lastname ?? ''),
+                'firstname' => $student->firstname,
+                'lastname' => $student->lastname,
+                'email' => $student->email,
+                'phone' => $student->phone ?? 'Not provided',
+                'program' => $student->program ?? 'Not specified',
+                'registration_date' => $student->created_at?->format('F d, Y'),
+                'status' => $student->status ?? 'active',
+                'avatar' => $student->avatar ?? ('https://ui-avatars.com/api/?background=6366f1&color=fff&name=' . urlencode(($student->firstname ?? '') . ' ' . ($student->lastname ?? ''))),
+            ],
+            'enrolled_courses' => $enrolledCourses,
+            'completed_courses_count' => $completedCourses->count(),
+            'payment_history' => $paymentHistory,
+            'recent_results' => $recentResults,
+            'statistics' => $stats,
+        ]);
+    } catch (\Throwable $e) {
         \Log::error('Failed to get student details', [
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString(),
@@ -938,12 +947,85 @@ public function getStudentDetails($studentId)
 
         return response()->json([
             'success' => false,
-            'message' => 'Failed to retrieve student details: ' . $e->getMessage()
+            'message' => 'Failed to retrieve student details: ' . $e->getMessage(),
         ], 500);
+    }
+}
+
+
+public function updateStudent(Request $request, $studentId)
+{
+    try {
+        \Log::info('Updating student', ['student_id' => $studentId]);
+        
+        $student = Student::findOrFail($studentId);
+        
+        // Validate the request
+        $validated = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'email' => 'required|email|unique:students,email,' . $studentId,
+            'phone' => 'nullable|string|max:20',
+            'program' => 'nullable|string|max:255',
+            'status' => 'required|in:active,inactive,suspended,graduated',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+        
+        // Update basic info
+        $student->firstname = $validated['firstname'];
+        $student->lastname = $validated['lastname'];
+        $student->email = $validated['email'];
+        $student->phone = $validated['phone'] ?? null;
+        $student->program = $validated['program'] ?? null;
+        $student->status = $validated['status'];
+        
+        // Update password if provided
+        if (!empty($validated['password'])) {
+            $student->password = Hash::make($validated['password']);
+        }
+        
+        $student->save();
+        
+        \Log::info('Student updated successfully', ['student_id' => $studentId]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Student updated successfully',
+            'student' => [
+                'id' => $student->id,
+                'firstname' => $student->firstname,
+                'lastname' => $student->lastname,
+                'email' => $student->email,
+                'phone' => $student->phone,
+                'program' => $student->program,
+                'status' => $student->status,
+                'fullname' => $student->firstname . ' ' . $student->lastname,
+            ]
+        ]);
+        
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
+        
+    } catch (\Exception $e) {
+        \Log::error('Failed to update student', [
+            'student_id' => $studentId,
+            'error' => $e->getMessage()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to update student: ' . $e->getMessage()
+        ], 500);
+    }
 }
 
 }
-}
+
+
 
 
 

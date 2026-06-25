@@ -81,6 +81,8 @@ Route::middleware('auth:student')->group(function () {
     Route::post('/student/course/{course}/topics/{topic}/document/highlights', [CourseController::class, 'saveTopicDocumentHighlights'])->name('students.course.topics.document.highlights.save');
     Route::get('/students/enrolled-courses/{course}/quizzes', [App\Http\Controllers\CourseController::class, 'getQuizzes'])->name('students.course.quizzes');
     Route::get('/student/quizzes', [CourseController::class, 'studentQuizzes'])->name('students.quizzes');
+    Route::get('/students/quizzes', [CourseController::class, 'studentQuizzes'])->name('students.quizzes');
+
 
     // If you want a separate page for all quizzes
     Route::get('/student/all-quizzes', [CourseController::class, 'allQuizzes'])->name('students.allQuizzes');
@@ -136,62 +138,63 @@ Route::post('/student/logout', [AuthController::class, 'studentLogout'])->name('
 Route::prefix('admin')->group(function () {
  // Add this to your authenticated student routes group
     Route::get('/student/{student}/details', [StudentController::class, 'getStudentDetails'])->name('student.details');
-Route::get('manage/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
-Route::get('quiz/create', [QuizController::class, 'create'])->name('quizzes.create');
-Route::post('quiz', [QuizController::class, 'store'])->name('quizzes.store');
-Route::get('quiz/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
-Route::put('quiz/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
-Route::delete('quiz/{id}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
+     Route::put('/student/{student}', [StudentController::class, 'updateStudent'])->name('student.update');
+    Route::get('manage/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
+    Route::get('quiz/create', [QuizController::class, 'create'])->name('quizzes.create');
+    Route::post('quiz', [QuizController::class, 'store'])->name('quizzes.store');
+    Route::get('quiz/{quiz}/edit', [QuizController::class, 'edit'])->name('quizzes.edit');
+    Route::put('quiz/{quiz}', [QuizController::class, 'update'])->name('quizzes.update');
+    Route::delete('quiz/{id}', [QuizController::class, 'destroy'])->name('quizzes.destroy');
 
-Route::get('course', [App\Http\Controllers\CourseController::class, 'index'])->name('courses.index');
-Route::post('course', [App\Http\Controllers\CourseController::class, 'store'])->name('courses.store');
-Route::get('/courses/filter-search', [CourseController::class, 'filterAndSearch'])->name('courses.filterSearch');
-Route::post('course/modules', [App\Http\Controllers\ModuleController::class, 'store'])->name('module.store');
-Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
-Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
-Route::get('courses/{course}/show', [CourseController::class, 'show'])->name('courses.show');
-Route::get('/courses/{course}/modules', [CourseController::class, 'modules'])->name('courses.modules');
-Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
-Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'])
-    ->name('modules.store');
-Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'])
-     ->name('modules.store');
+    Route::get('course', [App\Http\Controllers\CourseController::class, 'index'])->name('courses.index');
+    Route::post('course', [App\Http\Controllers\CourseController::class, 'store'])->name('courses.store');
+    Route::get('/courses/filter-search', [CourseController::class, 'filterAndSearch'])->name('courses.filterSearch');
+    Route::post('course/modules', [App\Http\Controllers\ModuleController::class, 'store'])->name('module.store');
+    Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+    Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
+    Route::get('courses/{course}/show', [CourseController::class, 'show'])->name('courses.show');
+    Route::get('/courses/{course}/modules', [CourseController::class, 'modules'])->name('courses.modules');
+    Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+    Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'])
+        ->name('modules.store');
+    Route::post('/courses/{course}/modules/store', [ModuleController::class, 'store'])
+        ->name('modules.store');
 
-Route::put('/modules/{module}', [ModuleController::class, 'update'])
-     ->name('modules.update');
-Route::delete('/modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('modules.destroy');
+    Route::put('/modules/{module}', [ModuleController::class, 'update'])
+        ->name('modules.update');
+    Route::delete('/modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('modules.destroy');
 
-Route::patch('/modules/{module}/status', [ModuleController::class, 'updateStatus'])->name('modules.status');
-Route::post('/modules/bulk-status', [ModuleController::class, 'bulkStatus'])->name('modules.bulk-status');
-Route::delete('/modules/bulk-delete', [ModuleController::class, 'bulkDelete'])->name('modules.bulk-delete');
+    Route::patch('/modules/{module}/status', [ModuleController::class, 'updateStatus'])->name('modules.status');
+    Route::post('/modules/bulk-status', [ModuleController::class, 'bulkStatus'])->name('modules.bulk-status');
+    Route::delete('/modules/bulk-delete', [ModuleController::class, 'bulkDelete'])->name('modules.bulk-delete');
 
-Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name('topics.index');
+    Route::get('/modules/{module}/topics', [TopicController::class, 'index'])->name('topics.index');
 
-   Route::get('/topics/create/{module}', [TopicController::class, 'create'])
-    ->name('admin.topics.create');
-    Route::post('/topics', [TopicController::class, 'store'])->name('admin.topics.store');
-    Route::get('/topics/{topic}', [TopicController::class, 'show'])->name('admin.topics.show');
-    Route::get('/topics/{topic}/edit', [TopicController::class, 'edit'])->name('admin.topics.edit');
-    Route::put('/topics/{topic}', [TopicController::class, 'update'])->name('admin.topics.update');
-    Route::delete('/topics/{topic}', [TopicController::class, 'destroy'])->name('admin.topics.destroy');
-    Route::get('/modules/{module}/topics', [TopicController::class, 'byModule'])->name('admin.modules.topics');
-    Route::post('/topics/order', [TopicController::class, 'updateOrder'])->name('admin.topics.order');
-    route::get('/topics/back', [TopicController::class, 'back'])->name('admin.topics.back');
+    Route::get('/topics/create/{module}', [TopicController::class, 'create'])
+        ->name('admin.topics.create');
+        Route::post('/topics', [TopicController::class, 'store'])->name('admin.topics.store');
+        Route::get('/topics/{topic}', [TopicController::class, 'show'])->name('admin.topics.show');
+        Route::get('/topics/{topic}/edit', [TopicController::class, 'edit'])->name('admin.topics.edit');
+        Route::put('/topics/{topic}', [TopicController::class, 'update'])->name('admin.topics.update');
+        Route::delete('/topics/{topic}', [TopicController::class, 'destroy'])->name('admin.topics.destroy');
+        Route::get('/modules/{module}/topics', [TopicController::class, 'byModule'])->name('admin.modules.topics');
+        Route::post('/topics/order', [TopicController::class, 'updateOrder'])->name('admin.topics.order');
+        route::get('/topics/back', [TopicController::class, 'back'])->name('admin.topics.back');
 
 
-// Corrected routes
-Route::prefix('quiz/{quiz}')->group(function () {
-    Route::get('questions', [QuestionController::class, 'index'])->name('questions.index');
-    Route::get('questions/import', function ($quiz) {
-        return redirect()->to(route('questions.create', ['quiz' => $quiz]).'#bulk-upload');
-    })->name('questions.import.form');
-    Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
-    Route::get('questions/create', [QuestionController::class, 'create'])->name('questions.create');
-    Route::post('questions', [QuestionController::class, 'store'])->name('questions.store');
-    Route::get('questions/{question}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
-    Route::put('questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
-    Route::delete('questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
-});
+    // Corrected routes
+    Route::prefix('quiz/{quiz}')->group(function () {
+        Route::get('questions', [QuestionController::class, 'index'])->name('questions.index');
+        Route::get('questions/import', function ($quiz) {
+            return redirect()->to(route('questions.create', ['quiz' => $quiz]).'#bulk-upload');
+        })->name('questions.import.form');
+        Route::post('questions/import', [QuestionController::class, 'import'])->name('questions.import');
+        Route::get('questions/create', [QuestionController::class, 'create'])->name('questions.create');
+        Route::post('questions', [QuestionController::class, 'store'])->name('questions.store');
+        Route::get('questions/{question}/edit', [QuestionController::class, 'edit'])->name('questions.edit');
+        Route::put('questions/{question}', [QuestionController::class, 'update'])->name('questions.update');
+        Route::delete('questions/{question}', [QuestionController::class, 'destroy'])->name('questions.destroy');
+    });
 });
 
 // Dashboard - List available quizzes

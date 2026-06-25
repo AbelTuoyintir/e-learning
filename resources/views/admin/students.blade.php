@@ -66,7 +66,17 @@
                                         class="text-indigo-600 hover:text-indigo-800 p-2 rounded-lg hover:bg-indigo-50">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="text-slate-600 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-50">
+                                <button onclick="editStudent(this)" 
+                                        data-student-id="{{ $student->id }}"
+                                        data-student-name="{{ $student->firstname }} {{ $student->lastname }}"
+                                        data-student-firstname="{{ $student->firstname }}"
+                                        data-student-lastname="{{ $student->lastname }}"
+                                        data-student-email="{{ $student->email }}"
+                                        data-student-phone="{{ $student->phone }}"
+                                        data-student-program="{{ $student->program }}"
+                                        data-student-status="{{ $student->status }}"
+                                        data-route="{{ route('student.update', $student->id) }}"
+                                        class="text-slate-600 hover:text-indigo-600 p-2 rounded-lg hover:bg-indigo-50 transition">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50">
@@ -120,11 +130,153 @@
     </div>
 </div>
 
+<!-- Edit Student Modal -->
+<div id="editStudentModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden overflow-y-auto">
+    <div class="min-h-screen px-4 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+            
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-user-edit text-indigo-600"></i>
+                    Edit Student Details
+                </h2>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 transition text-2xl">
+                    &times;
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6">
+                <form id="editStudentForm" onsubmit="submitEditForm(event)">
+                    <input type="hidden" id="edit_student_id" name="student_id">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- First Name -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-user text-indigo-500 mr-1"></i> First Name *
+                            </label>
+                            <input type="text" id="edit_firstname" name="firstname" required
+                                   class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        
+                        <!-- Last Name -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-user text-indigo-500 mr-1"></i> Last Name *
+                            </label>
+                            <input type="text" id="edit_lastname" name="lastname" required
+                                   class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-envelope text-indigo-500 mr-1"></i> Email *
+                            </label>
+                            <input type="email" id="edit_email" name="email" required
+                                   class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        
+                        <!-- Phone -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-phone text-indigo-500 mr-1"></i> Phone
+                            </label>
+                            <input type="tel" id="edit_phone" name="phone"
+                                   class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        
+                        <!-- Program -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-graduation-cap text-indigo-500 mr-1"></i> Program
+                            </label>
+                            <select id="edit_program" name="program"
+                                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <option value="">Select Program</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Business Administration">Business Administration</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Medicine">Medicine</option>
+                                <option value="Law">Law</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-toggle-on text-indigo-500 mr-1"></i> Status
+                            </label>
+                            <select id="edit_status" name="status"
+                                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="graduated">Graduated</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Registration Date (Read Only) -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                <i class="fas fa-calendar-alt text-indigo-500 mr-1"></i> Registration Date
+                            </label>
+                            <input type="text" id="edit_registration_date" readonly disabled
+                                   class="w-full px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-lg text-slate-600">
+                        </div>
+                    </div>
+                    
+                    <!-- Password Change Section -->
+                    <div class="mt-6 pt-4 border-t border-slate-200">
+                        <h4 class="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-key text-indigo-500"></i>
+                            Change Password (Optional)
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">New Password</label>
+                                <input type="password" id="edit_password" name="password"
+                                       class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                       placeholder="Leave blank to keep current">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
+                                <input type="password" id="edit_password_confirmation" name="password_confirmation"
+                                       class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                       placeholder="Confirm new password">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3 mt-6 pt-4 border-t border-slate-200">
+                        <button type="button" onclick="closeEditModal()"
+                                class="flex-1 px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-200 transition">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                        <button type="submit"
+                                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-500 hover:to-purple-500 transition shadow-md">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // Student Details Modal Functions
 let currentStudentId = null;
 
-function showStudentDetails(button) {
+// Ensure global function is available for inline onclick
+window.showStudentDetails = function (button) {
     const studentId = button.getAttribute('data-student-id');
     const url = button.getAttribute('data-route');
 
@@ -322,7 +474,7 @@ function renderStudentDetails(data) {
     document.getElementById('detailsContent').innerHTML = html;
 }
 
-function closeStudentModal() {
+window.closeStudentModal = function closeStudentModal() {
     const modal = document.getElementById('studentDetailsModal');
     modal.classList.add('hidden');
     currentStudentId = null;
@@ -344,6 +496,189 @@ document.addEventListener('keydown', function(e) {
 document.getElementById('studentDetailsModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeStudentModal();
+    }
+});
+
+let currentEditButton = null;
+
+
+function editStudent(button) {
+    currentEditButton = button;
+    
+    // Get student data from button attributes
+    const studentId = button.getAttribute('data-student-id');
+    const firstName = button.getAttribute('data-student-firstname');
+    const lastName = button.getAttribute('data-student-lastname');
+    const email = button.getAttribute('data-student-email');
+    const phone = button.getAttribute('data-student-phone');
+    const program = button.getAttribute('data-student-program');
+    const status = button.getAttribute('data-student-status');
+    
+    // Populate the form
+    document.getElementById('edit_student_id').value = studentId;
+    document.getElementById('edit_firstname').value = firstName;
+    document.getElementById('edit_lastname').value = lastName;
+    document.getElementById('edit_email').value = email;
+    document.getElementById('edit_phone').value = phone || '';
+    document.getElementById('edit_program').value = program || '';
+    document.getElementById('edit_status').value = status || 'active';
+    
+    // Clear password fields
+    document.getElementById('edit_password').value = '';
+    document.getElementById('edit_password_confirmation').value = '';
+    
+    // Show modal
+    const modal = document.getElementById('editStudentModal');
+    modal.classList.remove('hidden');
+}
+
+window.closeEditModal = function closeEditModal() {
+    const modal = document.getElementById('editStudentModal');
+    modal.classList.add('hidden');
+    currentEditButton = null;
+}
+
+function submitEditForm(event) {
+    event.preventDefault();
+    
+    const studentId = document.getElementById('edit_student_id').value;
+    const formData = {
+        firstname: document.getElementById('edit_firstname').value,
+        lastname: document.getElementById('edit_lastname').value,
+        email: document.getElementById('edit_email').value,
+        phone: document.getElementById('edit_phone').value,
+        program: document.getElementById('edit_program').value,
+        status: document.getElementById('edit_status').value,
+        password: document.getElementById('edit_password').value,
+        password_confirmation: document.getElementById('edit_password_confirmation').value,
+    };
+    
+    // Validate passwords match if provided
+    if (formData.password && formData.password !== formData.password_confirmation) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Password Mismatch',
+            text: 'New password and confirmation do not match.',
+            confirmButtonColor: '#6366f1'
+        });
+        return;
+    }
+    
+    // Show loading state
+    Swal.fire({
+        title: 'Updating...',
+        text: 'Please wait while we update the student information.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
+    // Send update request
+    fetch(`/admin/student/${studentId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the button attributes with new data
+            if (currentEditButton) {
+                currentEditButton.setAttribute('data-student-firstname', formData.firstname);
+                currentEditButton.setAttribute('data-student-lastname', formData.lastname);
+                currentEditButton.setAttribute('data-student-email', formData.email);
+                currentEditButton.setAttribute('data-student-phone', formData.phone || '');
+                currentEditButton.setAttribute('data-student-program', formData.program || '');
+                currentEditButton.setAttribute('data-student-status', formData.status);
+                currentEditButton.setAttribute('data-student-name', formData.firstname + ' ' + formData.lastname);
+            }
+            
+            // Update the table row if it exists
+            updateTableRow(studentId, formData);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Updated!',
+                text: 'Student information has been updated successfully.',
+                confirmButtonColor: '#6366f1',
+                timer: 2000
+            });
+            
+            // Close modal after success
+            setTimeout(() => {
+                closeEditModal();
+            }, 1500);
+        } else {
+            throw new Error(data.message || 'Failed to update student');
+        }
+    })
+    .catch(error => {
+        console.error('Update error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: error.message || 'Something went wrong. Please try again.',
+            confirmButtonColor: '#dc2626'
+        });
+    });
+}
+
+function updateTableRow(studentId, formData) {
+    // Find the row containing this student
+    const rows = document.querySelectorAll('tr');
+    for (let row of rows) {
+        if (row.innerHTML.includes(`data-student-id="${studentId}"`) || 
+            row.querySelector(`button[data-student-id="${studentId}"]`)) {
+            
+            // Update name cell
+            const nameCell = row.querySelector('td:first-child, .student-name');
+            if (nameCell) {
+                nameCell.textContent = formData.firstname + ' ' + formData.lastname;
+            }
+            
+            // Update email cell
+            const emailCell = row.querySelector('td:nth-child(2), .student-email');
+            if (emailCell) {
+                emailCell.textContent = formData.email;
+            }
+            
+            // Update status badge if exists
+            const statusBadge = row.querySelector('.status-badge');
+            if (statusBadge) {
+                statusBadge.textContent = formData.status;
+                statusBadge.className = `status-badge px-2 py-1 rounded-full text-xs font-semibold ${
+                    formData.status === 'active' ? 'bg-green-100 text-green-700' : 
+                    formData.status === 'inactive' ? 'bg-red-100 text-red-700' : 
+                    'bg-yellow-100 text-yellow-700'
+                }`;
+            }
+            
+            break;
+        }
+    }
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeEditModal();
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('editStudentModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditModal();
     }
 });
 </script>
