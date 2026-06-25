@@ -42,30 +42,30 @@
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
 
     <!-- Top Navigation -->
-    <nav class="bg-white/80 backdrop-blur-md shadow-md border-b border-white/20 sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+    <nav class="bg-white/80 backdrop-blur-md shadow-md border-b border-white/20 sticky top-0 z-50" x-data="{ mobileMenuOpen: false }">
+        <div class="container mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
 
             <!-- Logo -->
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('tutor.dashboard') }}" class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
                     <i class="fas fa-shield-halved text-white text-xl"></i>
                 </div>
-                <span class="text-slate-800 font-bold text-xl tracking-tight">Admin Portal</span>
+                <span class="text-slate-800 font-bold text-lg md:text-xl tracking-tight truncate">{{ Auth::user()->role === 'admin' ? 'Admin Portal' : 'Tutor Portal' }}</span>
             </a>
 
             <!-- Right Side -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 md:space-x-4">
                 <!-- Notifications -->
                 <button id="notificationBtn" class="relative p-2 text-slate-600 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition">
                     <i class="fas fa-bell text-xl"></i>
                     <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center shadow-sm">3</span>
                 </button>
 
-                <!-- Profile Dropdown -->
-                <div class="relative group">
+                <!-- Profile Dropdown (Desktop) -->
+                <div class="relative group hidden sm:block">
                     <button class="flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-100 transition">
-                        <img src="https://i.pravatar.cc/40?img=7" alt="Admin" class="w-10 h-10 rounded-full ring-2 ring-indigo-200">
-                        <span class="text-slate-700 font-medium hidden md:inline">Admin User</span>
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random" alt="User" class="w-10 h-10 rounded-full ring-2 ring-indigo-200">
+                        <span class="text-slate-700 font-medium hidden md:inline">{{ Auth::user()->name }}</span>
                         <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
                     </button>
                     <!-- Dropdown menu -->
@@ -81,35 +81,108 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- Mobile Menu Toggle -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                    <i class="fas" :class="mobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div x-show="mobileMenuOpen" x-transition class="lg:hidden bg-white border-t border-slate-100 px-4 py-6 space-y-4 shadow-inner">
+            <ul class="space-y-2">
+                @if(Auth::user()->role === 'admin')
+                <li>
+                    <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                        <i class="fas fa-chart-pie w-5"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                </li>
+                @else
+                <li>
+                    <a href="{{ route('tutor.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                        <i class="fas fa-chart-pie w-5"></i>
+                        <span class="font-medium">Tutor Dashboard</span>
+                    </a>
+                </li>
+                @endif
+                <li>
+                    <a href="{{ route('quizzes.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                        <i class="fas fa-question-circle w-5"></i>
+                        <span class="font-medium">Manage Quizzes</span>
+                    </a>
+                </li>
+                @if(Auth::user()->role === 'admin')
+                <li>
+                    <a href="{{ route('students.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                        <i class="fas fa-users w-5"></i>
+                        <span class="font-medium">Students</span>
+                    </a>
+                </li>
+                @endif
+                <li>
+                    <a href="{{ route('courses.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                        <i class="fas fa-book w-5"></i>
+                        <span class="font-medium">Manage Courses</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="pt-4 border-t border-slate-100">
+                <div class="flex items-center px-4 mb-4">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random" class="w-10 h-10 rounded-full mr-3">
+                    <div class="flex-1">
+                        <p class="font-bold text-slate-800">{{ Auth::user()->name }}</p>
+                        <p class="text-xs text-slate-500 capitalize">{{ Auth::user()->role }}</p>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('admin.logout') }}">
+                    @csrf
+                    <button type="submit" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 w-full text-left transition">
+                        <i class="fas fa-sign-out-alt w-5"></i>
+                        <span class="font-medium">Logout</span>
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
 
     <!-- Main Layout -->
-    <div class="container mx-auto px-6 py-8 flex gap-8">
+    <div class="container mx-auto px-4 md:px-6 py-8 flex flex-col lg:flex-row gap-8">
 
-        <!-- Sidebar -->
-        <aside class="w-64 hidden lg:block">
+        <!-- Sidebar (Desktop) -->
+        <aside class="w-64 hidden lg:block shrink-0">
             <div class="bg-white/70 backdrop-blur-lg rounded-2xl shadow-lg border border-white/30 p-4 sticky top-24">
                 <ul class="space-y-2">
+                    @if(Auth::user()->role === 'admin')
                     <li>
                         <a href="{{ route('admin.dashboard') }}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                             <i class="fas fa-chart-pie w-5"></i>
                             <span class="font-medium">Dashboard</span>
                         </a>
                     </li>
+                    @else
+                    <li>
+                        <a href="{{ route('tutor.dashboard') }}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                            <i class="fas fa-chart-pie w-5"></i>
+                            <span class="font-medium">Tutor Dashboard</span>
+                        </a>
+                    </li>
+                    @endif
                     <li>
                         <a href="{{ route('quizzes.index') }}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                             <i class="fas fa-question-circle w-5"></i>
                             <span class="font-medium">Manage Quizzes</span>
                         </a>
                     </li>
+                    @if(Auth::user()->role === 'admin')
                     <li>
                         <a href="{{ route('students.index') }}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                             <i class="fas fa-users w-5"></i>
                             <span class="font-medium">Students</span>
                         </a>
                     </li>
+                    @endif
                     <li>
                         <a href="{{ route('courses.index') }}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
                             <i class="fas fa-book w-5"></i>
