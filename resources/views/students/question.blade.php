@@ -1,28 +1,49 @@
 @extends('layouts.studentNavBar')
 
-@section('title', 'Taking Quiz: ' . $quiz->title)
+@section('title', 'Assessment: ' . $quiz->title)
 
 @section('content')
-<div class="container mx-auto p-6 max-w-4xl dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-    <!-- Quiz Header -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold text-gray-800">{{ $quiz->title }}</h1>
-            <div class="text-right">
-                <div class="text-lg font-semibold text-gray-700" id="timer">
-                    @php
-                        $minutes = floor($quiz->time_limit);
-                        $seconds = 0;
-                    @endphp
-                    Time: {{ $minutes }}:{{ str_pad($seconds, 2, '0', STR_PAD_LEFT) }}
+<div class="min-h-screen bg-slate-50 dark:bg-gray-950 pb-20 transition-colors duration-300">
+    <!-- Sticky Quiz Header -->
+    <div class="bg-white dark:bg-gray-900 border-b dark:border-gray-800 shadow-sm sticky top-[72px] z-30">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ $quiz->title }}</h1>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Question <span id="current-question">1</span> of {{ $quiz->questions_count }}</span>
+                        <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $quiz->module->title ?? 'Module Assessment' }}</span>
+                    </div>
                 </div>
-                <div class="text-sm text-gray-500">
-                    Question <span id="current-question">1</span> of {{ $quiz->questions_count }}
+
+                <div class="flex items-center gap-6">
+                    <!-- Timer -->
+                    <div class="flex items-center bg-gray-50 dark:bg-gray-800 px-4 py-2 rounded-xl border dark:border-gray-700" id="timer-container">
+                        <i class="fas fa-clock text-gray-400 mr-3"></i>
+                        <span class="text-xl font-mono font-bold text-gray-700 dark:text-gray-200" id="timer">
+                            @php
+                                $minutes = floor($quiz->time_limit);
+                                $seconds = 0;
+                            @endphp
+                            {{ $minutes }}:{{ str_pad($seconds, 2, '0', STR_PAD_LEFT) }}
+                        </span>
+                    </div>
+
+                    <!-- Progress Circle -->
+                    <div class="relative w-12 h-12">
+                        <svg class="w-full h-full transform -rotate-90">
+                            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="4" fill="transparent" class="text-gray-200 dark:text-gray-700" />
+                            <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="4" fill="transparent" stroke-dasharray="125.6" stroke-dashoffset="125.6" class="text-blue-600 transition-all duration-500" id="progress-circle" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold dark:text-white"><span id="progress-percent">0</span>%</div>
+                    </div>
                 </div>
             </div>
         </div>
-        <p class="text-gray-600">{{ $quiz->description }}</p>
     </div>
+
+    <div class="container mx-auto px-6 max-w-4xl mt-8">
 
     <!-- Progress Bar -->
     <div class="mb-6">
@@ -49,60 +70,68 @@
         @endforeach
 
         @foreach($questions as $index => $question)
-        <div class="question-section bg-white rounded-lg shadow-md p-6 mb-6 @if($index !== 0) hidden @endif"
+        <div class="question-section bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-8 mb-6 @if($index !== 0) hidden @endif"
              data-question-id="{{ $question->id }}" data-index="{{ $index + 1 }}">
 
-
             <!-- Question -->
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">
-                    Question {{ $index + 1 }}:
+            <div class="mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="px-3 py-1 bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 text-[10px] font-bold rounded-lg uppercase tracking-widest">Question {{ $index + 1 }}</span>
+                    <span class="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded-lg uppercase tracking-widest">{{ $question->points }} Points</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white leading-snug">
+                    {{ $question->question_text }}
                 </h3>
-                <p class="text-gray-700 text-lg">{{ $question->question_text }}</p>
-                <span class="text-sm text-gray-500">Points: {{ $question->points }}</span>
+                @if($question->type && $question->type !== 'MCQ')
+                    <span class="inline-block mt-3 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold rounded uppercase tracking-widest border border-amber-100 dark:border-amber-800">
+                        {{ $question->type }}
+                    </span>
+                @endif
             </div>
 
             <!-- Options -->
-            <div class="space-y-3">
-                <label class="option-item flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors 
-                    hover:border-blue-300">
-                    <input type="radio" name="answers[{{ $question->id }}]" value="A"
-                           class="mr-3 h-5 w-5 text-blue-600">
-                    <div>
-                        <span class="font-medium text-gray-700">A:</span>
-                        <span class="text-gray-700 ml-2">{{ $question->option_a }}</span>
-                    </div>
-                </label>
+            <div class="space-y-4">
+                @if($question->type === 'True/False')
+                    <label class="option-item flex items-center p-6 border-2 border-gray-100 dark:border-gray-800 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group">
+                        <div class="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center mr-4 group-hover:border-blue-500 transition-colors">
+                            <div class="w-3 h-3 bg-blue-600 rounded-full opacity-0 transition-opacity check-dot"></div>
+                        </div>
+                        <input type="radio" name="answers[{{ $question->id }}]" value="A" class="hidden">
+                        <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">True</span>
+                    </label>
 
-                <label class="option-item flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors
-                    hover:border-blue-300">
-                    <input type="radio" name="answers[{{ $question->id }}]" value="B"
-                           class="mr-3 h-5 w-5 text-blue-600">
-                    <div>
-                        <span class="font-medium text-gray-700">B:</span>
-                        <span class="text-gray-700 ml-2">{{ $question->option_b }}</span>
+                    <label class="option-item flex items-center p-6 border-2 border-gray-100 dark:border-gray-800 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group">
+                        <div class="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center mr-4 group-hover:border-blue-500 transition-colors">
+                            <div class="w-3 h-3 bg-blue-600 rounded-full opacity-0 transition-opacity check-dot"></div>
+                        </div>
+                        <input type="radio" name="answers[{{ $question->id }}]" value="B" class="hidden">
+                        <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">False</span>
+                    </label>
+                @elseif($question->type === 'Short Answer' || $question->type === 'Essay')
+                    <div class="mt-2">
+                        <textarea name="answers[{{ $question->id }}]"
+                                  rows="4"
+                                  class="w-full rounded-xl border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-4 text-gray-700"
+                                  placeholder="Type your answer here..."
+                                  oninput="saveAnswer('{{ $question->id }}', this.value)"></textarea>
+                        @if($question->type === 'Short Answer')
+                            <p class="text-xs text-gray-500 mt-2 italic">Note: Short answers are graded based on exact matches for automated marking.</p>
+                        @endif
                     </div>
-                </label>
-
-                <label class="option-item flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors
-                    hover:border-blue-300">
-                    <input type="radio" name="answers[{{ $question->id }}]" value="C"
-                           class="mr-3 h-5 w-5 text-blue-600">
-                    <div>
-                        <span class="font-medium text-gray-700">C:</span>
-                        <span class="text-gray-700 ml-2">{{ $question->option_c }}</span>
-                    </div>
-                </label>
-
-                <label class="option-item flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors
-                    hover:border-blue-300">
-                    <input type="radio" name="answers[{{ $question->id }}]" value="D"
-                           class="mr-3 h-5 w-5 text-blue-600">
-                    <div>
-                        <span class="font-medium text-gray-700">D:</span>
-                        <span class="text-gray-700 ml-2">{{ $question->option_d }}</span>
-                    </div>
-                </label>
+                @else
+                    @foreach(['A', 'B', 'C', 'D'] as $letter)
+                        @php $optionKey = 'option_' . strtolower($letter); @endphp
+                        @if($question->$optionKey)
+                            <label class="option-item flex items-center p-6 border-2 border-gray-100 dark:border-gray-800 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group">
+                                <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400 font-bold mr-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    {{ $letter }}
+                                </div>
+                                <input type="radio" name="answers[{{ $question->id }}]" value="{{ $letter }}" class="hidden">
+                                <span class="text-lg text-gray-700 dark:text-gray-200 leading-tight">{{ $question->$optionKey }}</span>
+                            </label>
+                        @endif
+                    @endforeach
+                @endif
             </div>
             
             <!-- Skip Question Button -->
@@ -192,7 +221,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateNavigation() {
         // Update progress bar
         const progress = ((currentQuestion + 1) / questions.length) * 100;
-        progressBar.style.width = `${progress}%`;
+        const dashOffset = 125.6 - (125.6 * progress / 100);
+        document.getElementById('progress-circle').style.strokeDashoffset = dashOffset;
         progressPercent.textContent = Math.round(progress);
         
         // Update question counter

@@ -57,6 +57,11 @@ class CourseController extends Controller
 
         $validated['price'] = isset($validated['price']) ? (float) $validated['price'] : 0;
 
+        // Associate with tutor if logged in
+        if (auth()->check()) {
+            $validated['user_id'] = auth()->id();
+        }
+
         // Create the course
         $course = \App\Models\Course::create($validated);
 

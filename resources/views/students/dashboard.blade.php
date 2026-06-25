@@ -7,7 +7,7 @@
             <h2 class="text-3xl font-bold text-gray-800 mb-6"><i class="fas fa-tachometer-alt mr-3 text-blue-600"></i>Student Dashboard</h2>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
                 <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
@@ -50,18 +50,18 @@
             </div>
 
             <!-- Learning Progress Details -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow-sm">
-                    <h4 class="font-bold text-blue-800">Topic Progress</h4>
-                    <p class="text-2xl font-bold">{{ $completedTopics }} / {{ $totalTopics }} Topics</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded shadow-sm">
+                    <h4 class="font-bold text-blue-800 dark:text-blue-400">Topic Progress</h4>
+                    <p class="text-xl md:text-2xl font-bold">{{ $completedTopics }} / {{ $totalTopics }} Topics</p>
                 </div>
-                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow-sm">
-                    <h4 class="font-bold text-green-800">Passed Modules</h4>
-                    <p class="text-2xl font-bold">{{ $passedModules }}</p>
+                <div class="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded shadow-sm">
+                    <h4 class="font-bold text-green-800 dark:text-green-400">Passed Modules</h4>
+                    <p class="text-xl md:text-2xl font-bold">{{ $passedModules }}</p>
                 </div>
-                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
-                    <h4 class="font-bold text-red-800">Retake Required</h4>
-                    <p class="text-2xl font-bold">{{ $retakeModules ?? 0 }}</p>
+                <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded shadow-sm">
+                    <h4 class="font-bold text-red-800 dark:text-red-400">Retake Required</h4>
+                    <p class="text-xl md:text-2xl font-bold">{{ $retakeModules ?? 0 }}</p>
                 </div>
             </div>
 

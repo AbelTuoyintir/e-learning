@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class AIChatSession extends Model
 {
+    protected $table = 'ai_chat_sessions';
+
     protected $fillable = [
         'student_id',
         'question',

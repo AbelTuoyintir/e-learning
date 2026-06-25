@@ -9,6 +9,7 @@ class Course extends Model
     //
     protected $table = 'courses';
     protected $fillable = [
+        'user_id',
         'title',
         'description',
         'category',
@@ -42,5 +43,10 @@ class Course extends Model
        public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
+    }
+
+    public function tutor()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
