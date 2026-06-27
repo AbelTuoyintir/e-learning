@@ -142,6 +142,52 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Invalid token or email.']);
     }
 
+    public function tutorLogin()
+    {
+        return view('tutor.Login');
+    }
+
+    public function tutorLoginSubmit(Request $request)
+    {
+        // Log incoming tutor login attempt
+        Log::info('Tutor login attempt started', [
+            'email' => $request->input('email'),
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
+
+        // Validate credentials
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::guard('tutor')->attempt($credentials)) {
+            $request->session()->regenerate();
+
+            // Log successful tutor login
+            Log::info('Tutor login successful', [
+                'email' => $request->input('email'),
+                'ip' => $request->ip(),
+                'time' => now()->toDateTimeString(),
+            ]);
+
+            return redirect()->intended('/tutor/dashboard');
+        }
+
+        // Log failed tutor login
+        Log::warning('Tutor login failed', [
+            'email' => $request->input('email'),
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
+
+        // Return with error
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
     // Admin Login Methods (using users table)
     public function adminLogin()
     {
