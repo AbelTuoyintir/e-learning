@@ -36,7 +36,8 @@ class AIChatController extends Controller
         AIChatSession::create([
             'student_id' => Auth::id(),
             'question' => $question,
-            'response' => $response,
+            'response' => $response['text'],
+            'provider' => $response['provider'],
             'course_id' => $course_id,
             'module_id' => $module_id,
         ]);
@@ -48,11 +49,13 @@ class AIChatController extends Controller
             'metadata' => [
                 'course_id' => $course_id,
                 'module_id' => $module_id,
+                'provider' => $response['provider'],
             ],
         ]);
 
         return response()->json([
-            'response' => $response,
+            'response' => $response['text'],
+            'provider' => $response['provider'],
         ]);
     }
 

@@ -12,6 +12,7 @@ class AIChatSession extends Model
         'student_id',
         'question',
         'response',
+        'provider',
         'course_id',
         'module_id',
     ];
