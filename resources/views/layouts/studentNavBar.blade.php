@@ -12,7 +12,7 @@
             darkMode: 'class'
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylessheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         /* Toast animation */
@@ -221,7 +221,7 @@
                         // AI message
                         const aiMsg = document.createElement('div');
                         aiMsg.className = 'bg-blue-100 dark:bg-blue-900/30 dark:text-blue-100 p-4 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm mb-4';
-                        aiMsg.innerHTML = `<p class="text-sm">${escapeHtml(session.response)}</p>`;
+                        aiMsg.innerHTML = `<div class="text-sm">${renderMarkdownToHtml(session.response)}</div>`;
 
                         if (session.provider) {
                             const providerBadge = document.createElement('small');
@@ -243,6 +243,86 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        function renderMarkdownToHtml(markdown) {
+            // Minimal Markdown renderer for this app (no external dependency)
+            // Supports: paragraphs, line breaks, bold (**text**), inline code (`code`), and basic tables.
+            if (!markdown) return '';
+
+            let text = String(markdown);
+            text = text.replace(/\r\n/g, '\n');
+
+            // Convert Markdown tables to HTML if present (very simple heuristic)
+            // Detect a block that contains lines like: | col | col |
+            const lines = text.split('\n');
+            const tableStart = lines.findIndex(l => l.trim().startsWith('|') && l.includes('|', 1));
+            if (tableStart !== -1) {
+                // Attempt to parse the first table block
+                // Table block ends when we hit a line that does not start with '|'
+                let i = tableStart;
+                const tableLines = [];
+                while (i < lines.length && lines[i].trim().startsWith('|')) {
+                    tableLines.push(lines[i]);
+                    i++;
+                }
+
+                if (tableLines.length >= 2) {
+                    // Expect: header |----| separator | and data rows
+                    const splitRow = (row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+                    const header = splitRow(tableLines[0]);
+                    const dataRows = tableLines.slice(2).map(splitRow);
+                    const thead = `<thead><tr>${header.map(h => `<th class="border border-gray-200 px-2 py-1 bg-gray-50 text-left font-semibold text-xs">${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
+                    const tbody = `<tbody>${dataRows.map(r => `<tr>${r.map(c => `<td class="border border-gray-200 px-2 py-1 text-xs text-gray-700">${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+                    const tableHtml = `<div class="overflow-x-auto my-2"><table class="min-w-full border-collapse">${thead}${tbody}</table></div>`;
+
+                    // Render the rest of the markdown without table lines, then insert the table.
+                    const before = lines.slice(0, tableStart).join('\n');
+                    const after = lines.slice(i).join('\n');
+                    text = `${before}\n${tableHtml}\n${after}`;
+                    // Continue below for non-table markdown (but we must not re-table)
+                }
+            }
+
+            // Inline formatting
+            text = text.replace(/\`([^`]+)\`/g, '<code class="px-1 py-0.5 rounded bg-gray-100 border border-gray-200 text-xs">$1</code>');
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+            // Escape remaining HTML
+            // Note: if tableHtml already inserted, it contains HTML. We'll escape only by rebuilding paragraphs around existing tags.
+            // Simple approach: escape everything then unescape known tags we inserted via tableHtml. We'll do a conservative path:
+            // First, escape, then apply formatting again on escaped text isn't feasible.
+            // So instead: escape lines and convert to paragraphs, leaving existing <div>/<table>/<code> tags out of escape.
+
+            // If the string contains our inserted table HTML, leave it as-is; escape other text pieces.
+            if (text.includes('<table') || text.includes('overflow-x-auto')) {
+                // Split by inserted table container
+                const parts = text.split(/(<div class="overflow-x-auto[\s\S]*?<\/div>)/m).filter(Boolean);
+                const renderedParts = parts.map(p => {
+                    if (p.startsWith('<div class="overflow-x-auto')) return p;
+                    // escape and format paragraphs
+                    return p
+                        .split('\n\n')
+                        .map(block => {
+                            if (!block.trim()) return '';
+                            const safe = escapeHtml(block);
+                            // preserve line breaks within paragraphs
+                            return `<p class="whitespace-pre-wrap my-2 text-sm">${safe.replace(/\n/g, '<br>')}</p>`;
+                        }).join('');
+                });
+                return renderedParts.join('');
+            }
+
+            // No table: escape and convert paragraphs
+            const escaped = escapeHtml(text);
+            return escaped
+                .split(/\n{2,}/)
+                .map(block => {
+                    if (!block.trim()) return '';
+                    const withBreaks = block.replace(/\n/g, '<br>');
+                    return `<p class="whitespace-pre-wrap my-2 text-sm">${withBreaks}</p>`;
+                }).join('');
+        }
+
 
         document.getElementById('aiChatForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -293,7 +373,7 @@
 
                 const aiMsg = document.createElement('div');
                 aiMsg.className = 'bg-blue-100 dark:bg-blue-900/30 dark:text-blue-100 p-4 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm';
-                aiMsg.innerHTML = `<p class="text-sm">${escapeHtml(data.response)}</p>`;
+                aiMsg.innerHTML = `<div class="text-sm">${renderMarkdownToHtml(data.response)}</div>`;
 
                 if (data.provider) {
                     const providerBadge = document.createElement('small');
