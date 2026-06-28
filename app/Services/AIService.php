@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Course;
+use App\Models\Module;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -18,16 +20,43 @@ class AIService
 
     public function ask($prompt, $context = [])
     {
+        $enrichedPrompt = $this->buildContextPrompt($prompt, $context);
+
         if ($this->openaiApiKey) {
             try {
-                return $this->askOpenAI($prompt, $context);
+                return $this->askOpenAI($enrichedPrompt, $context);
             } catch (\Exception $e) {
                 Log::error('OpenAI Error: ' . $e->getMessage());
-                return $this->askOllama($prompt, $context);
+                return $this->askOllama($enrichedPrompt, $context);
             }
         }
 
-        return $this->askOllama($prompt, $context);
+        return $this->askOllama($enrichedPrompt, $context);
+    }
+
+    protected function buildContextPrompt($prompt, $context)
+    {
+        $contextInfo = "";
+
+        if (!empty($context['course_id'])) {
+            $course = Course::find($context['course_id']);
+            if ($course) {
+                $contextInfo .= "Course: {$course->title}. ";
+            }
+        }
+
+        if (!empty($context['module_id'])) {
+            $module = Module::find($context['module_id']);
+            if ($module) {
+                $contextInfo .= "Module: {$module->title}. ";
+            }
+        }
+
+        if ($contextInfo) {
+            return "Context - {$contextInfo}\nQuestion: {$prompt}";
+        }
+
+        return $prompt;
     }
 
     protected function askOpenAI($prompt, $context)
@@ -45,7 +74,10 @@ class AIService
             throw new \Exception('OpenAI API request failed');
         }
 
-        return $response->json()['choices'][0]['message']['content'];
+        return [
+            'text' => $response->json()['choices'][0]['message']['content'],
+            'provider' => 'OpenAI'
+        ];
     }
 
     protected function askOllama($prompt, $context)
@@ -58,9 +90,15 @@ class AIService
         ]);
 
         if ($response->failed()) {
-            return "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.";
+            return [
+                'text' => "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.",
+                'provider' => 'None'
+            ];
         }
 
-        return $response->json()['response'];
+        return [
+            'text' => $response->json()['response'],
+            'provider' => 'Ollama'
+        ];
     }
 }
