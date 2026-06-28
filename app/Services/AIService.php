@@ -73,7 +73,7 @@ class AIService
 
     protected function askOpenAI($prompt, $context)
     {
-        $response = Http::timeout(10)->withToken($this->openaiApiKey)
+        $response = Http::timeout(7)->withToken($this->openaiApiKey)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
@@ -95,7 +95,7 @@ class AIService
     protected function askOllama($prompt, $context)
     {
         // Fallback to Ollama
-        $response = Http::timeout(10)->post($this->ollamaBaseUrl . '/api/generate', [
+        $response = Http::timeout(7)->post($this->ollamaBaseUrl . '/api/generate', [
             'model' => 'llama2',
             'prompt' => $prompt,
             'stream' => false,

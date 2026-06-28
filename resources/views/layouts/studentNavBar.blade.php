@@ -14,6 +14,8 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <style>
         /* Toast animation */
         @keyframes slideIn {
@@ -24,6 +26,31 @@
         .toast-notification {
             animation: slideIn 0.3s ease-out;
         }
+
+        /* AI Chat Markdown Styling */
+        .ai-content {
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .ai-content p { margin-bottom: 0.75rem; }
+        .ai-content p:last-child { margin-bottom: 0; }
+        .ai-content ul, .ai-content ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .ai-content ul { list-style-type: disc; }
+        .ai-content ol { list-style-type: decimal; }
+        .ai-content table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; font-size: 0.75rem; background: rgba(255,255,255,0.5); border-radius: 0.5rem; overflow: hidden; }
+        .dark .ai-content table { background: rgba(0,0,0,0.2); }
+        .ai-content th, .ai-content td { border: 1px solid rgba(0,0,0,0.1); padding: 0.5rem; text-align: left; }
+        .dark .ai-content th, .dark .ai-content td { border: 1px solid rgba(255,255,255,0.1); }
+        .ai-content th { background: rgba(0,0,0,0.05); font-weight: bold; }
+        .dark .ai-content th { background: rgba(255,255,255,0.05); }
+        .ai-content h1, .ai-content h2, .ai-content h3 { font-weight: bold; margin-bottom: 0.5rem; margin-top: 1rem; color: inherit; }
+        .ai-content h1 { font-size: 1.25rem; }
+        .ai-content h2 { font-size: 1.1rem; }
+        .ai-content h3 { font-size: 1rem; }
+        .ai-content code { background: rgba(0,0,0,0.05); padding: 0.1rem 0.3rem; rounded: 0.25rem; font-family: monospace; }
+        .dark .ai-content code { background: rgba(255,255,255,0.1); }
+        .ai-content pre { background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 0.75rem; }
+        .ai-content pre code { background: transparent; color: inherit; padding: 0; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -215,13 +242,13 @@
                         // User message
                         const userMsg = document.createElement('div');
                         userMsg.className = 'bg-white dark:bg-gray-700 p-4 rounded-2xl rounded-tr-none max-w-[85%] ml-auto border dark:border-gray-600 shadow-sm mb-4';
-                        userMsg.innerHTML = `<p class="text-sm dark:text-white">${escapeHtml(session.question)}</p>`;
+                        userMsg.innerHTML = `<div class="ai-content dark:text-white">${renderContent(session.question)}</div>`;
                         chatHistory.appendChild(userMsg);
 
                         // AI message
                         const aiMsg = document.createElement('div');
                         aiMsg.className = 'bg-blue-100 dark:bg-blue-900/30 dark:text-blue-100 p-4 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm mb-4';
-                        aiMsg.innerHTML = `<p class="text-sm">${escapeHtml(session.response)}</p>`;
+                        aiMsg.innerHTML = `<div class="ai-content">${renderContent(session.response)}</div>`;
 
                         if (session.provider) {
                             const providerBadge = document.createElement('small');
@@ -236,6 +263,13 @@
             } catch (error) {
                 console.error('Error loading history:', error);
             }
+        }
+
+        function renderContent(content) {
+            if (typeof marked !== 'undefined') {
+                return DOMPurify.sanitize(marked.parse(content));
+            }
+            return escapeHtml(content);
         }
 
         function escapeHtml(text) {
@@ -255,7 +289,7 @@
             // Add user question
             const userMsg = document.createElement('div');
             userMsg.className = 'bg-white dark:bg-gray-700 p-4 rounded-2xl rounded-tr-none max-w-[85%] ml-auto border dark:border-gray-600 shadow-sm';
-            userMsg.innerHTML = `<p class="text-sm dark:text-white">${escapeHtml(question)}</p>`;
+            userMsg.innerHTML = `<div class="ai-content dark:text-white">${renderContent(question)}</div>`;
             chatHistory.appendChild(userMsg);
             questionInput.value = '';
 
@@ -298,7 +332,7 @@
 
                 const aiMsg = document.createElement('div');
                 aiMsg.className = 'bg-blue-100 dark:bg-blue-900/30 dark:text-blue-100 p-4 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm';
-                aiMsg.innerHTML = `<p class="text-sm">${escapeHtml(data.response)}</p>`;
+                aiMsg.innerHTML = `<div class="ai-content">${renderContent(data.response)}</div>`;
 
                 if (data.provider) {
                     const providerBadge = document.createElement('small');
