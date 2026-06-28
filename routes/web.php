@@ -124,6 +124,7 @@ Route::middleware('auth:student')->group(function () {
     
 
     Route::get('/student/statistics', [StudentController::class, 'statistics'])->name('student.statistics');
+    Route::get('/student/learning-history', [StudentController::class, 'learningHistory'])->name('students.learningHistory');
     Route::get('/student/results', [StudentController::class, 'results'])->name('student.results');
     Route::get('/student/quizzes', [\App\Http\Controllers\PaystackPaymentController::class, 'quizzes'])->name('student.quizzes');
 

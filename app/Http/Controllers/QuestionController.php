@@ -40,23 +40,29 @@ class QuestionController extends Controller
         }
 
         $data = $request->validate([
+            'type' => 'required|string|in:MCQ,True/False,Short Answer,Essay',
             'question_text' => 'required|string',
-            'option_a' => 'required|string',
-            'option_b' => 'required|string',
-            'option_c' => 'required|string',
-            'option_d' => 'required|string',
-            'correct_option' => 'required|string',
+            'option_a' => 'required_if:type,MCQ,True/False|string',
+            'option_b' => 'required_if:type,MCQ,True/False|string',
+            'option_c' => 'nullable|string',
+            'option_d' => 'nullable|string',
+            'correct_option' => 'required_if:type,MCQ,True/False|string',
+            'explanation' => 'nullable|string',
+            'difficulty_level' => 'required|string|in:Easy,Medium,Hard',
             'points' => 'nullable|integer|min:1',
         ]);
 
         Question::create([
             'quiz_id' => $quiz->id,
+            'type' => $data['type'],
             'question_text' => $data['question_text'],
-            'option_a' => $data['option_a'],
-            'option_b' => $data['option_b'],
-            'option_c' => $data['option_c'],
-            'option_d' => $data['option_d'],
-            'correct_option' => $this->normalizeCorrectOption($data['correct_option'], 0),
+            'option_a' => $data['option_a'] ?? '',
+            'option_b' => $data['option_b'] ?? '',
+            'option_c' => $data['option_c'] ?? '',
+            'option_d' => $data['option_d'] ?? '',
+            'correct_option' => $this->normalizeCorrectOption($data['correct_option'] ?? 'A', 0),
+            'explanation' => $data['explanation'],
+            'difficulty_level' => $data['difficulty_level'],
             'points' => $data['points'] ?? 1,
         ]);
 
@@ -78,22 +84,28 @@ class QuestionController extends Controller
         $question = Question::where('quiz_id', $quiz->id)->findOrFail($question);
 
         $data = $request->validate([
+            'type' => 'required|string|in:MCQ,True/False,Short Answer,Essay',
             'question_text' => 'required|string',
-            'option_a' => 'required|string',
-            'option_b' => 'required|string',
-            'option_c' => 'required|string',
-            'option_d' => 'required|string',
-            'correct_option' => 'required|string',
+            'option_a' => 'required_if:type,MCQ,True/False|string',
+            'option_b' => 'required_if:type,MCQ,True/False|string',
+            'option_c' => 'nullable|string',
+            'option_d' => 'nullable|string',
+            'correct_option' => 'required_if:type,MCQ,True/False|string',
+            'explanation' => 'nullable|string',
+            'difficulty_level' => 'required|string|in:Easy,Medium,Hard',
             'points' => 'nullable|integer|min:1',
         ]);
 
         $question->update([
+            'type' => $data['type'],
             'question_text' => $data['question_text'],
-            'option_a' => $data['option_a'],
-            'option_b' => $data['option_b'],
-            'option_c' => $data['option_c'],
-            'option_d' => $data['option_d'],
-            'correct_option' => $this->normalizeCorrectOption($data['correct_option'], 0),
+            'option_a' => $data['option_a'] ?? '',
+            'option_b' => $data['option_b'] ?? '',
+            'option_c' => $data['option_c'] ?? '',
+            'option_d' => $data['option_d'] ?? '',
+            'correct_option' => $this->normalizeCorrectOption($data['correct_option'] ?? 'A', 0),
+            'explanation' => $data['explanation'],
+            'difficulty_level' => $data['difficulty_level'],
             'points' => $data['points'] ?? 1,
         ]);
 
@@ -338,8 +350,7 @@ class QuestionController extends Controller
 
     private function canAddMoreQuestions(Quiz $quiz): bool
     {
-        $currentCount = Question::where('quiz_id', $quiz->id)->count();
-        return $currentCount < $this->resolveQuestionLimit($quiz);
+        return true; // No limit on the number of questions uploaded.
     }
 
     private function resolveQuestionLimit(Quiz $quiz): int

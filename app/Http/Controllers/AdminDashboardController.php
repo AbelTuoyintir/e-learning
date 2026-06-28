@@ -32,6 +32,15 @@ class AdminDashboardController extends Controller
             $courseCompletionRate = ($completedEnrollmentsCount / $totalEnrollmentsCount) * 100;
         }
 
+        // Most Difficult Topics
+        $mostDifficultTopics = \App\Models\Topic::select('topics.title', \Illuminate\Support\Facades\DB::raw('AVG(results.percentage) as avg_score'))
+            ->join('quizzes', 'topics.id', '=', 'quizzes.topic_id')
+            ->join('results', 'quizzes.id', '=', 'results.quiz_id')
+            ->groupBy('topics.id', 'topics.title')
+            ->orderBy('avg_score', 'asc')
+            ->take(5)
+            ->get();
+
         return view('admin.dashboard', compact(
             'activeStudents',
             'courseCompletionRate',
@@ -39,7 +48,8 @@ class AdminDashboardController extends Controller
             'averageScore',
             'aiUsageStats',
             'courseCount',
-            'moduleCount'
+            'moduleCount',
+            'mostDifficultTopics'
         ));
     }
 }

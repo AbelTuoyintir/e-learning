@@ -65,6 +65,30 @@
                 </div>
             </div>
 
+        <!-- Analytics: Strong & Weak Areas -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-green-600"></i>Strong Areas</h3>
+                <div class="flex flex-wrap gap-2">
+                    @forelse($strongAreas as $area)
+                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">{{ $area }}</span>
+                    @empty
+                        <p class="text-gray-500 text-sm">Not enough data to determine strong areas.</p>
+                    @endforelse
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-red-500">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-exclamation-triangle mr-2 text-red-600"></i>Weak Areas</h3>
+                <div class="flex flex-wrap gap-2">
+                    @forelse($weakAreas as $area)
+                        <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">{{ $area }}</span>
+                    @empty
+                        <p class="text-gray-500 text-sm">Not enough data to determine weak areas.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Activity & Upcoming Quizzes -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Activity -->
