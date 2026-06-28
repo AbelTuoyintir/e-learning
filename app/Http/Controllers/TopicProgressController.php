@@ -20,6 +20,27 @@ class TopicProgressController extends Controller
             ['status' => $request->status]
         );
 
+        // Progress Milestone Notification
+        $totalTopicsCount = \App\Models\Topic::count();
+        $completedTopicsCount = TopicProgress::where('student_id', Auth::id())
+            ->where('status', 'Completed')
+            ->count();
+
+        if ($totalTopicsCount > 0) {
+            $percentage = ($completedTopicsCount / $totalTopicsCount) * 100;
+            $milestones = [25, 50, 75, 100];
+            foreach ($milestones as $milestone) {
+                if (abs($percentage - $milestone) < 0.1) {
+                    \App\Models\Notification::create([
+                        'student_id' => Auth::id(),
+                        'title' => 'Progress Milestone!',
+                        'message' => "Great job! You have completed {$milestone}% of all topics.",
+                        'type' => 'info',
+                    ]);
+                }
+            }
+        }
+
         \App\Models\LearningHistory::create([
             'student_id' => Auth::id(),
             'activity_type' => 'topic_status_updated',
