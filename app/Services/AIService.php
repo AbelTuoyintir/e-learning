@@ -84,11 +84,25 @@ class AIService
     {
         // Fallback to Ollama
         try {
-            $response = Http::timeout(30)->post($this->ollamaBaseUrl . '/api/generate', [
-                'model' => 'llama2',
-                'prompt' => $prompt,
-                'stream' => false,
-            ]);
+            $ollamaModel = config('services.ollama.model', env('OLLAMA_MODEL', 'llama2'));
+
+            $url = rtrim($this->ollamaBaseUrl, '/');
+            $url = $url . '/api/generate';
+
+            $headers = [];
+            $ollamaKey = config('services.ollama.key', env('OLLAMA_API_KEY'));
+            if (!empty($ollamaKey)) {
+                $headers['Authorization'] = 'Bearer ' . $ollamaKey;
+            }
+
+            $response = Http::timeout(30)
+                ->withHeaders($headers)
+                ->post($url, [
+                    'model' => $ollamaModel,
+                    'prompt' => $prompt,
+                    'stream' => false,
+                ]);
+
 
         if ($response->failed()) {
             return [
