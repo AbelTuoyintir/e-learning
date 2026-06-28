@@ -321,7 +321,8 @@ public function submit(Request $request, Quiz $quiz)
             \App\Models\LearningHistory::create([
                 'student_id' => Auth::id(),
                 'activity_type' => 'assessment_taken',
-                'activity_id' => $quiz->id,
+                'related_id' => $quiz->id,
+                'related_type' => 'App\Models\Quiz',
                 'description' => "Took assessment for '{$quiz->title}'",
                 'metadata' => [
                     'score' => $score,
@@ -351,7 +352,8 @@ public function submit(Request $request, Quiz $quiz)
                         \App\Models\LearningHistory::create([
                             'student_id' => Auth::id(),
                             'activity_type' => 'module_completed',
-                            'activity_id' => $quiz->module_id,
+                            'related_id' => $quiz->module_id,
+                            'related_type' => 'App\Models\Module',
                             'description' => "Completed module '{$quiz->module->title}'",
                             'metadata' => ['percentage' => $percentage],
                         ]);

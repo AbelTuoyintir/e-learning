@@ -287,6 +287,11 @@
                     },
                     body: JSON.stringify(body)
                 });
+
+                if (!response.ok) {
+                    throw new Error('Server returned ' + response.status);
+                }
+
                 const data = await response.json();
 
                 chatHistory.removeChild(loadingMsg);

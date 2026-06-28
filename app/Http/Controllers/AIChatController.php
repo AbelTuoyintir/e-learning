@@ -46,6 +46,8 @@ class AIChatController extends Controller
             'student_id' => Auth::id(),
             'activity_type' => 'ai_chat_session',
             'description' => "Asked AI: " . substr($question, 0, 50) . "...",
+            'related_id' => $course_id,
+            'related_type' => 'App\Models\Course',
             'metadata' => [
                 'course_id' => $course_id,
                 'module_id' => $module_id,

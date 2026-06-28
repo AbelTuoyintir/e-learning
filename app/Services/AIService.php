@@ -27,33 +27,45 @@ class AIService
                 return $this->askOpenAI($enrichedPrompt, $context);
             } catch (\Exception $e) {
                 Log::error('OpenAI Error: ' . $e->getMessage());
-                return $this->askOllama($enrichedPrompt, $context);
+                // Fallback to Ollama
             }
         }
 
-        return $this->askOllama($enrichedPrompt, $context);
+        try {
+            return $this->askOllama($enrichedPrompt, $context);
+        } catch (\Exception $e) {
+            Log::error('AI Service Error (All providers failed): ' . $e->getMessage());
+            return [
+                'text' => "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.",
+                'provider' => 'None'
+            ];
+        }
     }
 
     protected function buildContextPrompt($prompt, $context)
     {
-        $contextInfo = "";
+        try {
+            $contextInfo = "";
 
-        if (!empty($context['course_id'])) {
-            $course = Course::find($context['course_id']);
-            if ($course) {
-                $contextInfo .= "Course: {$course->title}. ";
+            if (!empty($context['course_id'])) {
+                $course = Course::find($context['course_id']);
+                if ($course) {
+                    $contextInfo .= "Course: {$course->title}. ";
+                }
             }
-        }
 
-        if (!empty($context['module_id'])) {
-            $module = Module::find($context['module_id']);
-            if ($module) {
-                $contextInfo .= "Module: {$module->title}. ";
+            if (!empty($context['module_id'])) {
+                $module = Module::find($context['module_id']);
+                if ($module) {
+                    $contextInfo .= "Module: {$module->title}. ";
+                }
             }
-        }
 
-        if ($contextInfo) {
-            return "Context - {$contextInfo}\nQuestion: {$prompt}";
+            if ($contextInfo) {
+                return "Context - {$contextInfo}\nQuestion: {$prompt}";
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error building context prompt: ' . $e->getMessage());
         }
 
         return $prompt;
@@ -61,7 +73,7 @@ class AIService
 
     protected function askOpenAI($prompt, $context)
     {
-        $response = Http::withToken($this->openaiApiKey)
+        $response = Http::timeout(10)->withToken($this->openaiApiKey)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [
@@ -71,7 +83,7 @@ class AIService
             ]);
 
         if ($response->failed()) {
-            throw new \Exception('OpenAI API request failed');
+            throw new \Exception('OpenAI API request failed with status ' . $response->status());
         }
 
         return [
@@ -83,7 +95,7 @@ class AIService
     protected function askOllama($prompt, $context)
     {
         // Fallback to Ollama
-        $response = Http::post($this->ollamaBaseUrl . '/api/generate', [
+        $response = Http::timeout(10)->post($this->ollamaBaseUrl . '/api/generate', [
             'model' => 'llama2',
             'prompt' => $prompt,
             'stream' => false,
@@ -97,7 +109,7 @@ class AIService
         }
 
         return [
-            'text' => $response->json()['response'],
+            'text' => $response->json()['response'] ?? "I couldn't generate a response.",
             'provider' => 'Ollama'
         ];
     }

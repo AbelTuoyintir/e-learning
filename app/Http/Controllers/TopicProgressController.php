@@ -23,7 +23,8 @@ class TopicProgressController extends Controller
         \App\Models\LearningHistory::create([
             'student_id' => Auth::id(),
             'activity_type' => 'topic_status_updated',
-            'activity_id' => $request->topic_id,
+            'related_id' => $request->topic_id,
+            'related_type' => 'App\Models\Topic',
             'description' => "Marked topic as '{$request->status}'",
             'metadata' => ['status' => $request->status],
         ]);
