@@ -51,16 +51,32 @@ class AIService
     protected function askOllama($prompt, $context)
     {
         // Fallback to Ollama
-        $response = Http::post($this->ollamaBaseUrl . '/api/generate', [
-            'model' => 'llama2',
-            'prompt' => $prompt,
-            'stream' => false,
-        ]);
+        try {
+            $response = Http::timeout(30)->post($this->ollamaBaseUrl . '/api/generate', [
+                'model' => 'llama2',
+                'prompt' => $prompt,
+                'stream' => false,
+            ]);
 
-        if ($response->failed()) {
+            if ($response->failed()) {
+                Log::error('Ollama API failed', [
+                    'base_url' => $this->ollamaBaseUrl,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                return "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.";
+            }
+
+            $json = $response->json();
+
+            return $json['response'] ?? $json['generated_text'] ?? 'AI returned an empty response.';
+        } catch (\Throwable $e) {
+            Log::error('Ollama connection error: ' . $e->getMessage(), [
+                'base_url' => $this->ollamaBaseUrl,
+            ]);
+
             return "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.";
         }
-
-        return $response->json()['response'];
     }
 }

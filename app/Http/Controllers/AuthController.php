@@ -209,11 +209,19 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        // Add role check to credentials
-        $credentials['role'] = 'admin'; // Assuming you have a 'role' column
-
         if (Auth::guard('web')->attempt($credentials)) {
             $request->session()->regenerate();
+
+            // Authorize admin after successful authentication
+            $user = Auth::guard('web')->user();
+            if (($user->role ?? null) !== 'admin') {
+                Auth::guard('web')->logout();
+
+                return back()->withErrors([
+                    'email' => 'You are not authorized to access the admin panel.',
+                ])->onlyInput('email');
+            }
+
 
             // Log successful admin login
             Log::info('Admin login successful', [
