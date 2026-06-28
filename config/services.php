@@ -46,8 +46,11 @@ return [
     ],
 
     'ollama' => [
-        'url' => env('OLLAMA_CLOUD_URL', 'https://api.ollama.cloud'),
+        'url' => env('OLLAMA_CLOUD_URL', 'https://ollama.com/api'),
+        'key' => env('OLLAMA_API_KEY'),
+        'model' => env('OLLAMA_MODEL', 'llama2'),
     ],
+    
 
 ];
 

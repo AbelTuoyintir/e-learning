@@ -40,6 +40,10 @@ Route::middleware('guest:web')->group(function () {
 // Student Authentication Routes
 Route::get('/student/login', [AuthController::class, 'login'])->name('login');
 Route::post('/student/login/submit', [AuthController::class, 'studentLogin'])->name('student.login.submit');
+Route::get('/student/register', [AuthController::class, 'showStudentRegistrationForm'])->name('student.register');
+Route::post('/student/register', [AuthController::class, 'registerStudent'])->name('student.register.submit');  
+Route::get('/tutor/login', [AuthController::class, 'tutorLogin'])->name('tutor.login');
+Route::post('/tutor/login', [AuthController::class, 'tutorLoginSubmit'])->name('tutor.login.submit');
 
 // Forgot Password Routes for Students
 Route::get('/student/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('student.forgot.password');

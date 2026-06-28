@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Quiz;
+use App\Models\Result;
 use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -139,7 +141,7 @@ class PaystackPaymentController extends Controller
                 ->max('percentage');
         }
         
-        return view('students.quizzes', compact('quizzes', 'completedQuizIds'));
+        return view('students.getquiz', compact('quizzes', 'completedQuizIds'));
     }
 }
 

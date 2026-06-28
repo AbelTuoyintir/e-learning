@@ -52,6 +52,30 @@
         .delay-200 {
             animation-delay: 0.2s;
         }
+
+        .tutor-student-link {
+      text-align: center;
+      background: #f8fafc;
+      padding: 0.7rem;
+      border-radius: 40px;
+      border: 1px solid #edf2f7;
+      transition: background 0.2s;
+    }
+
+    .tutor-student-link a {
+      color: #1e2b6d;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .tutor-student-link a i {
+      margin-right: 6px;
+    }
+
+    .tutor-student-link:hover {
+      background: #f1f4f9;
+    }
     </style>
 </head>
 
@@ -167,7 +191,7 @@
                         type="submit"
                         class="w-full bg-white text-indigo-800 mt-4 py-3.5 rounded-xl font-bold text-lg shadow-lg hover:bg-indigo-50 hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2 group"
                     >
-                        Login As 
+                        Login
                     </button>
                 </form>
 
@@ -182,10 +206,11 @@
                 </div>
 
                 <!-- ADMIN ACCESS LINK WITH ICON -->
-                <p class="text-center text-white/90 text-sm">
-                    <i class="fas fa-shield-alt mr-1"></i> Admin?
-                    <a href="{{ route('admin.login') }}" class="font-bold text-white hover:text-indigo-200 transition ml-1 underline decoration-1">Login to Admin Hub</a>
-                </p>
+              <div class="tutor-student-link">
+                <a href="{{ route('tutor.login') }}">
+                    <i class="fas fa-user-graduate"></i> Switch to Tutor Login
+                </a>
+                </div>
 
                 <!-- ADDITIONAL HELPER TEXT: MODERN TOUCH -->
                 <p class="text-center text-white/60 text-xs mt-6">
