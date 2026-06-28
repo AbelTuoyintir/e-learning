@@ -87,6 +87,18 @@ public function dashboard()
 
     $aiLearningSessions = \App\Models\AIChatSession::where('student_id', $student->id)->count();
 
+    // Student Analytics: Strong and Weak Areas
+    $topicPerformance = DB::table('results')
+        ->join('quizzes', 'results.quiz_id', '=', 'quizzes.id')
+        ->join('topics', 'quizzes.topic_id', '=', 'topics.id')
+        ->where('results.student_id', $student->id)
+        ->select('topics.title', DB::raw('AVG(results.percentage) as avg_score'))
+        ->groupBy('topics.id', 'topics.title')
+        ->get();
+
+    $strongAreas = $topicPerformance->where('avg_score', '>=', 70)->pluck('title')->take(5);
+    $weakAreas = $topicPerformance->where('avg_score', '<', 70)->pluck('title')->take(5);
+
     return view('students.dashboard', compact(
         'enrolledCoursesCount',
         'completedQuizzesCount',
@@ -100,7 +112,9 @@ public function dashboard()
         'passedModules',
         'failedModules',
         'retakeModules',
-        'aiLearningSessions'
+        'aiLearningSessions',
+        'strongAreas',
+        'weakAreas'
     ));
 }
 
@@ -166,7 +180,7 @@ public function showQuiz(Quiz $quiz)
         if ($totalQuestionsInBank > 60) {
             $questions = $quiz->questions()->inRandomOrder()->limit(60)->get();
         } else {
-            $questions = $quiz->questions()->get()->unique('question_text')->shuffle();
+            $questions = $quiz->questions()->inRandomOrder()->get();
         }
     }
 
@@ -237,28 +251,34 @@ public function submit(Request $request, Quiz $quiz)
             foreach ($questionsToScore as $question) {
 
                 // Get user answer from validated data
-                $userAnswerLetter = isset($validated['answers'][$question->id])
-                    ? strtoupper(trim($validated['answers'][$question->id]))
+                $userAnswerRaw = isset($validated['answers'][$question->id])
+                    ? trim($validated['answers'][$question->id])
                     : '';
-
-                $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
 
                 $isCorrect = false;
                 $userAnswerText = null;
-                $userAnswerColumn = null;
                 $pointsEarned = 0;
+                $userAnswerLetter = '';
 
-                // Validate user answer
-                if ($this->isValidAnswer($userAnswerLetter)) {
-                    $userAnswerColumn = $this->getOptionColumn($userAnswerLetter);
-                    $userAnswerText = $question->{$userAnswerColumn} ?? null;
+                // Automated grading for MCQ and True/False
+                if (in_array($question->type, ['MCQ', 'True/False'])) {
+                    $userAnswerLetter = strtoupper($userAnswerRaw);
+                    $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
 
-                    $isCorrect = ($userAnswerLetter === $correctLetter);
+                    if ($this->isValidAnswer($userAnswerLetter)) {
+                        $userAnswerColumn = $this->getOptionColumn($userAnswerLetter);
+                        $userAnswerText = $question->{$userAnswerColumn} ?? null;
 
-                    if ($isCorrect) {
-                        $score += $question->points; // Use question points instead of just 1
-                        $pointsEarned = $question->points;
+                        $isCorrect = ($userAnswerLetter === $correctLetter);
+
+                        if ($isCorrect) {
+                            $score += $question->points;
+                            $pointsEarned = $question->points;
+                        }
                     }
+                } else {
+                    // Short Answer and Essay are recorded but not auto-graded for now
+                    $userAnswerText = $userAnswerRaw;
                 }
 
                 // Prepare answer details
@@ -357,6 +377,38 @@ public function submit(Request $request, Quiz $quiz)
                             'description' => "Completed module '{$quiz->module->title}'",
                             'metadata' => ['percentage' => $percentage],
                         ]);
+
+                        \App\Models\Notification::create([
+                            'student_id' => Auth::id(),
+                            'title' => 'Module Completed!',
+                            'message' => "Congratulations! You have successfully completed the module: {$quiz->module->title}.",
+                            'type' => 'success',
+                        ]);
+
+                        // Check for Course Completion
+                        $totalModules = \App\Models\Module::where('course_id', $quiz->module->course_id)->count();
+                        $completedModules = \App\Models\ModuleProgress::where('student_id', Auth::id())
+                            ->whereHas('module', function($q) use ($quiz) {
+                                $q->where('course_id', $quiz->module->course_id);
+                            })
+                            ->where('status', 'Completed')
+                            ->count();
+
+                        if ($completedModules === $totalModules) {
+                            \App\Models\Notification::create([
+                                'student_id' => Auth::id(),
+                                'title' => 'Course Completed!',
+                                'message' => "Amazing! You have completed all modules in the course: {$quiz->module->course->title}.",
+                                'type' => 'success',
+                            ]);
+
+                            \App\Models\LearningHistory::create([
+                                'student_id' => Auth::id(),
+                                'activity_type' => 'course_completed',
+                                'activity_id' => $quiz->module->course_id,
+                                'description' => "Completed course '{$quiz->module->course->title}'",
+                            ]);
+                        }
                     } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
                         $moduleProgress->update(['status' => 'Retake Required']);
                     }
@@ -762,6 +814,16 @@ public function resultsIndex()
 
     return view('students.results', compact('results', 'stats'));
 }
+public function learningHistory()
+{
+    $student = Auth::user();
+    $history = \App\Models\LearningHistory::where('student_id', $student->id)
+        ->latest()
+        ->paginate(20);
+
+    return view('students.learning_history', compact('history'));
+}
+
 public function profile()
 {
     $student = Auth::user();
