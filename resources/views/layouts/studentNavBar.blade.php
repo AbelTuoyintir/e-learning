@@ -245,82 +245,159 @@
         }
 
         function renderMarkdownToHtml(markdown) {
-            // Minimal Markdown renderer for this app (no external dependency)
-            // Supports: paragraphs, line breaks, bold (**text**), inline code (`code`), and basic tables.
+            // Improved, human-readable Markdown renderer (no external dependency)
+            // Supports: headings, lists, blockquotes, hr, code fences, inline code, bold/italic, basic tables.
             if (!markdown) return '';
 
-            let text = String(markdown);
-            text = text.replace(/\r\n/g, '\n');
+            let text = String(markdown).replace(/\r\n/g, '\n');
 
-            // Convert Markdown tables to HTML if present (very simple heuristic)
-            // Detect a block that contains lines like: | col | col |
+            // Extract fenced code blocks first
+            const codeBlocks = [];
+            text = text.replace(/```([\s\S]*?)```/g, (match, code) => {
+                const idx = codeBlocks.length;
+                codeBlocks.push(String(code).replace(/^\n|\n$/g, ''));
+                return `[[CODE_BLOCK_${idx}]]`;
+            });
+
+            function renderInline(md) {
+                // Escape HTML first
+                let s = escapeHtml(md);
+
+                // Bold + italic
+                s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+                // Inline code
+                s = s.replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-gray-100 border border-gray-200 text-xs">$1</code>');
+
+                return s;
+            }
+
+            function isTableLine(line) {
+                return line.trim().startsWith('|') && line.includes('|', 1);
+            }
+
             const lines = text.split('\n');
-            const tableStart = lines.findIndex(l => l.trim().startsWith('|') && l.includes('|', 1));
-            if (tableStart !== -1) {
-                // Attempt to parse the first table block
-                // Table block ends when we hit a line that does not start with '|'
-                let i = tableStart;
-                const tableLines = [];
-                while (i < lines.length && lines[i].trim().startsWith('|')) {
-                    tableLines.push(lines[i]);
+            const out = [];
+
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i];
+
+                if (!line || !line.trim()) {
+                    i++;
+                    continue;
+                }
+
+                // Code block placeholder
+                const codeMatch = line.match(/\[\[CODE_BLOCK_(\d+)\]\]/);
+                if (codeMatch) {
+                    const idx = parseInt(codeMatch[1], 10);
+                    const code = codeBlocks[idx] ?? '';
+                    out.push(`
+                        <div class="my-3">
+                            <pre class="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto text-sm"><code>${escapeHtml(code)}</code></pre>
+                        </div>
+                    `);
+                    i++;
+                    continue;
+                }
+
+                // Horizontal rule
+                if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+                    out.push(`<hr class="my-3 border-gray-200" />`);
+                    i++;
+                    continue;
+                }
+
+                // Headings
+                if (/^#{1,6}\s+/.test(line)) {
+                    const level = line.match(/^#{1,6}/)[0].length;
+                    const content = line.replace(/^#{1,6}\s+/, '');
+                    const sizeMap = { 1: 'text-2xl', 2: 'text-xl', 3: 'text-lg', 4: 'text-md', 5: 'text-sm', 6: 'text-xs' };
+                    out.push(`<h${level} class="font-bold mt-4 mb-1 ${sizeMap[level] || 'text-sm'}">${renderInline(content)}</h${level}>`);
+                    i++;
+                    continue;
+                }
+
+                // Blockquote
+                if (/^>\s?/.test(line.trim())) {
+                    let quoteLines = [];
+                    while (i < lines.length && /^>\s?/.test(lines[i].trim())) {
+                        quoteLines.push(lines[i].trim().replace(/^>\s?/, ''));
+                        i++;
+                    }
+                    const q = quoteLines.join('\n');
+                    out.push(`<blockquote class="border-l-4 border-blue-500 pl-3 my-3 bg-blue-50/30 text-sm text-gray-800 dark:text-gray-100">${renderInline(q).replace(/\n/g, '<br>')}</blockquote>`);
+                    continue;
+                }
+
+                // Lists
+                if (/^\s*([-*]|\d+\.)\s+/.test(line)) {
+                    const isOrdered = /^\s*\d+\./.test(line);
+                    const listTag = isOrdered ? 'ol' : 'ul';
+                    const listItems = [];
+
+                    while (i < lines.length && /^\s*([-*]|\d+\.)\s+/.test(lines[i])) {
+                        const liText = lines[i].replace(/^\s*([-*]|\d+\.)\s+/, '');
+                        listItems.push(`<li class="my-1">${renderInline(liText)}</li>`);
+                        i++;
+                    }
+
+                    out.push(`<${listTag} class="my-2 pl-5 text-sm text-gray-800 dark:text-gray-100">${listItems.join('')}</${listTag}>`);
+                    continue;
+                }
+
+                // Tables (basic)
+                if (isTableLine(line)) {
+                    let tableLines = [];
+                    while (i < lines.length && isTableLine(lines[i])) {
+                        tableLines.push(lines[i]);
+                        i++;
+                    }
+
+                    if (tableLines.length >= 2) {
+                        const splitRow = (row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+                        const header = splitRow(tableLines[0]);
+                        const sep = splitRow(tableLines[1]);
+                        const hasSeparator = sep.every(c => /^:?-{3,}:?$/.test(c) || /^-{3,}$/.test(c));
+
+                        if (hasSeparator) {
+                            const dataRows = tableLines.slice(2).map(splitRow);
+                            const thead = `<thead><tr>${header.map(h => `<th class="border border-gray-200 px-2 py-1 bg-gray-50 text-left font-semibold text-xs">${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
+                            const tbody = `<tbody>${dataRows.map(r => `<tr>${r.map(c => `<td class="border border-gray-200 px-2 py-1 text-xs text-gray-700">${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+                            out.push(`<div class="overflow-x-auto my-3"><table class="min-w-full border-collapse">${thead}${tbody}</table></div>`);
+                            continue;
+                        }
+                    }
+
+                    // Fallback: paragraph
+                    out.push(`<p class="whitespace-pre-wrap my-2 text-sm">${renderInline(tableLines.join('\n')).replace(/\n/g, '<br>')}</p>`);
+                    continue;
+                }
+
+                // Default paragraph: consume until blank line or new block
+                let paraLines = [line];
+                i++;
+                while (
+                    i < lines.length &&
+                    lines[i] &&
+                    lines[i].trim() &&
+                    !/^#{1,6}\s+/.test(lines[i]) &&
+                    !/^>\s?/.test(lines[i].trim()) &&
+                    !/^\s*([-*]|\d+\.)\s+/.test(lines[i]) &&
+                    !/^(-{3,}|\*{3,}|_{3,})$/.test(lines[i].trim()) &&
+                    !isTableLine(lines[i])
+                ) {
+                    paraLines.push(lines[i]);
                     i++;
                 }
 
-                if (tableLines.length >= 2) {
-                    // Expect: header |----| separator | and data rows
-                    const splitRow = (row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
-                    const header = splitRow(tableLines[0]);
-                    const dataRows = tableLines.slice(2).map(splitRow);
-                    const thead = `<thead><tr>${header.map(h => `<th class="border border-gray-200 px-2 py-1 bg-gray-50 text-left font-semibold text-xs">${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
-                    const tbody = `<tbody>${dataRows.map(r => `<tr>${r.map(c => `<td class="border border-gray-200 px-2 py-1 text-xs text-gray-700">${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`;
-                    const tableHtml = `<div class="overflow-x-auto my-2"><table class="min-w-full border-collapse">${thead}${tbody}</table></div>`;
-
-                    // Render the rest of the markdown without table lines, then insert the table.
-                    const before = lines.slice(0, tableStart).join('\n');
-                    const after = lines.slice(i).join('\n');
-                    text = `${before}\n${tableHtml}\n${after}`;
-                    // Continue below for non-table markdown (but we must not re-table)
-                }
+                const paraText = paraLines.join('\n');
+                out.push(`<p class="whitespace-pre-wrap my-2 text-sm">${renderInline(paraText).replace(/\n/g, '<br>')}</p>`);
             }
 
-            // Inline formatting
-            text = text.replace(/\`([^`]+)\`/g, '<code class="px-1 py-0.5 rounded bg-gray-100 border border-gray-200 text-xs">$1</code>');
-            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-            // Escape remaining HTML
-            // Note: if tableHtml already inserted, it contains HTML. We'll escape only by rebuilding paragraphs around existing tags.
-            // Simple approach: escape everything then unescape known tags we inserted via tableHtml. We'll do a conservative path:
-            // First, escape, then apply formatting again on escaped text isn't feasible.
-            // So instead: escape lines and convert to paragraphs, leaving existing <div>/<table>/<code> tags out of escape.
-
-            // If the string contains our inserted table HTML, leave it as-is; escape other text pieces.
-            if (text.includes('<table') || text.includes('overflow-x-auto')) {
-                // Split by inserted table container
-                const parts = text.split(/(<div class="overflow-x-auto[\s\S]*?<\/div>)/m).filter(Boolean);
-                const renderedParts = parts.map(p => {
-                    if (p.startsWith('<div class="overflow-x-auto')) return p;
-                    // escape and format paragraphs
-                    return p
-                        .split('\n\n')
-                        .map(block => {
-                            if (!block.trim()) return '';
-                            const safe = escapeHtml(block);
-                            // preserve line breaks within paragraphs
-                            return `<p class="whitespace-pre-wrap my-2 text-sm">${safe.replace(/\n/g, '<br>')}</p>`;
-                        }).join('');
-                });
-                return renderedParts.join('');
-            }
-
-            // No table: escape and convert paragraphs
-            const escaped = escapeHtml(text);
-            return escaped
-                .split(/\n{2,}/)
-                .map(block => {
-                    if (!block.trim()) return '';
-                    const withBreaks = block.replace(/\n/g, '<br>');
-                    return `<p class="whitespace-pre-wrap my-2 text-sm">${withBreaks}</p>`;
-                }).join('');
+            return out.join('');
         }
 
 
@@ -626,3 +703,4 @@
     </script>
 </body>
 </html>
+

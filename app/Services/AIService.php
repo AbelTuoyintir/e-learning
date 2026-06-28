@@ -103,24 +103,7 @@ class AIService
                     'stream' => false,
                 ]);
 
-            if ($response->failed()) {
-                return [
-                    'text' => "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.",
-                    'provider' => 'None'
-                ];
-            }
 
-            return [
-                'text' => $response->json()['response'],
-                'provider' => 'Ollama'
-            ];
-        } catch (\Throwable $e) {
-            Log::error('Ollama connection error: ' . $e->getMessage(), [
-                'base_url' => $this->ollamaBaseUrl,
-            ]);
-
-<<<<<<< HEAD
-=======
             if ($response->failed()) {
                 return [
                     'text' => "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.",
@@ -134,7 +117,6 @@ class AIService
             ];
         } catch (\Exception $e) {
             Log::error('Ollama Error: ' . $e->getMessage());
->>>>>>> 2f4eb9c3814aadad684daa32be8ec6398b6e34b1
             return [
                 'text' => "I'm sorry, I'm having trouble connecting to my AI engines. Please try again later.",
                 'provider' => 'None'
