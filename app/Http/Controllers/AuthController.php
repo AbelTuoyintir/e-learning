@@ -209,8 +209,9 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::guard('web')->attempt($credentials)) {
-            $request->session()->regenerate();
+        try {
+            if (Auth::guard('web')->attempt($credentials)) {
+                $request->session()->regenerate();
 
             // Authorize admin after successful authentication
             $user = Auth::guard('web')->user();
@@ -231,6 +232,15 @@ class AuthController extends Controller
             ]);
 
             return redirect()->intended('/admin/dashboard');
+        }
+
+        } catch (\RuntimeException $e) {
+            // Happens when a stored password hash is not bcrypt (prevents HTTP 500)
+            Log::error('Admin login bcrypt check failed: ' . $e->getMessage());
+
+            return back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ])->onlyInput('email');
         }
 
         // Log failed admin login

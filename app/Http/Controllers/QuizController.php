@@ -57,7 +57,7 @@ class QuizController extends Controller
             'difficulty' => 'required|in:easy,medium,hard',
             'time_limit' => 'required|integer|min:1',
             'time_per_question' => 'required|integer|min:5',
-            'question_limit' => 'required|integer|min:1|max:1000',
+            'question_limit' => 'required|integer|min:1|max:10000',
             'quiz_type' => 'nullable|string|max:255',
             'course_id' => 'required|exists:courses,id',
             'module_id' => 'nullable|exists:modules,id',
