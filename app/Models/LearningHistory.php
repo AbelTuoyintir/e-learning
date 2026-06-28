@@ -10,7 +10,8 @@ class LearningHistory extends Model
     protected $fillable = [
         'student_id',
         'activity_type',
-        'activity_id',
+        'related_id',
+        'related_type',
         'description',
         'time_spent',
         'metadata',
