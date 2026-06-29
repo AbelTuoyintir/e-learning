@@ -89,44 +89,88 @@
             <form action="{{ route('questions.store', ['quiz' => $quiz]) }}" method="POST" class="space-y-5">
                 @csrf
 
+                <!-- Type -->
+                <div>
+                    <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Question Type</label>
+                    <select name="type" id="type"
+                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                        <option value="MCQ" @selected(old('type') === 'MCQ')>Multiple Choice</option>
+                        <option value="True/False" @selected(old('type') === 'True/False')>True/False</option>
+                        <option value="Short Answer" @selected(old('type') === 'Short Answer')>Short Answer</option>
+                        <option value="Essay" @selected(old('type') === 'Essay')>Essay</option>
+                    </select>
+                </div>
+
+                <!-- Topic -->
+                <div>
+                    <label for="topic_id" class="block text-sm font-medium text-gray-700 mb-1">Topic (Optional)</label>
+                    <select name="topic_id" id="topic_id"
+                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
+                        <option value="">Default (from Quiz)</option>
+                        @php
+                            $topics = \App\Models\Topic::all();
+                        @endphp
+                        @foreach($topics as $topic)
+                            <option value="{{ $topic->id }}" @selected(old('topic_id') == $topic->id)>{{ $topic->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <!-- Question -->
                 <div>
                     <label for="question_text" class="block text-sm font-medium text-gray-700 mb-1">Question</label>
-                    <input type="text" name="question_text" id="question_text"
-                           value="{{ old('question_text') }}"
-                           class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                    <textarea name="question_text" id="question_text" rows="3"
+                           class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>{{ old('question_text') }}</textarea>
                 </div>
 
                 <!-- Options -->
-                <div>
+                <div id="options-container">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Options</label>
                     <div class="grid grid-cols-1 gap-3">
                         <input type="text" name="option_a" placeholder="Option A"
                                value="{{ old('option_a') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
                         <input type="text" name="option_b" placeholder="Option B"
                                value="{{ old('option_b') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
                         <input type="text" name="option_c" placeholder="Option C"
                                value="{{ old('option_c') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
                         <input type="text" name="option_d" placeholder="Option D"
                                value="{{ old('option_d') }}"
-                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                               class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
                     </div>
                 </div>
 
                 <!-- Correct Option -->
-                <div>
+                <div id="correct-option-container">
                     <label for="correct_option" class="block text-sm font-medium text-gray-700 mb-1">Correct Option</label>
                     <select name="correct_option" id="correct_option"
-                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">
                         <option value="" disabled @selected(!old('correct_option'))>-- Select the correct option --</option>
-                        <option value="A" @selected(old('correct_option') === 'A')>Option A</option>
-                        <option value="B" @selected(old('correct_option') === 'B')>Option B</option>
+                        <option value="A" @selected(old('correct_option') === 'A')>Option A / True</option>
+                        <option value="B" @selected(old('correct_option') === 'B')>Option B / False</option>
                         <option value="C" @selected(old('correct_option') === 'C')>Option C</option>
                         <option value="D" @selected(old('correct_option') === 'D')>Option D</option>
                     </select>
+                </div>
+
+                <!-- Difficulty -->
+                <div>
+                    <label for="difficulty_level" class="block text-sm font-medium text-gray-700 mb-1">Difficulty Level</label>
+                    <select name="difficulty_level" id="difficulty_level"
+                            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5" required>
+                        <option value="Easy" @selected(old('difficulty_level') === 'Easy')>Easy</option>
+                        <option value="Medium" @selected(old('difficulty_level', 'Medium') === 'Medium')>Medium</option>
+                        <option value="Hard" @selected(old('difficulty_level') === 'Hard')>Hard</option>
+                    </select>
+                </div>
+
+                <!-- Explanation -->
+                <div>
+                    <label for="explanation" class="block text-sm font-medium text-gray-700 mb-1">Explanation (Optional)</label>
+                    <textarea name="explanation" id="explanation" rows="2"
+                              class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 shadow-sm p-2.5">{{ old('explanation') }}</textarea>
                 </div>
 
                 <!-- Points -->
@@ -238,14 +282,43 @@
             <!-- Example format -->
             <div class="mt-6">
                 <p class="font-semibold text-gray-700">CSV Format:</p>
-                <pre class="bg-gray-100 p-4 rounded-lg mt-2 text-xs text-gray-800 overflow-x-auto">
-        question_text,option_a,option_b,option_c,option_d,correct_option,points
-        "What is 2+2?","3","4","5","6","B",1
-        "What is the capital of France?","London","Berlin","Paris","Madrid","C",2
-                </pre>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-xs text-left text-gray-500 border mt-2">
+                        <thead class="text-gray-700 uppercase bg-gray-100">
+                            <tr>
+                                <th class="px-2 py-1 border">question</th>
+                                <th class="px-2 py-1 border">opt_a</th>
+                                <th class="px-2 py-1 border">opt_b</th>
+                                <th class="px-2 py-1 border">opt_c</th>
+                                <th class="px-2 py-1 border">opt_d</th>
+                                <th class="px-2 py-1 border">correct</th>
+                                <th class="px-2 py-1 border">pts</th>
+                                <th class="px-2 py-1 border">expl</th>
+                                <th class="px-2 py-1 border">diff</th>
+                                <th class="px-2 py-1 border">type</th>
+                                <th class="px-2 py-1 border">topic</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="px-2 py-1 border">"What is 2+2?"</td>
+                                <td class="px-2 py-1 border">"3"</td>
+                                <td class="px-2 py-1 border">"4"</td>
+                                <td class="px-2 py-1 border">"5"</td>
+                                <td class="px-2 py-1 border">"6"</td>
+                                <td class="px-2 py-1 border">"B"</td>
+                                <td class="px-2 py-1 border">1</td>
+                                <td class="px-2 py-1 border">"Math basic"</td>
+                                <td class="px-2 py-1 border">"Easy"</td>
+                                <td class="px-2 py-1 border">"MCQ"</td>
+                                <td class="px-2 py-1 border">5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <p class="text-xs text-gray-600 mt-2">
                     <span class="font-medium text-red-500">Note:</span>
-                    <code>correct_option</code> must be "A", "B", "C", or "D" (not numbers 1, 2, 3, 4)
+                    <code>correct_option</code> must be "A", "B", "C", or "D". Columns 8-11 are optional.
                 </p>
             </div>
         </div>
