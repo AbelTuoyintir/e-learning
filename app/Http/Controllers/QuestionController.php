@@ -32,13 +32,6 @@ class QuestionController extends Controller
     {
         $quiz = Quiz::findOrFail($quiz);
 
-        if (! $this->canAddMoreQuestions($quiz)) {
-            return redirect()->back()->withInput()->with(
-                'error',
-                "Question bank limit reached for this quiz ({$this->resolveQuestionLimit($quiz)} questions)."
-            );
-        }
-
         $data = $request->validate([
             'type' => 'required|string|in:MCQ,True/False,Short Answer,Essay',
             'question_text' => 'required|string',
@@ -239,22 +232,7 @@ class QuestionController extends Controller
             'limit_reached' => false,
         ];
 
-        $limit = $this->resolveQuestionLimit($quiz);
-        $currentCount = Question::where('quiz_id', $quiz->id)->count();
-        $remainingSlots = max($limit - $currentCount, 0);
-
-        if ($remainingSlots === 0) {
-            $summary['limit_reached'] = true;
-            $summary['errors'][] = "This quiz already reached its question limit ({$limit}).";
-            return $summary;
-        }
-
         foreach ($rows as $index => $row) {
-            if ($summary['imported'] >= $remainingSlots) {
-                $summary['limit_reached'] = true;
-                break;
-            }
-
             $rowNumber = $index + 2; // Account for header row in files.
             $row = array_pad($row, 7, '');
             $row = array_map(static fn ($value) => trim((string) $value), $row);
