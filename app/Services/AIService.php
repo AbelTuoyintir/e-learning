@@ -87,7 +87,9 @@ class AIService
             $ollamaModel = config('services.ollama.model', env('OLLAMA_MODEL', 'llama2'));
 
             $url = rtrim($this->ollamaBaseUrl, '/');
-            $url = $url . '/api/generate';
+            if (!str_ends_with($url, '/api/generate')) {
+                $url .= '/api/generate';
+            }
 
             $headers = [];
             $ollamaKey = config('services.ollama.key', env('OLLAMA_API_KEY'));
