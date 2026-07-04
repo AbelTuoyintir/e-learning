@@ -42,6 +42,11 @@ class Topic extends Model
         return $this->morphOne(Quiz::class, 'related_to');
     }
 
+    public function progress()
+    {
+        return $this->hasMany(TopicProgress::class);
+    }
+
 
     /**
      * Get the file URL for display.

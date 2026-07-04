@@ -438,7 +438,10 @@ public function getMaterials(Course $course)
                 ->where('is_active', true);
         },
         'modules.topics.contents',
-        'modules.topics.quiz.questions'
+        'modules.topics.quiz.questions',
+        'modules.topics.progress' => function ($query) {
+            $query->where('student_id', auth()->id());
+        }
     ]);
 
     // Module progression gating: module N is unlocked only if module (N-1)'s FINAL quiz is passed.
