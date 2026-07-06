@@ -33,7 +33,7 @@ class AIChatController extends Controller
             'module_id' => $module_id,
         ]);
 
-        $session = AIChatSession::create([
+        $chatSession = AIChatSession::create([
             'student_id' => Auth::id(),
             'question' => $question,
             'response' => $response['text'],
@@ -45,7 +45,7 @@ class AIChatController extends Controller
         \App\Models\LearningHistory::create([
             'student_id' => Auth::id(),
             'activity_type' => 'ai_chat_session',
-            'related_id' => $session->id,
+            'related_id' => $chatSession->id,
             'related_type' => 'ai_chat_session',
             'description' => "Asked AI: " . substr($question, 0, 50) . "...",
             'metadata' => [

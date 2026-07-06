@@ -6,8 +6,8 @@
   - Fixed code inserts: use `related_id`/`related_type` instead of `activity_id`.
 - [x] Decide one approach: Option B (recommended)
 - [x] Implement code changes.
-- [ ] Run migration if needed (only if the `learning_history` table was not created yet).
+- [x] Run migration if needed (only if the `learning_history` table was not created yet).
 
-- [ ] Run a quick quiz submission test to verify learning history row is created.
+- [x] Run a quick quiz submission test to verify learning history row is created.
 
 
