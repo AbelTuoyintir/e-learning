@@ -471,9 +471,8 @@ public function submit(Request $request, Quiz $quiz)
             ]);
 
             // Redirect with success message
-            return redirect()->route('quiz.results', $quiz->id)
-                ->with('success', 'Quiz submitted successfully!')
-                ->with('result_id', $result->id); // Add result ID to session
+            return redirect()->route('results.show', $result->id)
+                ->with('success', 'Quiz submitted successfully!');
         });
 
     } catch (\Exception $e) {
@@ -697,13 +696,15 @@ public function results(Quiz $quiz)
         'passed' => $result->passed,
     ];
 
-    return view('students.results', compact('quiz', 'result', 'sessionResult'));
+    return view('students.result', compact('quiz', 'result', 'sessionResult'));
 }
 
 public function resultShow(Result $result)
 {
-    // Authorize using Laravel policies
-    $this->authorize('view', $result);
+    // Authorize manually if base controller doesn't have authorize method
+    if ($result->student_id !== Auth::id()) {
+        abort(403);
+    }
 
     // Eager load with specific columns for performance
     $result->load(['quiz' => function($query) {

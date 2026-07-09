@@ -24,6 +24,19 @@ class ModuleController extends Controller
 
         $module = Module::create($validated);
 
+        // Notify enrolled students
+        $enrolledStudentIds = \App\Models\Enrollment::where('course_id', $module->course_id)
+            ->pluck('student_id');
+
+        foreach ($enrolledStudentIds as $studentId) {
+            \App\Models\Notification::create([
+                'student_id' => $studentId,
+                'title' => 'New Module Added',
+                'message' => "A new module '{$module->title}' has been added to your course.",
+                'type' => 'info',
+            ]);
+        }
+
         if ($request->wantsJson() || $request->isJson() || true) { // Always return JSON for fetch calls
             return response()->json(['success' => true, 'module' => $module]);
         }
