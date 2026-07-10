@@ -99,6 +99,15 @@ public function dashboard()
     $strongAreas = $topicPerformance->where('avg_score', '>=', 70)->pluck('title')->take(5);
     $weakAreas = $topicPerformance->where('avg_score', '<', 70)->pluck('title')->take(5);
 
+    // Performance Trends: Last 10 results
+    $performanceTrends = Result::where('student_id', $student->id)
+        ->select('percentage', 'completed_at')
+        ->latest('completed_at')
+        ->take(10)
+        ->get()
+        ->reverse()
+        ->values();
+
     return view('students.dashboard', compact(
         'enrolledCoursesCount',
         'completedQuizzesCount',
@@ -114,7 +123,8 @@ public function dashboard()
         'retakeModules',
         'aiLearningSessions',
         'strongAreas',
-        'weakAreas'
+        'weakAreas',
+        'performanceTrends'
     ));
 }
 
