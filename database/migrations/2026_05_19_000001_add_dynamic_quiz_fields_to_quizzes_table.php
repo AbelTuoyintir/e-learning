@@ -16,7 +16,11 @@ return new class extends Migration
 
             // Passing score threshold (percentage)
             if (!Schema::hasColumn('quizzes', 'passing_score')) {
-                $table->unsignedInteger('passing_score')->default(65)->after('type');
+                $table->unsignedInteger('passing_score')->default(70)->after('type');
+            }
+
+            if (!Schema::hasColumn('quizzes', 'max_attempts')) {
+                $table->unsignedInteger('max_attempts')->default(4)->after('passing_score');
             }
 
             // Distribution map (e.g. {"topic_id": 5, "topic_id2": 10})
