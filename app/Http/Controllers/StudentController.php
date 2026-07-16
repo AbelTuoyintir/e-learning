@@ -440,6 +440,18 @@ public function submit(Request $request, Quiz $quiz)
                         }
                     } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
                         $moduleProgress->update(['status' => 'Retake Required']);
+
+                        // Reset all topic progress for this module to 'In Progress'
+                        \App\Models\TopicProgress::where('student_id', Auth::id())
+                            ->whereHas('topic', function($q) use ($quiz) {
+                                $q->where('module_id', $quiz->module_id);
+                            })
+                            ->update(['status' => 'In Progress']);
+
+                        \Log::info('Module failure: topics reset to In Progress', [
+                            'student_id' => Auth::id(),
+                            'module_id' => $quiz->module_id
+                        ]);
                     }
                 }
             }
