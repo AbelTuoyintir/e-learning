@@ -15,23 +15,26 @@ class AIService
     public function __construct()
     {
         $this->openaiApiKey = config('services.openai.key');
-        $this->ollamaBaseUrl = config('services.ollama.url', 'https://api.ollama.cloud');
+        $this->ollamaBaseUrl = config('services.ollama.url') ?: 'https://api.ollama.cloud';
     }
 
     public function ask($prompt, $context = [])
     {
         $enrichedPrompt = $this->buildContextPrompt($prompt, $context);
+        $cacheKey = 'ai_response_' . md5($enrichedPrompt . serialize($context));
 
-        if ($this->openaiApiKey) {
-            try {
-                return $this->askOpenAI($enrichedPrompt, $context);
-            } catch (\Exception $e) {
-                Log::error('OpenAI Error: ' . $e->getMessage());
-                return $this->askOllama($enrichedPrompt, $context);
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(1), function () use ($enrichedPrompt, $context) {
+            if ($this->openaiApiKey) {
+                try {
+                    return $this->askOpenAI($enrichedPrompt, $context);
+                } catch (\Exception $e) {
+                    Log::error('OpenAI Error: ' . $e->getMessage());
+                    return $this->askOllama($enrichedPrompt, $context);
+                }
             }
-        }
 
-        return $this->askOllama($enrichedPrompt, $context);
+            return $this->askOllama($enrichedPrompt, $context);
+        });
     }
 
     protected function buildContextPrompt($prompt, $context)
@@ -63,11 +66,13 @@ class AIService
     {
         $response = Http::withToken($this->openaiApiKey)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'gpt-4o-mini',
                 'messages' => [
-                    ['role' => 'system', 'content' => 'You are an AI academic tutor. Help the student understand concepts, provide examples, and explain mistakes. Do not complete assignments for them directly.'],
+                    ['role' => 'system', 'content' => 'You are an elite AI academic tutor. Your goal is to provide high-quality, concise, and accurate educational assistance. Use markdown for formatting. Break down complex topics into simple steps. Always encourage critical thinking and do not provide direct answers to assignments.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
+                'temperature' => 0.7,
+                'max_tokens' => 1000,
             ]);
 
         if ($response->failed()) {
@@ -87,7 +92,9 @@ class AIService
             $ollamaModel = config('services.ollama.model', env('OLLAMA_MODEL', 'llama2'));
 
             $url = rtrim($this->ollamaBaseUrl, '/');
-            $url = $url . '/api/generate';
+            if (!str_ends_with($url, '/api/generate')) {
+                $url .= '/api/generate';
+            }
 
             $headers = [];
             $ollamaKey = config('services.ollama.key', env('OLLAMA_API_KEY'));
