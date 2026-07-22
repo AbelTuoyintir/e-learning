@@ -33,10 +33,11 @@ class AIServiceTest extends TestCase
     {
         Http::fake([
             'api.openai.com/*' => Http::response([], 500),
-            'ollama.com/api/*' => Http::response(['response' => 'Ollama response'], 200),
+            'https://ollama.com/*' => Http::response(['response' => 'Ollama response'], 200),
         ]);
 
         config(['services.openai.key' => 'test-key']);
+        config(['services.ollama.url' => 'https://ollama.com']);
 
         $service = new AIService();
 
