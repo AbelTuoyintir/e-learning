@@ -63,6 +63,8 @@ class QuizController extends Controller
             'module_id' => 'nullable|exists:modules,id',
             'topic_id' => 'nullable|exists:topics,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'max_attempts' => 'nullable|integer|min:1',
         ]);
 
         // Handle image upload if present
@@ -70,7 +72,19 @@ class QuizController extends Controller
             $validated['image'] = $request->file('image')->store('quiz_images', 'public');
         }
 
-        Quiz::create($validated);
+        $quiz = Quiz::create($validated);
+
+        // Notify all students about the new assessment
+        $students = \App\Models\Student::where('status', 'active')->get();
+        foreach ($students as $student) {
+            \App\Models\Notification::create([
+                'student_id' => $student->id,
+                'title' => 'Upcoming Assessment',
+                'message' => "A new assessment '{$quiz->title}' has been scheduled.",
+                'type' => 'info',
+            ]);
+        }
+
         return redirect()->route('quizzes.index')
                         ->with('success', 'Quiz created successfully!');
     }
@@ -88,6 +102,8 @@ class QuizController extends Controller
             'module_id' => 'nullable|exists:modules,id',
             'topic_id' => 'nullable|exists:topics,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'max_attempts' => 'nullable|integer|min:1',
         ]);
 
         // Handle new image upload
