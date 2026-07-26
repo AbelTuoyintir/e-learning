@@ -51,7 +51,7 @@
                     <a href="{{ route('students.enrolledcourses') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('students.enrolledcourses') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
                         <i class="fas fa-books mr-2"></i> My Courses
                     </a>
-                    <a href="{{ route('student.quizzes') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('student.quizzes') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
+                    <a href="{{ route('students.quizzes') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('students.quizzes') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
                         <i class="fas fa-tasks mr-2"></i>Quizzes
                     </a>
                     <a href="{{ route('results.index') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('results.index') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">

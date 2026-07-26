@@ -44,6 +44,7 @@ class AuthController extends Controller
             // Send login notification
             $student->notify(new StudentLoginAlert(now()->toDateTimeString(), $request->ip()));
 
+            
             // Log successful login
             Log::info('Student login successful', [
                 'email' => $request->input('email'),
