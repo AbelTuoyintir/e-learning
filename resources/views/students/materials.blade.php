@@ -74,6 +74,22 @@
                             <span class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-500 mr-4">{{ $loop->iteration }}</span>
                             {{ $topic->title }}
                         </h3>
+                        <div class="flex items-center gap-2">
+                            @php
+                                $status = $topic->progress->first()->status ?? 'Not Started';
+                                $statusColors = [
+                                    'Not Started' => 'bg-gray-100 text-gray-600 border-gray-200',
+                                    'In Progress' => 'bg-blue-50 text-blue-600 border-blue-100',
+                                    'Completed' => 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                                ];
+                            @endphp
+                            <select onchange="updateTopicStatus(this, {{ $topic->id }})"
+                                    class="text-xs font-bold rounded-lg border px-2 py-1 focus:ring-2 focus:ring-blue-500 outline-none transition-colors {{ $statusColors[$status] }}">
+                                <option value="Not Started" @selected($status === 'Not Started')>Not Started</option>
+                                <option value="In Progress" @selected($status === 'In Progress')>In Progress</option>
+                                <option value="Completed" @selected($status === 'Completed')>Completed</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 ml-12">
@@ -178,4 +194,80 @@
         </a>
     </div>
 </div>
+
+<script>
+async function updateTopicStatus(select, topicId) {
+    const status = select.value;
+    const originalStatus = select.getAttribute('data-original-status') || status;
+
+    // Optimistic UI update (optional, but good for UX)
+    const statusColors = {
+        'Not Started': 'bg-gray-100 text-gray-600 border-gray-200',
+        'In Progress': 'bg-blue-50 text-blue-600 border-blue-100',
+        'Completed': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    };
+
+    // Remove all possible status classes
+    Object.values(statusColors).forEach(cls => {
+        cls.split(' ').forEach(c => select.classList.remove(c));
+    });
+
+    // Add new status classes
+    statusColors[status].split(' ').forEach(c => select.classList.add(c));
+
+    try {
+        const response = await fetch("{{ route('student.topic.progress') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                topic_id: topicId,
+                status: status
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            select.setAttribute('data-original-status', status);
+            // If the whole page needs to update (e.g. course progress bar), consider a refresh or selective DOM updates
+            // For now, SweetAlert if it exists
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Status Updated',
+                    text: `Topic marked as ${status}`,
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        } else {
+            throw new Error(data.message || 'Failed to update status');
+        }
+    } catch (error) {
+        console.error('Error updating topic status:', error);
+        // Revert UI on error
+        select.value = originalStatus;
+        Object.values(statusColors).forEach(cls => {
+            cls.split(' ').forEach(c => select.classList.remove(c));
+        });
+        statusColors[originalStatus].split(' ').forEach(c => select.classList.add(c));
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Could not update topic status. Please try again.'
+            });
+        } else {
+            alert('Could not update topic status. Please try again.');
+        }
+    }
+}
+</script>
 @endsection
