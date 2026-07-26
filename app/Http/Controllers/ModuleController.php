@@ -24,13 +24,13 @@ class ModuleController extends Controller
 
         $module = Module::create($validated);
 
-        // Notify students enrolled in the course about new module
-        $enrollments = \App\Models\Enrollment::where('course_id', $module->course_id)->get();
-        foreach ($enrollments as $enrollment) {
+        // Notify all students about the new module
+        $students = \App\Models\Student::where('status', 'active')->get();
+        foreach ($students as $student) {
             \App\Models\Notification::create([
-                'student_id' => $enrollment->student_id ?? $enrollment->user_id,
-                'title' => 'New Module Added!',
-                'message' => "A new module '{$module->title}' has been added to your course '{$module->course->title}'.",
+                'student_id' => $student->id,
+                'title' => 'New Module Added',
+                'message' => "A new module '{$module->title}' has been added to your course.",
                 'type' => 'info',
             ]);
         }

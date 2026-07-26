@@ -85,13 +85,13 @@ class TopicController extends Controller
                 'file_name' => $fileName,
             ]);
 
-            // Notify students enrolled in the course about new material
-            $enrollments = \App\Models\Enrollment::where('course_id', $topic->module->course_id)->get();
-            foreach ($enrollments as $enrollment) {
+            // Notify all students about the new topic
+            $students = \App\Models\Student::where('status', 'active')->get();
+            foreach ($students as $student) {
                 \App\Models\Notification::create([
-                    'student_id' => $enrollment->student_id ?? $enrollment->user_id,
-                    'title' => 'New Learning Material!',
-                    'message' => "A new topic '{$topic->title}' has been added to '{$topic->module->title}' in your course '{$topic->module->course->title}'.",
+                    'student_id' => $student->id,
+                    'title' => 'New Learning Material',
+                    'message' => "A new topic '{$topic->title}' has been added to module '{$topic->module->title}'.",
                     'type' => 'info',
                 ]);
             }
