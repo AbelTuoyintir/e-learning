@@ -9,3 +9,6 @@
 - [x] Run migration if needed (only if the `learning_history` table was not created yet).
 
 - [x] Run a quick quiz submission test to verify learning history row is created.
+
+
+- [x] Run a quick quiz submission test to verify learning history row is created.

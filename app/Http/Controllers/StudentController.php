@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use App\Mail\StudentResultMail;
+use App\Services\CourseProgressionService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -388,6 +389,7 @@ public function submit(Request $request, Quiz $quiz)
             ]);
 
             // Update module progress attempts
+            $progressionService = new CourseProgressionService();
             if ($quiz->module_id) {
                 $moduleProgress = \App\Models\ModuleProgress::where('student_id', Auth::id())
                     ->where('module_id', $quiz->module_id)
@@ -413,16 +415,16 @@ public function submit(Request $request, Quiz $quiz)
                             'type' => 'success',
                         ]);
 
-                        // Check for Course Completion
-                        $totalModules = \App\Models\Module::where('course_id', $quiz->module->course_id)->count();
+                        $courseId = $quiz->module->course_id;
+                        $totalModules = \App\Models\Module::where('course_id', $courseId)->count();
                         $completedModules = \App\Models\ModuleProgress::where('student_id', Auth::id())
-                            ->whereHas('module', function($q) use ($quiz) {
-                                $q->where('course_id', $quiz->module->course_id);
+                            ->whereHas('module', function($q) use ($courseId) {
+                                $q->where('course_id', $courseId);
                             })
                             ->where('status', 'Completed')
                             ->count();
 
-                        if ($completedModules === $totalModules) {
+                        if ($completedModules >= $totalModules) {
                             \App\Models\Notification::create([
                                 'student_id' => Auth::id(),
                                 'title' => 'Course Completed!',
@@ -433,7 +435,7 @@ public function submit(Request $request, Quiz $quiz)
                             \App\Models\LearningHistory::create([
                                 'student_id' => Auth::id(),
                                 'activity_type' => 'course_completed',
-                                'related_id' => $quiz->module->course_id,
+                                'related_id' => $courseId,
                                 'related_type' => 'course',
                                 'description' => "Completed course '{$quiz->module->course->title}'",
                             ]);
@@ -441,6 +443,34 @@ public function submit(Request $request, Quiz $quiz)
                     } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
                         $moduleProgress->update(['status' => 'Retake Required']);
                     }
+                }
+            }
+
+            if ($progressionService->isCourseCompletionQuiz($quiz) && $passed) {
+                $courseId = $quiz->course_id;
+                $moduleCount = \App\Models\Module::where('course_id', $courseId)->count();
+                $completedModuleCount = \App\Models\ModuleProgress::where('student_id', Auth::id())
+                    ->whereHas('module', function ($query) use ($courseId) {
+                        $query->where('course_id', $courseId);
+                    })
+                    ->where('status', 'Completed')
+                    ->count();
+
+                if ($moduleCount === 0 || $completedModuleCount >= $moduleCount) {
+                    \App\Models\Notification::create([
+                        'student_id' => Auth::id(),
+                        'title' => 'Course Completed!',
+                        'message' => "Amazing! You passed the course completion quiz and finished the course: {$quiz->course->title}.",
+                        'type' => 'success',
+                    ]);
+
+                    \App\Models\LearningHistory::create([
+                        'student_id' => Auth::id(),
+                        'activity_type' => 'course_completed',
+                        'related_id' => $courseId,
+                        'related_type' => 'course',
+                        'description' => "Completed course '{$quiz->course->title}'",
+                    ]);
                 }
             }
 

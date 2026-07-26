@@ -133,7 +133,7 @@ Route::middleware('auth:student')->group(function () {
     Route::get('/student/ai/history', [\App\Http\Controllers\AIChatController::class, 'history'])->name('student.ai.history');
 
     // Topic Progress
-    Route::post('/student/topic-progress', [\App\Http\Controllers\TopicProgressController::class, 'update'])->name('student.topic-progress');
+    Route::post('/student/topic-progress', [\App\Http\Controllers\TopicProgressController::class, 'update'])->name('student.topic.progress');
 });
 
 // Admin Logout
