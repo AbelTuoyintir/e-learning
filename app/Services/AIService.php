@@ -99,7 +99,7 @@ class AIService
     {
         // Fallback to Ollama
         try {
-            $ollamaModel = config('services.ollama.model', env('OLLAMA_MODEL', 'llama2'));
+            $ollamaModel = config('services.ollama.model', 'llama2');
 
             $url = rtrim($this->ollamaBaseUrl, '/');
             if (!str_ends_with($url, '/api/generate')) {
@@ -107,7 +107,7 @@ class AIService
             }
 
             $headers = [];
-            $ollamaKey = config('services.ollama.key', env('OLLAMA_API_KEY'));
+            $ollamaKey = config('services.ollama.key');
             if (!empty($ollamaKey)) {
                 $headers['Authorization'] = 'Bearer ' . $ollamaKey;
             }
