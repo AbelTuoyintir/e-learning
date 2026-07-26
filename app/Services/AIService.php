@@ -62,23 +62,13 @@ class AIService
         return $prompt;
     }
 
-    protected function getSystemPrompt()
-    {
-        return 'You are an elite AI academic tutor. Your goal is to provide high-quality, concise, and accurate educational assistance. ' .
-               'Explain difficult concepts in simple language. Provide examples and step-by-step explanations. ' .
-               'When appropriate, generate practice questions and recommend learning materials. ' .
-               'Assist with assignments by guiding the student without directly completing them. ' .
-               'Help explain mistakes made during assessments if the student provides them. ' .
-               'Use markdown for formatting. Always encourage critical thinking.';
-    }
-
     protected function askOpenAI($prompt, $context)
     {
         $response = Http::withToken($this->openaiApiKey)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4o-mini',
                 'messages' => [
-                    ['role' => 'system', 'content' => $this->getSystemPrompt()],
+                    ['role' => 'system', 'content' => 'You are an elite AI academic tutor. Your goal is to provide high-quality, concise, and accurate educational assistance. Use markdown for formatting. Break down complex topics into simple steps. Always encourage critical thinking and do not provide direct answers to assignments.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
                 'temperature' => 0.7,
@@ -99,7 +89,7 @@ class AIService
     {
         // Fallback to Ollama
         try {
-            $ollamaModel = config('services.ollama.model', 'llama2');
+            $ollamaModel = config('services.ollama.model', env('OLLAMA_MODEL', 'llama2'));
 
             $url = rtrim($this->ollamaBaseUrl, '/');
             if (!str_ends_with($url, '/api/generate')) {
@@ -107,7 +97,7 @@ class AIService
             }
 
             $headers = [];
-            $ollamaKey = config('services.ollama.key');
+            $ollamaKey = config('services.ollama.key', env('OLLAMA_API_KEY'));
             if (!empty($ollamaKey)) {
                 $headers['Authorization'] = 'Bearer ' . $ollamaKey;
             }
@@ -117,7 +107,6 @@ class AIService
                 ->post($url, [
                     'model' => $ollamaModel,
                     'prompt' => $prompt,
-                    'system' => $this->getSystemPrompt(),
                     'stream' => false,
                 ]);
 

@@ -70,19 +70,7 @@ class QuizController extends Controller
             $validated['image'] = $request->file('image')->store('quiz_images', 'public');
         }
 
-        $quiz = Quiz::create($validated);
-
-        // Notify all students about the new assessment
-        $students = \App\Models\Student::where('status', 'active')->get();
-        foreach ($students as $student) {
-            \App\Models\Notification::create([
-                'student_id' => $student->id,
-                'title' => 'Upcoming Assessment',
-                'message' => "A new assessment '{$quiz->title}' has been scheduled.",
-                'type' => 'info',
-            ]);
-        }
-
+        Quiz::create($validated);
         return redirect()->route('quizzes.index')
                         ->with('success', 'Quiz created successfully!');
     }

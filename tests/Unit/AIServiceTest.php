@@ -37,7 +37,6 @@ class AIServiceTest extends TestCase
         ]);
 
         config(['services.openai.key' => 'test-key']);
-        config(['services.ollama.url' => 'https://api.ollama.cloud']);
 
         $service = new AIService();
 

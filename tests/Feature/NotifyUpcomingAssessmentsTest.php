@@ -37,7 +37,7 @@ class NotifyUpcomingAssessmentsTest extends TestCase
             'title' => 'Calculus Quiz',
             'course_id' => $course->id,
             'quiz_type' => 'module_assessment',
-            'due_at' => Carbon::now()->addHours(12),
+            'due_at' => Carbon::now()->addHours(12)->toDateTimeString(),
         ]);
 
         // 4. Create another quiz due in 36 hours (should NOT notify)
@@ -45,7 +45,7 @@ class NotifyUpcomingAssessmentsTest extends TestCase
             'title' => 'Algebra Quiz',
             'course_id' => $course->id,
             'quiz_type' => 'module_assessment',
-            'due_at' => Carbon::now()->addHours(36),
+            'due_at' => Carbon::now()->addHours(36)->toDateTimeString(),
         ]);
 
         // 5. Run the command

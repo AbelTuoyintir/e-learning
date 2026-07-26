@@ -11,27 +11,6 @@
             @csrf
             @method('PUT')
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-gray-700 font-medium mb-1">Type</label>
-                    <select name="type" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300" required>
-                        <option value="MCQ" @selected(old('type', $question->type) === 'MCQ')>Multiple Choice</option>
-                        <option value="True/False" @selected(old('type', $question->type) === 'True/False')>True/False</option>
-                        <option value="Short Answer" @selected(old('type', $question->type) === 'Short Answer')>Short Answer</option>
-                        <option value="Essay" @selected(old('type', $question->type) === 'Essay')>Essay</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-medium mb-1">Topic</label>
-                    <select name="topic_id" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300">
-                        <option value="">Default (from Quiz)</option>
-                        @foreach(\App\Models\Topic::all() as $topic)
-                            <option value="{{ $topic->id }}" @selected(old('topic_id', $question->topic_id) == $topic->id)>{{ $topic->title }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
             <div>
                 <label class="block text-gray-700 font-medium mb-1">Question</label>
                 <textarea name="question_text" rows="3"
@@ -41,39 +20,23 @@
 
             <div class="grid gap-3">
                 <input type="text" name="option_a" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                       value="{{ old('option_a', $question->option_a) }}" placeholder="Option A">
+                       value="{{ old('option_a', $question->option_a) }}" placeholder="Option A" required>
                 <input type="text" name="option_b" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                       value="{{ old('option_b', $question->option_b) }}" placeholder="Option B">
+                       value="{{ old('option_b', $question->option_b) }}" placeholder="Option B" required>
                 <input type="text" name="option_c" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                       value="{{ old('option_c', $question->option_c) }}" placeholder="Option C">
+                       value="{{ old('option_c', $question->option_c) }}" placeholder="Option C" required>
                 <input type="text" name="option_d" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                       value="{{ old('option_d', $question->option_d) }}" placeholder="Option D">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-gray-700 font-medium mb-1">Correct Option</label>
-                    <select name="correct_option" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300" required>
-                        <option value="A" @selected(old('correct_option', strtoupper($question->correct_option)) === 'A')>Option A / True</option>
-                        <option value="B" @selected(old('correct_option', strtoupper($question->correct_option)) === 'B')>Option B / False</option>
-                        <option value="C" @selected(old('correct_option', strtoupper($question->correct_option)) === 'C')>Option C</option>
-                        <option value="D" @selected(old('correct_option', strtoupper($question->correct_option)) === 'D')>Option D</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-medium mb-1">Difficulty</label>
-                    <select name="difficulty_level" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300" required>
-                        <option value="Easy" @selected(old('difficulty_level', $question->difficulty_level) === 'Easy')>Easy</option>
-                        <option value="Medium" @selected(old('difficulty_level', $question->difficulty_level) === 'Medium')>Medium</option>
-                        <option value="Hard" @selected(old('difficulty_level', $question->difficulty_level) === 'Hard')>Hard</option>
-                    </select>
-                </div>
+                       value="{{ old('option_d', $question->option_d) }}" placeholder="Option D" required>
             </div>
 
             <div>
-                <label class="block text-gray-700 font-medium mb-1">Explanation</label>
-                <textarea name="explanation" rows="2"
-                          class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300">{{ old('explanation', $question->explanation) }}</textarea>
+                <label class="block text-gray-700 font-medium mb-1">Correct Option</label>
+                <select name="correct_option" class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300" required>
+                    <option value="A" @selected(old('correct_option', strtoupper($question->correct_option)) === 'A')>Option A</option>
+                    <option value="B" @selected(old('correct_option', strtoupper($question->correct_option)) === 'B')>Option B</option>
+                    <option value="C" @selected(old('correct_option', strtoupper($question->correct_option)) === 'C')>Option C</option>
+                    <option value="D" @selected(old('correct_option', strtoupper($question->correct_option)) === 'D')>Option D</option>
+                </select>
             </div>
 
             <div>

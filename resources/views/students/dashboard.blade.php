@@ -89,32 +89,6 @@
             </div>
         </div>
 
-        <!-- Performance Trends -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-area mr-2 text-purple-600"></i>Performance Trends</h3>
-            <div class="h-48 flex items-end justify-between space-x-2 px-2">
-                @forelse($performanceTrends as $trend)
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full bg-purple-100 rounded-t relative group" style="height: {{ max($trend->percentage, 5) }}%;">
-                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                {{ number_format($trend->percentage, 1) }}%
-                            </div>
-                            <div class="w-full h-full bg-purple-500 rounded-t opacity-75 hover:opacity-100 transition-opacity"></div>
-                        </div>
-                        <span class="text-[10px] text-gray-500 mt-2 rotate-45 origin-left whitespace-nowrap">{{ $trend->completed_at->format('M d') }}</span>
-                    </div>
-                @empty
-                    <div class="w-full h-full flex items-center justify-center text-gray-500 italic">
-                        Complete assessments to see your performance trends.
-                    </div>
-                @endforelse
-            </div>
-            <div class="mt-8 pt-4 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
-                <span>Last 10 Assessments</span>
-                <span>Percentage Score (%)</span>
-            </div>
-        </div>
-
         <!-- Recent Activity & Upcoming Quizzes -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Activity -->
@@ -126,11 +100,7 @@
                         <i class="fas fa-check-circle text-green-500 mr-3"></i>
                         <div>
                             <p class="font-medium">Completed {{ $result->quiz->title }}</p>
-                            @php
-                                $qCount = $result->quiz->questions->count();
-                                $pct = $qCount > 0 ? ($result->score / $qCount) * 100 : 0;
-                            @endphp
-                            <p class="text-sm text-gray-600">Score: {{ number_format($pct, 1) }}% - {{ $result->completed_at->diffForHumans() }}</p>
+                            <p class="text-sm text-gray-600">Score: {{ number_format(($result->score / $result->quiz->questions->count()) * 100, 1) }}% - {{ $result->completed_at->diffForHumans() }}</p>
                         </div>
                     </div>
                     @empty
