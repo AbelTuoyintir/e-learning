@@ -33,14 +33,21 @@
         <!-- Question Header -->
         <div class="mb-4 flex justify-between items-start">
             <div>
-                <h3 class="text-lg font-semibold">{{ $question->question_text }}</h3>
-                <div class="mt-2 text-sm text-gray-500">
-                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">Points: {{ $question->points }}</span>
-                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded ml-2">Correct: {{ $question->correct_option }}</span>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full uppercase tracking-wider">{{ $question->type }}</span>
+                    <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full uppercase tracking-wider">{{ $question->difficulty_level }}</span>
+                    @if($question->topic)
+                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wider">{{ $question->topic->title }}</span>
+                    @endif
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ $question->question_text }}</h3>
+                <div class="mt-2 text-sm text-gray-500 flex items-center gap-3">
+                    <span class="flex items-center"><i class="fas fa-star text-amber-400 mr-1"></i> {{ $question->points }} Points</span>
+                    <span class="flex items-center"><i class="fas fa-check-circle text-green-500 mr-1"></i> Correct: {{ $question->correct_option }}</span>
                 </div>
             </div>
-            <div class="text-xs text-gray-400">
-                ID: {{ $question->id }}
+            <div class="text-xs text-gray-400 font-mono">
+                #{{ $question->id }}
             </div>
         </div>
 
@@ -99,6 +106,13 @@
                 </div>
             </li>
         </ul>
+
+        @if($question->explanation)
+        <div class="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+            <p class="text-xs font-bold text-blue-800 uppercase tracking-widest mb-1">Explanation</p>
+            <p class="text-sm text-blue-700">{{ $question->explanation }}</p>
+        </div>
+        @endif
 
         <!-- Actions -->
         <div class="mt-4 flex space-x-2">
