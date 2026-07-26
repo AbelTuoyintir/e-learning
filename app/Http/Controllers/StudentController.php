@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use App\Mail\StudentResultMail;
-use App\Services\CourseProgressionService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -100,6 +99,15 @@ public function dashboard()
     $strongAreas = $topicPerformance->where('avg_score', '>=', 70)->pluck('title')->take(5);
     $weakAreas = $topicPerformance->where('avg_score', '<', 70)->pluck('title')->take(5);
 
+    // Performance Trends: Last 10 results
+    $performanceTrends = Result::where('student_id', $student->id)
+        ->select('percentage', 'completed_at')
+        ->latest('completed_at')
+        ->take(10)
+        ->get()
+        ->reverse()
+        ->values();
+
     return view('students.dashboard', compact(
         'enrolledCoursesCount',
         'completedQuizzesCount',
@@ -115,7 +123,8 @@ public function dashboard()
         'retakeModules',
         'aiLearningSessions',
         'strongAreas',
-        'weakAreas'
+        'weakAreas',
+        'performanceTrends'
     ));
 }
 
@@ -389,7 +398,6 @@ public function submit(Request $request, Quiz $quiz)
             ]);
 
             // Update module progress attempts
-            $progressionService = new CourseProgressionService();
             if ($quiz->module_id) {
                 $moduleProgress = \App\Models\ModuleProgress::where('student_id', Auth::id())
                     ->where('module_id', $quiz->module_id)
@@ -415,16 +423,16 @@ public function submit(Request $request, Quiz $quiz)
                             'type' => 'success',
                         ]);
 
-                        $courseId = $quiz->module->course_id;
-                        $totalModules = \App\Models\Module::where('course_id', $courseId)->count();
+                        // Check for Course Completion
+                        $totalModules = \App\Models\Module::where('course_id', $quiz->module->course_id)->count();
                         $completedModules = \App\Models\ModuleProgress::where('student_id', Auth::id())
-                            ->whereHas('module', function($q) use ($courseId) {
-                                $q->where('course_id', $courseId);
+                            ->whereHas('module', function($q) use ($quiz) {
+                                $q->where('course_id', $quiz->module->course_id);
                             })
                             ->where('status', 'Completed')
                             ->count();
 
-                        if ($completedModules >= $totalModules) {
+                        if ($completedModules === $totalModules) {
                             \App\Models\Notification::create([
                                 'student_id' => Auth::id(),
                                 'title' => 'Course Completed!',
@@ -435,7 +443,7 @@ public function submit(Request $request, Quiz $quiz)
                             \App\Models\LearningHistory::create([
                                 'student_id' => Auth::id(),
                                 'activity_type' => 'course_completed',
-                                'related_id' => $courseId,
+                                'related_id' => $quiz->module->course_id,
                                 'related_type' => 'course',
                                 'description' => "Completed course '{$quiz->module->course->title}'",
                             ]);
@@ -443,34 +451,6 @@ public function submit(Request $request, Quiz $quiz)
                     } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
                         $moduleProgress->update(['status' => 'Retake Required']);
                     }
-                }
-            }
-
-            if ($progressionService->isCourseCompletionQuiz($quiz) && $passed) {
-                $courseId = $quiz->course_id;
-                $moduleCount = \App\Models\Module::where('course_id', $courseId)->count();
-                $completedModuleCount = \App\Models\ModuleProgress::where('student_id', Auth::id())
-                    ->whereHas('module', function ($query) use ($courseId) {
-                        $query->where('course_id', $courseId);
-                    })
-                    ->where('status', 'Completed')
-                    ->count();
-
-                if ($moduleCount === 0 || $completedModuleCount >= $moduleCount) {
-                    \App\Models\Notification::create([
-                        'student_id' => Auth::id(),
-                        'title' => 'Course Completed!',
-                        'message' => "Amazing! You passed the course completion quiz and finished the course: {$quiz->course->title}.",
-                        'type' => 'success',
-                    ]);
-
-                    \App\Models\LearningHistory::create([
-                        'student_id' => Auth::id(),
-                        'activity_type' => 'course_completed',
-                        'related_id' => $courseId,
-                        'related_type' => 'course',
-                        'description' => "Completed course '{$quiz->course->title}'",
-                    ]);
                 }
             }
 
@@ -501,9 +481,8 @@ public function submit(Request $request, Quiz $quiz)
             ]);
 
             // Redirect with success message
-            return redirect()->route('quiz.results', $quiz->id)
-                ->with('success', 'Quiz submitted successfully!')
-                ->with('result_id', $result->id); // Add result ID to session
+            return redirect()->route('results.show', $result->id)
+                ->with('success', 'Quiz submitted successfully!');
         });
 
     } catch (\Exception $e) {
@@ -727,13 +706,15 @@ public function results(Quiz $quiz)
         'passed' => $result->passed,
     ];
 
-    return view('students.results', compact('quiz', 'result', 'sessionResult'));
+    return view('students.result', compact('quiz', 'result', 'sessionResult'));
 }
 
 public function resultShow(Result $result)
 {
-    // Authorize using Laravel policies
-    $this->authorize('view', $result);
+    // Authorize manually if base controller doesn't have authorize method
+    if ($result->student_id !== Auth::id()) {
+        abort(403);
+    }
 
     // Eager load with specific columns for performance
     $result->load(['quiz' => function($query) {
