@@ -21,6 +21,8 @@ class AIServiceTest extends TestCase
 
         config(['services.openai.key' => 'test-key']);
 
+        \Illuminate\Support\Facades\Cache::flush();
+
         $service = new AIService();
 
         $response = $service->ask('Hello');
