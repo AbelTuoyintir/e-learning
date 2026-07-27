@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Quiz;
-use App\Models\Enrollment;
 use App\Models\Notification;
+use App\Models\Enrollment;
 use Carbon\Carbon;
 
 class NotifyUpcomingAssessments extends Command
@@ -22,68 +22,52 @@ class NotifyUpcomingAssessments extends Command
      *
      * @var string
      */
-    protected $description = 'Identify quizzes due within 24 hours and notify enrolled students';
+    protected $description = 'Notify students about assessments due within 24 hours';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('Starting upcoming assessments notification check...');
+        $now = Carbon::now()->toDateTimeString();
+        $oneDayLater = Carbon::now()->addDay()->toDateTimeString();
 
-        // Get quizzes due within 24 hours
-        $now = now();
-        $twentyFourHoursFromNow = now()->addHours(24);
-
-        $quizzes = Quiz::whereNotNull('due_at')
-            ->whereBetween('due_at', [$now, $twentyFourHoursFromNow])
+        $upcomingQuizzes = Quiz::whereNotNull('due_at')
+            ->where('due_at', '>', $now)
+            ->where('due_at', '<=', $oneDayLater)
             ->get();
 
-        $this->info("Found {$quizzes->count()} quizzes due within 24 hours.");
+        $count = 0;
 
-        foreach ($quizzes as $quiz) {
+        foreach ($upcomingQuizzes as $quiz) {
             $courseId = $this->resolveQuizCourseId($quiz);
 
-            if (!$courseId) {
-                $this->warn("Could not resolve course ID for quiz ID {$quiz->id}. Skipping.");
-                continue;
-            }
+            if (!$courseId) continue;
 
-            // Get students enrolled in this course
-            $studentIds = Enrollment::where('course_id', $courseId)
-                ->pluck('student_id')
-                ->unique();
+            $enrolledStudents = Enrollment::where('course_id', $courseId)
+                ->pluck('student_id');
 
-            $this->info("Quiz '{$quiz->title}' (ID: {$quiz->id}) is due on {$quiz->due_at}. Notifying {$studentIds->count()} students.");
-
-            foreach ($studentIds as $studentId) {
-                // Check if already notified
-                $alreadyNotified = Notification::where('student_id', $studentId)
+            foreach ($enrolledStudents as $studentId) {
+                // Prevent duplicate notifications for the same quiz
+                $exists = Notification::where('student_id', $studentId)
+                    ->where('title', 'Upcoming Assessment')
                     ->where('data->quiz_id', $quiz->id)
                     ->exists();
 
-                if ($alreadyNotified) {
-                    $this->line("Student ID {$studentId} already notified for Quiz ID {$quiz->id}. Skipping.");
-                    continue;
+                if (!$exists) {
+                    Notification::create([
+                        'student_id' => $studentId,
+                        'title' => 'Upcoming Assessment',
+                        'message' => "The assessment '{$quiz->title}' is due on " . $quiz->due_at->format('M d, Y h:i A') . ". Don't forget to complete it!",
+                        'type' => 'warning',
+                        'data' => ['quiz_id' => $quiz->id]
+                    ]);
+                    $count++;
                 }
-
-                // Create notification
-                Notification::create([
-                    'student_id' => $studentId,
-                    'title' => 'Upcoming Assessment',
-                    'message' => "The assessment '{$quiz->title}' is due within 24 hours (on " . $quiz->due_at->format('M d, Y h:i A') . "). Make sure to complete it on time!",
-                    'type' => 'info',
-                    'is_read' => false,
-                    'data' => [
-                        'quiz_id' => $quiz->id,
-                        'due_at' => $quiz->due_at->toIso8601String(),
-                    ],
-                ]);
             }
         }
 
-        $this->info('Upcoming assessments notification check complete.');
-        return Command::SUCCESS;
+        $this->info("Successfully sent {$count} upcoming assessment notifications.");
     }
 
     private function resolveQuizCourseId(Quiz $quiz): ?int

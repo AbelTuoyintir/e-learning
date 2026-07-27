@@ -2,80 +2,70 @@
 
 namespace Tests\Feature;
 
+use App\Models\Quiz;
+use App\Models\Student;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Notification;
-use App\Models\Quiz;
-use App\Models\Student;
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class NotifyUpcomingAssessmentsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_notifies_enrolled_students_of_upcoming_quizzes_and_avoids_duplicates()
+    public function test_command_notifies_students_of_upcoming_quizzes()
     {
-        // 1. Create Course, Admin User, and Student
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@test.com',
-            'password' => Hash::make('password'),
-        ]);
-
+        // 1. Create a course and a student
+        $course = Course::create(['title' => 'Math 101']);
         $student = Student::create([
-            'firstname' => 'Jane',
+            'firstname' => 'John',
             'lastname' => 'Doe',
-            'email' => 'jane@student.com',
-            'password' => Hash::make('password'),
+            'email' => 'john@example.com',
+            'password' => bcrypt('password')
         ]);
 
-        $course = Course::create([
-            'title' => 'Computer Science',
-            'description' => 'Test Course Description',
-            'user_id' => $admin->id,
-        ]);
-
-        // Enroll Student
+        // 2. Enroll student
         Enrollment::create([
             'student_id' => $student->id,
-            'course_id' => $course->id,
-            'enrolled_at' => now(),
+            'course_id' => $course->id
         ]);
 
-        // 2. Create Quiz due in 5 hours (within 24 hours window)
+        // 3. Create a quiz due in 12 hours
         $quiz = Quiz::create([
-            'title' => 'Upcoming Midterm',
+            'title' => 'Calculus Quiz',
             'course_id' => $course->id,
-            'time_limit' => 60,
-            'due_at' => now()->addHours(5),
-            'quiz_type' => 'topic_quiz',
+            'quiz_type' => 'module_assessment',
+            'due_at' => Carbon::now()->addHours(12)->toDateTimeString(),
         ]);
 
-        // 3. Run the Artisan command
-        Artisan::call('app:notify-upcoming-assessments');
+        // 4. Create another quiz due in 36 hours (should NOT notify)
+        $farQuiz = Quiz::create([
+            'title' => 'Algebra Quiz',
+            'course_id' => $course->id,
+            'quiz_type' => 'module_assessment',
+            'due_at' => Carbon::now()->addHours(36)->toDateTimeString(),
+        ]);
 
-        // 4. Assert Notification was created
+        // 5. Run the command
+        $this->artisan('app:notify-upcoming-assessments')
+            ->expectsOutput('Successfully sent 1 upcoming assessment notifications.')
+            ->assertExitCode(0);
+
+        // 6. Verify notification exists for Calculus Quiz
         $this->assertDatabaseHas('notifications', [
             'student_id' => $student->id,
             'title' => 'Upcoming Assessment',
-            'type' => 'info',
         ]);
 
         $notification = Notification::where('student_id', $student->id)->first();
-        $this->assertNotNull($notification->data);
+        $this->assertStringContainsString('Calculus Quiz', $notification->message);
         $this->assertEquals($quiz->id, $notification->data['quiz_id']);
 
-        $initialNotificationCount = Notification::count();
-        $this->assertEquals(1, $initialNotificationCount);
-
-        // 5. Run the Artisan command again and assert no duplicate notifications are created
-        Artisan::call('app:notify-upcoming-assessments');
-
-        $finalNotificationCount = Notification::count();
-        $this->assertEquals(1, $finalNotificationCount, 'Should not create duplicate notification for the same quiz and student.');
+        // 7. Verify no duplicate notification
+        $this->artisan('app:notify-upcoming-assessments')
+            ->expectsOutput('Successfully sent 0 upcoming assessment notifications.')
+            ->assertExitCode(0);
     }
 }
