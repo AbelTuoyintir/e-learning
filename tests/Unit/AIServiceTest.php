@@ -33,6 +33,9 @@ class AIServiceTest extends TestCase
 
     public function test_ask_falls_back_to_ollama_on_openai_failure()
     {
+        config(['services.openai.key' => 'test-key']);
+        config(['services.ollama.url' => 'https://ollama.com']);
+
         Http::fake([
             'api.openai.com/*' => Http::response([], 500),
             'api.ollama.cloud/*' => Http::response(['response' => 'Ollama response'], 200),

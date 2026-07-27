@@ -203,7 +203,32 @@ public function submit(Request $request, Quiz $quiz)
         return $this->denyQuizAccess($quiz);
     }
 
-    
+    // Check module progress/retake status before allowing submission
+    if ($quiz->module_id) {
+        $moduleProgress = \App\Models\ModuleProgress::where([
+            'student_id' => Auth::id(),
+            'module_id' => $quiz->module_id
+        ])->first();
+
+        if ($moduleProgress) {
+            if ($moduleProgress->status === 'Retake Required') {
+                return redirect()->back()->with('error', 'Module retake required. Please review all module topics before attempting the assessment again.');
+            }
+
+            if ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
+                $moduleProgress->update(['status' => 'Retake Required']);
+
+                // Reset all topic progress for this module to 'In Progress'
+                $topicIds = \App\Models\Topic::where('module_id', $quiz->module_id)->pluck('id');
+                \App\Models\TopicProgress::where('student_id', Auth::id())
+                    ->whereIn('topic_id', $topicIds)
+                    ->update(['status' => 'In Progress']);
+
+                return redirect()->back()->with('error', 'Maximum attempts reached. Module retake required.');
+            }
+        }
+    }
+
     \Log::info('=== QUIZ SUBMIT START ===', [
         'quiz_id' => $quiz->id,
         'quiz_title' => $quiz->title,
@@ -393,7 +418,8 @@ public function submit(Request $request, Quiz $quiz)
                     ->where('module_id', $quiz->module_id)
                     ->first();
                 if ($moduleProgress) {
-                    $moduleProgress->increment('attempts_since_retake');
+                    $moduleProgress->attempts_since_retake = ($moduleProgress->attempts_since_retake ?? 0) + 1;
+                    $moduleProgress->save();
                     if ($passed) {
                         $moduleProgress->update(['status' => 'Completed']);
 
