@@ -441,17 +441,12 @@ public function submit(Request $request, Quiz $quiz)
                     } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
                         $moduleProgress->update(['status' => 'Retake Required']);
 
-                        // Reset all topic progress for this module to 'In Progress'
+                        // Reset topic progress for this module to force re-learning
                         \App\Models\TopicProgress::where('student_id', Auth::id())
                             ->whereHas('topic', function($q) use ($quiz) {
                                 $q->where('module_id', $quiz->module_id);
                             })
                             ->update(['status' => 'In Progress']);
-
-                        \Log::info('Module failure: topics reset to In Progress', [
-                            'student_id' => Auth::id(),
-                            'module_id' => $quiz->module_id
-                        ]);
                     }
                 }
             }
@@ -595,9 +590,9 @@ private function calculatePercentage($score, $total): float
  */
 private function isPassed($percentage, $quiz): bool
 {
-    // Strict final quiz rule: use quizzes.passing_score (default 65).
+    // Strict final quiz rule: use quizzes.passing_score (default 70).
     // Practice quizzes are non-gating (still computed, but module progression ignores it).
-    $passPercentage = $quiz->passing_score ?? 65;
+    $passPercentage = $quiz->passing_score ?? 70;
     return $percentage >= $passPercentage;
 }
 
