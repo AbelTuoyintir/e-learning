@@ -32,8 +32,14 @@ class QuestionController extends Controller
     {
         $quiz = Quiz::findOrFail($quiz);
 
+        if (! $this->canAddMoreQuestions($quiz)) {
+            return redirect()->back()->withInput()->with(
+                'error',
+                "Question bank limit reached for this quiz ({$this->resolveQuestionLimit($quiz)} questions)."
+            );
+        }
+
         $data = $request->validate([
-            'topic_id' => 'nullable|exists:topics,id',
             'type' => 'required|string|in:MCQ,True/False,Short Answer,Essay',
             'question_text' => 'required|string',
             'option_a' => 'required_if:type,MCQ,True/False|string',
@@ -48,7 +54,6 @@ class QuestionController extends Controller
 
         Question::create([
             'quiz_id' => $quiz->id,
-            'topic_id' => $data['topic_id'] ?? $quiz->topic_id,
             'type' => $data['type'],
             'question_text' => $data['question_text'],
             'option_a' => $data['option_a'] ?? '',
@@ -79,7 +84,6 @@ class QuestionController extends Controller
         $question = Question::where('quiz_id', $quiz->id)->findOrFail($question);
 
         $data = $request->validate([
-            'topic_id' => 'nullable|exists:topics,id',
             'type' => 'required|string|in:MCQ,True/False,Short Answer,Essay',
             'question_text' => 'required|string',
             'option_a' => 'required_if:type,MCQ,True/False|string',
@@ -93,7 +97,6 @@ class QuestionController extends Controller
         ]);
 
         $question->update([
-            'topic_id' => $data['topic_id'] ?? $question->topic_id,
             'type' => $data['type'],
             'question_text' => $data['question_text'],
             'option_a' => $data['option_a'] ?? '',
@@ -194,7 +197,7 @@ class QuestionController extends Controller
         $header = fgetcsv($file);
         if (empty($header) || count($header) < 7) {
             fclose($file);
-            throw new \Exception('CSV must have at least 7 columns: question_text, option_a, option_b, option_c, option_d, correct_option, points. (Optional: explanation, difficulty_level, type, topic_id)');
+            throw new \Exception('CSV must have at least 7 columns: question_text, option_a, option_b, option_c, option_d, correct_option, points.');
         }
 
         $rows = [];
@@ -236,9 +239,24 @@ class QuestionController extends Controller
             'limit_reached' => false,
         ];
 
+        $limit = $this->resolveQuestionLimit($quiz);
+        $currentCount = Question::where('quiz_id', $quiz->id)->count();
+        $remainingSlots = max($limit - $currentCount, 0);
+
+        if ($remainingSlots === 0) {
+            $summary['limit_reached'] = true;
+            $summary['errors'][] = "This quiz already reached its question limit ({$limit}).";
+            return $summary;
+        }
+
         foreach ($rows as $index => $row) {
+            if ($summary['imported'] >= $remainingSlots) {
+                $summary['limit_reached'] = true;
+                break;
+            }
+
             $rowNumber = $index + 2; // Account for header row in files.
-            $row = array_pad($row, 11, '');
+            $row = array_pad($row, 7, '');
             $row = array_map(static fn ($value) => trim((string) $value), $row);
 
             if ($this->isRowEmpty($row)) {
@@ -254,20 +272,14 @@ class QuestionController extends Controller
                 $optionC = $row[3];
                 $optionD = $row[4];
                 $correct = $row[5];
-                $points = (!empty($row[6]) && is_numeric($row[6])) ? (int) $row[6] : 1;
-                $explanation = !empty($row[7]) ? $row[7] : null;
-                $difficulty = !empty($row[8]) ? $row[8] : 'Medium';
-                $type = !empty($row[9]) ? $row[9] : 'MCQ';
-                $topicId = !empty($row[10]) ? (int) $row[10] : null;
+                $points = (int) ($row[6] ?? 1);
 
                 if ($questionText === '') {
                     throw new \Exception("Row {$rowNumber}: Empty question text.");
                 }
 
-                if (in_array($type, ['MCQ', 'True/False'])) {
-                    if ($optionA === '' || $optionB === '') {
-                        throw new \Exception("Row {$rowNumber}: Options A and B are required for MCQ/True-False.");
-                    }
+                if ($optionA === '' || $optionB === '' || $optionC === '' || $optionD === '') {
+                    throw new \Exception("Row {$rowNumber}: Options A, B, C and D are required.");
                 }
 
                 if ($points <= 0) {
@@ -276,16 +288,12 @@ class QuestionController extends Controller
 
                 Question::create([
                     'quiz_id' => $quiz->id,
-                    'topic_id' => $topicId ?? $quiz->topic_id,
-                    'type' => $type,
                     'question_text' => $questionText,
                     'option_a' => $optionA,
                     'option_b' => $optionB,
                     'option_c' => $optionC,
                     'option_d' => $optionD,
                     'correct_option' => $this->normalizeCorrectOption($correct, $rowNumber),
-                    'explanation' => $explanation,
-                    'difficulty_level' => $difficulty,
                     'points' => $points,
                 ]);
 
@@ -338,6 +346,11 @@ class QuestionController extends Controller
 
         Log::warning("Invalid correct_option value '{$value}' in row {$rowNumber}; defaulting to A.");
         return 'A';
+    }
+
+    private function canAddMoreQuestions(Quiz $quiz): bool
+    {
+        return true; // No limit on the number of questions uploaded.
     }
 
     private function resolveQuestionLimit(Quiz $quiz): int

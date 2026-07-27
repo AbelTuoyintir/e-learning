@@ -75,7 +75,7 @@ class TopicController extends Controller
             }
 
             // Create the topic
-            $topic = Topic::create([
+            Topic::create([
                 'module_id' => $request->module_id,
                 'title' => $request->title,
                 'order' => $request->order ?? 0,
@@ -84,17 +84,6 @@ class TopicController extends Controller
                 'file_path' => $filePath,
                 'file_name' => $fileName,
             ]);
-
-            // Notify all students about the new topic
-            $students = \App\Models\Student::where('status', 'active')->get();
-            foreach ($students as $student) {
-                \App\Models\Notification::create([
-                    'student_id' => $student->id,
-                    'title' => 'New Learning Material',
-                    'message' => "A new topic '{$topic->title}' has been added to module '{$topic->module->title}'.",
-                    'type' => 'info',
-                ]);
-            }
 
             return redirect()->route('admin.topics.create', $request->module_id)
                 ->with('success', 'Topic created successfully!');

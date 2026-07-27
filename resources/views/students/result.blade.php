@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         .correct-answer {
             background-color: #D1FAE5;
@@ -295,40 +294,28 @@
                                 <!-- Feedback Section -->
                                 @if(!$isCorrect && !$isSkipped)
                                     <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded-r">
-                                        <div class="flex justify-between items-start">
-                                            <div class="flex">
-                                                <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
-                                                <div>
-                                                    <p class="font-medium text-yellow-800 dark:text-yellow-300">Learning Point</p>
-                                                    <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
-                                                        You selected: <span class="font-semibold">{{ $userAnswerText ?: 'Nothing' }}</span>
-                                                    </p>
-                                                    <p class="text-sm text-green-700 dark:text-green-400 mt-1">
-                                                        Correct answer: <span class="font-semibold">{{ $correctOptionText }}</span>
-                                                    </p>
-                                                </div>
+                                        <div class="flex">
+                                            <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-3"></i>
+                                            <div>
+                                                <p class="font-medium text-yellow-800 dark:text-yellow-300">Learning Point</p>
+                                                <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                                                    You selected: <span class="font-semibold">{{ $userAnswerText ?: 'Nothing' }}</span>
+                                                </p>
+                                                <p class="text-sm text-green-700 dark:text-green-400 mt-1">
+                                                    Correct answer: <span class="font-semibold">{{ $correctOptionText }}</span>
+                                                </p>
                                             </div>
-                                            <button onclick="askAIAboutQuestion('{{ addslashes($detail['question']) }}', '{{ addslashes($userAnswerText) }}', '{{ addslashes($correctOptionText) }}')"
-                                                    class="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
-                                                <i class="fas fa-robot"></i> Explain with AI
-                                            </button>
                                         </div>
                                     </div>
                                 @endif
 
                                 @if($isSkipped)
                                     <div class="mt-4 p-3 bg-gray-100 dark:bg-gray-700 border-l-4 border-gray-500 rounded-r">
-                                        <div class="flex justify-between items-center">
-                                            <div class="flex items-center">
-                                                <i class="fas fa-forward text-gray-500 mr-3"></i>
-                                                <p class="text-gray-700 dark:text-gray-300 text-sm">
-                                                    You skipped this question. Time ran out or you chose not to answer.
-                                                </p>
-                                            </div>
-                                            <button onclick="askAIAboutQuestion('{{ addslashes($detail['question']) }}', 'Skipped', '{{ addslashes($correctOptionText) }}')"
-                                                    class="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
-                                                <i class="fas fa-robot"></i> Explain with AI
-                                            </button>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-forward text-gray-500 mr-3"></i>
+                                            <p class="text-gray-700 dark:text-gray-300">
+                                                You skipped this question. Time ran out or you chose not to answer.
+                                            </p>
                                         </div>
                                     </div>
                                 @endif
@@ -422,38 +409,8 @@
         </div>
     </div>
 
-    @include('components.ai-tutor')
-
     <!-- JavaScript for interactivity -->
     <script>
-        function askAIAboutQuestion(question, yourAnswer, correctAnswer) {
-            const prompt = `I need help understanding this question from my assessment.
-Question: ${question}
-My Answer: ${yourAnswer || 'Skipped'}
-Correct Answer: ${correctAnswer}
-
-Can you explain why the correct answer is "${correctAnswer}" and where I might have gone wrong?`;
-
-            // Open chat modal
-            if (typeof openAIChat === 'function') {
-                openAIChat();
-
-                // Set the question in the input
-                const aiQuestionInput = document.getElementById('aiQuestion');
-                if (aiQuestionInput) {
-                    aiQuestionInput.value = prompt;
-
-                    // Trigger form submission after a short delay to ensure modal is open
-                    setTimeout(() => {
-                        const aiChatForm = document.getElementById('aiChatForm');
-                        if (aiChatForm) {
-                            aiChatForm.dispatchEvent(new Event('submit'));
-                        }
-                    }, 500);
-                }
-            }
-        }
-
         // Smooth scroll to incorrect answers
         document.addEventListener('DOMContentLoaded', function() {
             // Add animation to score badge

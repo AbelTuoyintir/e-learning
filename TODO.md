@@ -11,4 +11,3 @@
 - [x] Run a quick quiz submission test to verify learning history row is created.
 
 
-- [x] Run a quick quiz submission test to verify learning history row is created.

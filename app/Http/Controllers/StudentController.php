@@ -99,15 +99,6 @@ public function dashboard()
     $strongAreas = $topicPerformance->where('avg_score', '>=', 70)->pluck('title')->take(5);
     $weakAreas = $topicPerformance->where('avg_score', '<', 70)->pluck('title')->take(5);
 
-    // Performance Trends: Last 10 results
-    $performanceTrends = Result::where('student_id', $student->id)
-        ->select('percentage', 'completed_at')
-        ->latest('completed_at')
-        ->take(10)
-        ->get()
-        ->reverse()
-        ->values();
-
     return view('students.dashboard', compact(
         'enrolledCoursesCount',
         'completedQuizzesCount',
@@ -123,8 +114,7 @@ public function dashboard()
         'retakeModules',
         'aiLearningSessions',
         'strongAreas',
-        'weakAreas',
-        'performanceTrends'
+        'weakAreas'
     ));
 }
 
@@ -488,8 +478,9 @@ public function submit(Request $request, Quiz $quiz)
             ]);
 
             // Redirect with success message
-            return redirect()->route('results.show', $result->id)
-                ->with('success', 'Quiz submitted successfully!');
+            return redirect()->route('quiz.results', $quiz->id)
+                ->with('success', 'Quiz submitted successfully!')
+                ->with('result_id', $result->id); // Add result ID to session
         });
 
     } catch (\Exception $e) {
@@ -713,15 +704,13 @@ public function results(Quiz $quiz)
         'passed' => $result->passed,
     ];
 
-    return view('students.result', compact('quiz', 'result', 'sessionResult'));
+    return view('students.results', compact('quiz', 'result', 'sessionResult'));
 }
 
 public function resultShow(Result $result)
 {
-    // Authorize manually if base controller doesn't have authorize method
-    if ($result->student_id !== Auth::id()) {
-        abort(403);
-    }
+    // Authorize using Laravel policies
+    $this->authorize('view', $result);
 
     // Eager load with specific columns for performance
     $result->load(['quiz' => function($query) {
