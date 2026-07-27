@@ -9,7 +9,6 @@ use App\Models\Notification;
 use App\Models\TopicContent;
 use App\Models\Topic;
 use App\Models\DocumentHighlight;
-use App\Services\CourseProgressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -445,25 +444,46 @@ public function getMaterials(Course $course)
         }
     ]);
 
-    $progressionService = new CourseProgressionService();
-
+    // Module progression gating: module N is unlocked only if module (N-1)'s FINAL quiz is passed.
+    // Assumption: each module has one or more quizzes of type='final'. If any of them passed, module unlocks.
     $modules = $course->modules ?? collect();
     $modulesByOrder = $modules->values();
 
     $unlockedModuleIds = [];
     if ($modulesByOrder->isNotEmpty()) {
+        // First module always unlocked
         $unlockedModuleIds[] = (int) $modulesByOrder[0]->id;
     }
 
-    $courseCompletionBypassed = $progressionService->hasPassedCourseCompletionQuiz($user->id, $course->id);
+    // Find all final quizzes for modules
+    $finalQuizzesByModuleId = \App\Models\Quiz::query()
+        ->where('course_id', $course->id)
+        ->where('type', 'final')
+        ->whereNotNull('module_id')
+        ->get()
+        ->groupBy(fn($q) => (int) $q->module_id);
 
     for ($i = 1; $i < $modulesByOrder->count(); $i++) {
         $prevModuleId = (int) $modulesByOrder[$i - 1]->id;
         $currModuleId = (int) $modulesByOrder[$i]->id;
 
-        $prevModulePassed = $progressionService->hasPassedModuleCompletionQuiz($user->id, $prevModuleId);
+        $finalQuizzes = $finalQuizzesByModuleId->get($prevModuleId, collect());
 
-        if ($courseCompletionBypassed || $prevModulePassed) {
+        // If previous module has no FINAL quizzes, treat it as passed (keeps backward compatibility)
+        if ($finalQuizzes->isEmpty()) {
+            $unlockedModuleIds[] = $currModuleId;
+            continue;
+        }
+
+        $finalQuizIds = $finalQuizzes->pluck('id')->all();
+
+        $prevModulePassed = \App\Models\Result::query()
+            ->where('student_id', $user->id)
+            ->whereIn('quiz_id', $finalQuizIds)
+            ->where('passed', 1)
+            ->exists();
+
+        if ($prevModulePassed) {
             $unlockedModuleIds[] = $currModuleId;
         }
     }
