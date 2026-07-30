@@ -21,7 +21,7 @@ Route::get('/accessibility', function(){ return view('accessibility');})->name('
 // Route::get('/', [QuizController::class, 'index'])->name('admin.dashboard');
 // Admin Authentication Routes (using web guard)
 
-Route::middleware('auth:web')->group(function () {
+Route::middleware(['auth:web', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
@@ -157,8 +157,7 @@ Route::prefix('tutor')->middleware(['auth:web', 'role:tutor'])->group(function (
     Route::get('quizzes', [QuizController::class, 'index'])->name('tutor.quizzes.index');
 });
 
-Route::prefix('admin')->group(function () {
- // Add this to your authenticated student routes group
+Route::prefix('admin')->middleware(['auth:web', 'role:admin'])->group(function () {
     Route::get('/student/{student}/details', [StudentController::class, 'getStudentDetails'])->name('student.details');
      Route::put('/student/{student}', [StudentController::class, 'updateStudent'])->name('student.update');
     Route::get('manage/quizzes', [QuizController::class, 'index'])->name('quizzes.index');
