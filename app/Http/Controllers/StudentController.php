@@ -255,7 +255,7 @@ public function submit(Request $request, Quiz $quiz)
 
             // Eager load questions to avoid N+1 query
             $quiz->load(['questions' => function($query) {
-                $query->select('id', 'quiz_id', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'points'); // Added 'points'
+                $query->select('id', 'quiz_id', 'type', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'points'); // Added 'points'
             }]);
 
             \Log::debug('Questions loaded', [
