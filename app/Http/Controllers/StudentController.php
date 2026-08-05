@@ -8,6 +8,7 @@ use App\Models\Question;
 use App\Models\Result;
 use App\Models\Student;
 use App\Models\Notification;
+use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
@@ -1270,6 +1271,65 @@ public function updateStudent(Request $request, $studentId)
             'message' => 'Failed to update student: ' . $e->getMessage()
         ], 500);
     }
+}
+
+/**
+ * Generate and download academic transcript as PDF.
+ */
+public function downloadTranscript()
+{
+    $student = Auth::user();
+    $results = Result::where('student_id', $student->id)
+        ->with(['quiz.questions'])
+        ->get();
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.transcript', compact('student', 'results'));
+    return $pdf->download("transcript-{$student->id}.pdf");
+}
+
+/**
+ * Generate and download course completion certificate as PDF.
+ */
+public function downloadCertificate(Course $course)
+{
+    $student = Auth::user();
+
+    // Verify enrollment
+    $isEnrolled = $student->enrollments()->where('course_id', $course->id)->exists();
+    if (!$isEnrolled) {
+        return redirect()->back()->with('error', 'You must be enrolled in this course to download the certificate.');
+    }
+
+    // Check for course completion (all modules must be completed)
+    $totalModules = $course->modules()->count();
+    $completedModules = \App\Models\ModuleProgress::where('student_id', $student->id)
+        ->whereHas('module', function ($q) use ($course) {
+            $q->where('course_id', $course->id);
+        })
+        ->where('status', 'Completed')
+        ->count();
+
+    if ($totalModules === 0 || $completedModules < $totalModules) {
+        return redirect()->back()->with('error', 'You must complete all modules in this course to download your certificate.');
+    }
+
+    // Determine completion date
+    $latestCompletion = \App\Models\ModuleProgress::where('student_id', $student->id)
+        ->whereHas('module', function ($q) use ($course) {
+            $q->where('course_id', $course->id);
+        })
+        ->where('status', 'Completed')
+        ->latest('updated_at')
+        ->first();
+
+    $completionDate = $latestCompletion && $latestCompletion->updated_at
+        ? $latestCompletion->updated_at->format('F d, Y')
+        : now()->format('F d, Y');
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.certificate', compact('student', 'course', 'completionDate'))
+        ->setPaper('a4', 'landscape');
+
+    return $pdf->download("certificate-{$course->id}.pdf");
 }
 
 }

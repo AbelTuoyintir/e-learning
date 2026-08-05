@@ -36,6 +36,14 @@ class Student extends Authenticatable implements CanResetPassword
     ];
 
     /**
+     * Get the student's full name.
+     */
+    public function getNameAttribute()
+    {
+        return trim("{$this->firstname} {$this->lastname}");
+    }
+
+    /**
      * A student can enroll in many courses.
      */
     public function courses()
