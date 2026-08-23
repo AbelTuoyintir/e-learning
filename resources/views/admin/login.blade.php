@@ -1,148 +1,186 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-900">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Quiz System</title>
+    <title>Admin Sign In - Quiz & LMS System</title>
+
+    <!-- Tailwind CSS & Assets -->
+    <script src="https://cdn.tailwindcss.com"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        .login-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .split-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-        .image-side {
-            flex: 1;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-        .form-side {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            background: white;
-        }
-        .login-card {
-            width: 100%;
-            max-width: 400px;
-        }
-        .image-content {
-            text-align: center;
-            color: white;
-        }
-        .image-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .image-content h3 {
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-        .image-content p {
-            opacity: 0.9;
-            line-height: 1.6;
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .split-layout {
-                flex-direction: column;
-            }
-            .image-side {
-                padding: 1rem;
-                min-height: 40vh;
-            }
-            .form-side {
-                padding: 1rem;
-                min-height: 60vh;
-            }
+        .ambient-glow {
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
         }
     </style>
 </head>
-<body>
-    <div class="login-container">
-        <div class="split-layout">
-            <!-- Image Side -->
-            <div class="image-side">
-                <div class="image-content">
-                    <!-- Option 1: Using an online education image -->
-                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                         alt="Education System"
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjNjc4RUVBIi8+CjxwYXRoIGQ9Ik0xMDAgMTIwTDIwMCAxODBMMzAwIDEyMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIzIi8+CjxjaXJjbGUgY3g9IjIwMCIgY3k9IjEwMCIgcj0iMjAiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj5RdWl6IFN5c3RlbTwvdGV4dD4KPC9zdmc+'">
-                    <h3>Quiz Management System</h3>
-                    <p>Welcome back, Administrator. Manage your courses, quizzes, and student progress with ease.</p>
+<body class="h-full antialiased selection:bg-indigo-500 selection:text-white ambient-glow flex items-center justify-center p-4 sm:p-6 lg:p-8">
+
+    <!-- Container Card -->
+    <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 grid grid-cols-1 lg:grid-cols-12 min-h-[620px]">
+
+        <!-- Left Visual Feature Section -->
+        <div class="lg:col-span-6 relative bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-12 text-white flex flex-col justify-between overflow-hidden">
+            <!-- Glow background overlay -->
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Top Brand -->
+            <div class="relative z-10 flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fas fa-shield-halved text-white text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight text-white">LMS Portal</span>
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-indigo-300">Admin Workspace</span>
                 </div>
             </div>
 
-            <!-- Form Side -->
-            <div class="form-side">
-                <div class="login-card">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold text-primary">Admin Login</h2>
-                        <p class="text-muted">Access the admin dashboard</p>
+            <!-- Center Content Feature -->
+            <div class="relative z-10 my-8 space-y-6">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-semibold">
+                    <i class="fas fa-lock text-emerald-400"></i>
+                    Secured Administrative Access
+                </div>
+
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight text-white">
+                    Empowering Next-Gen Learning Management.
+                </h2>
+                <p class="text-indigo-200/90 text-sm leading-relaxed">
+                    Streamline course creation, monitor student progression in real time, and deliver AI-assisted tutoring experiences from one centralized dashboard.
+                </p>
+
+                <div class="grid grid-cols-3 gap-3 pt-4 border-t border-white/10 text-center">
+                    <div class="p-3 rounded-2xl bg-white/5 backdrop-blur-md">
+                        <p class="text-lg font-extrabold text-white">100%</p>
+                        <p class="text-[10px] text-indigo-300 font-medium">Uptime</p>
                     </div>
-
-                    @if($errors->any())
-                    <script>
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Login Failed',
-                            html: `{!! implode('<br>', $errors->all()) !!}`,
-                        })
-                    </script>
-                    @endif
-
-                    <form method="POST" action="{{ route('admin.login.submit') }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                   id="email" name="email" value="{{ old('email') }}" required autofocus>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                   id="password" name="password" required>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Remember me</label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Login</button>
-                    </form>
-
-                    <div class="text-center mt-3">
-                        <a href="{{ route('login') }}" class="text-decoration-none">
-                            Student Login
-                        </a>
+                    <div class="p-3 rounded-2xl bg-white/5 backdrop-blur-md">
+                        <p class="text-lg font-extrabold text-white">AI</p>
+                        <p class="text-[10px] text-indigo-300 font-medium">Enabled</p>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-white/5 backdrop-blur-md">
+                        <p class="text-lg font-extrabold text-white">2.4</p>
+                        <p class="text-[10px] text-indigo-300 font-medium">Engine v2.4</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Footer Quote -->
+            <div class="relative z-10 text-xs text-indigo-300/80">
+                &copy; {{ date('Y') }} LMS Platform. All administrative actions are audited.
             </div>
         </div>
+
+        <!-- Right Login Form Section -->
+        <div class="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-center bg-white">
+
+            <div class="max-w-md mx-auto w-full space-y-6">
+
+                <!-- Heading -->
+                <div>
+                    <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight">Admin Sign In</h3>
+                    <p class="text-xs text-slate-500 mt-1">Please enter your authorized administrative credentials to continue.</p>
+                </div>
+
+                <!-- Session Error Alert script if any -->
+                @if($errors->any())
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Authentication Failed',
+                            html: `{!! implode('<br>', $errors->all()) !!}`,
+                            confirmButtonColor: '#4f46e5',
+                            customClass: {
+                                popup: 'rounded-2xl'
+                            }
+                        });
+                    });
+                </script>
+                @endif
+
+                <!-- Form -->
+                <form method="POST" action="{{ route('admin.login.submit') }}" class="space-y-4">
+                    @csrf
+
+                    <!-- Email Field -->
+                    <div class="space-y-1.5">
+                        <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                            Email Address <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fas fa-envelope text-sm"></i>
+                            </div>
+                            <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
+                                   placeholder="admin@example.com">
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                                Password <span class="text-rose-500">*</span>
+                            </label>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fas fa-lock text-sm"></i>
+                            </div>
+                            <input type="password" id="password" name="password" required
+                                   class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
+                                   placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- Remember Me Checkbox -->
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="remember" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 transition">
+                            <span class="ml-2 text-xs font-medium text-slate-600">Remember session</span>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:scale-[1.01] active:scale-95 transition-all duration-200">
+                        Sign In to Dashboard
+                    </button>
+
+                </form>
+
+                <!-- Footer Student Switch -->
+                <div class="pt-4 border-t border-slate-100 text-center">
+                    <p class="text-xs text-slate-500">
+                        Not an administrator?
+                        <a href="{{ route('login') }}" class="font-bold text-indigo-600 hover:text-indigo-800 transition">
+                            Switch to Student Login
+                        </a>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
