@@ -3,137 +3,280 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
-<div class="container mx-auto px-6 py-8">
+<div class="space-y-8">
 
-    <!-- Welcome Header -->
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 mb-8 text-white">
-        <h1 class="text-3xl font-bold mb-2">Welcome back, Admin!</h1>
-        <p class="text-indigo-100">Manage your quiz application from this dashboard.</p>
-    </div>
+    <!-- Hero Welcome Banner -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-xl shadow-indigo-950/20">
+        <!-- Abstract background pattern elements -->
+        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-10 w-60 h-60 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
-        <!-- Students -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-slate-600 text-sm font-medium">Total Students</p>
-                    <p class="text-3xl font-bold text-slate-800">{{ \App\Models\Student::count() }}</p>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-2 max-w-xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Admin Control Center
                 </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-users text-blue-600 text-xl"></i>
-                </div>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                    Welcome back, {{ Auth::user()->name ?? 'Admin' }}! 👋
+                </h1>
+                <p class="text-indigo-200/90 text-sm sm:text-base leading-relaxed">
+                    Here's what is happening across your learning platform today. Manage courses, track student performance, and monitor system metrics.
+                </p>
             </div>
-        </div>
 
-        <!-- Courses -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-slate-600 text-sm font-medium">Total Courses</p>
-                    <p class="text-3xl font-bold text-slate-800">{{ \App\Models\Course::count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-book text-green-600 text-xl"></i>
-                </div>
+            <!-- Quick Action CTA Pill -->
+            <div class="flex items-center gap-3 shrink-0">
+                <a href="{{ route('quizzes.create') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200">
+                    <i class="fas fa-plus text-xs"></i>
+                    <span>Create New Quiz</span>
+                </a>
+                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white transition-all duration-200">
+                    <i class="fas fa-sliders"></i>
+                </a>
             </div>
-        </div>
-
-        <!-- Quizzes -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-slate-600 text-sm font-medium">Total Quizzes</p>
-                    <p class="text-3xl font-bold text-slate-800">{{ \App\Models\Quiz::count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-question-circle text-purple-600 text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Questions -->
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-slate-600 text-sm font-medium">Total Questions</p>
-                    <p class="text-3xl font-bold text-slate-800">{{ \App\Models\Question::count() }}</p>
-                </div>
-                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-list text-orange-600 text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-8">
-        <h2 class="text-xl font-bold text-slate-800 mb-4">Quick Actions</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            <a href="{{ route('quizzes.index') }}" class="flex items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <i class="fas fa-plus-circle text-indigo-600 text-xl mr-3"></i>
-                <div>
-                    <p class="font-medium text-slate-800">Manage Quizzes</p>
-                    <p class="text-sm text-slate-600">Create and edit quizzes</p>
-                </div>
-            </a>
-
-            <a href="{{ route('courses.index') }}" class="flex items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <i class="fas fa-book text-green-600 text-xl mr-3"></i>
-                <div>
-                    <p class="font-medium text-slate-800">Manage Courses</p>
-                    <p class="text-sm text-slate-600">Organize course content</p>
-                </div>
-            </a>
-
-            <a href="{{ route('students.index') }}" class="flex items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <i class="fas fa-users text-blue-600 text-xl mr-3"></i>
-                <div>
-                    <p class="font-medium text-slate-800">Manage Students</p>
-                    <p class="text-sm text-slate-600">View and manage students</p>
-                </div>
-            </a>
-
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <h2 class="text-xl font-bold text-slate-800 mb-4">Recent Activity</h2>
-        <div class="space-y-4">
-            <div class="flex items-center p-4 bg-slate-50 rounded-lg">
-                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                    <i class="fas fa-user-plus text-blue-600"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="font-medium text-slate-800">New student registered</p>
-                    <p class="text-sm text-slate-600">2 hours ago</p>
-                </div>
-            </div>
+    <!-- Analytics Stats Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
 
-            <div class="flex items-center p-4 bg-slate-50 rounded-lg">
-                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                    <i class="fas fa-plus-circle text-green-600"></i>
+        <!-- Total Students -->
+        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Students</span>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                        {{ \App\Models\Student::count() }}
+                    </h3>
+                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
+                        <i class="fas fa-arrow-trend-up text-[10px]"></i>
+                        <span>Active Enrollees</span>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <p class="font-medium text-slate-800">New quiz created</p>
-                    <p class="text-sm text-slate-600">5 hours ago</p>
-                </div>
-            </div>
-
-            <div class="flex items-center p-4 bg-slate-50 rounded-lg">
-                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-4">
-                    <i class="fas fa-question-circle text-purple-600"></i>
-                </div>
-                <div class="flex-1">
-                    <p class="font-medium text-slate-800">Questions updated</p>
-                    <p class="text-sm text-slate-600">1 day ago</p>
+                <div class="w-13 h-13 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-user-graduate text-xl"></i>
                 </div>
             </div>
         </div>
+
+        <!-- Total Courses -->
+        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Courses</span>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                        {{ \App\Models\Course::count() }}
+                    </h3>
+                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
+                        <i class="fas fa-layer-group text-[10px]"></i>
+                        <span>Published</span>
+                    </div>
+                </div>
+                <div class="w-13 h-13 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-book-bookmark text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Quizzes -->
+        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Quizzes</span>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                        {{ \App\Models\Quiz::count() }}
+                    </h3>
+                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full w-fit">
+                        <i class="fas fa-circle-check text-[10px]"></i>
+                        <span>Assessments</span>
+                    </div>
+                </div>
+                <div class="w-13 h-13 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shadow-xs group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-circle-question text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Questions -->
+        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Question Bank</span>
+                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                        {{ \App\Models\Question::count() }}
+                    </h3>
+                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full w-fit">
+                        <i class="fas fa-list-check text-[10px]"></i>
+                        <span>Items Available</span>
+                    </div>
+                </div>
+                <div class="w-13 h-13 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-xs group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-cubes text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions Cards Grid -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900 tracking-tight">Quick Management Shortcuts</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Jump directly to critical management sections</p>
+            </div>
+            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                <i class="fas fa-bolt text-amber-500 mr-1.5"></i> Fast Navigation
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            <!-- Manage Quizzes -->
+            <a href="{{ route('quizzes.index') }}" class="group relative flex items-start p-5 bg-slate-50/80 hover:bg-gradient-to-br hover:from-indigo-50 hover:to-slate-50 border border-slate-200/70 hover:border-indigo-200 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 shadow-2xs">
+                <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 mr-4 shadow-md shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-pen-to-square text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Manage Quizzes</h3>
+                        <i class="fas fa-arrow-right text-xs text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all"></i>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Create, configure, and assign assessment quizzes and questions.</p>
+                </div>
+            </a>
+
+            <!-- Manage Courses -->
+            <a href="{{ route('courses.index') }}" class="group relative flex items-start p-5 bg-slate-50/80 hover:bg-gradient-to-br hover:from-emerald-50 hover:to-slate-50 border border-slate-200/70 hover:border-emerald-200 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 shadow-2xs">
+                <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mr-4 shadow-md shadow-emerald-600/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-layer-group text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">Manage Courses</h3>
+                        <i class="fas fa-arrow-right text-xs text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all"></i>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Organize course modules, topics, learning materials, and pricing.</p>
+                </div>
+            </a>
+
+            <!-- Manage Students -->
+            <a href="{{ route('students.index') }}" class="group relative flex items-start p-5 bg-slate-50/80 hover:bg-gradient-to-br hover:from-blue-50 hover:to-slate-50 border border-slate-200/70 hover:border-blue-200 rounded-2xl transition-all duration-200 hover:-translate-y-0.5 shadow-2xs">
+                <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 mr-4 shadow-md shadow-blue-600/20 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-users-gear text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">Manage Students</h3>
+                        <i class="fas fa-arrow-right text-xs text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"></i>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Review student profiles, enrollment statuses, and academic records.</p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Timeline & Recent Activity Feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Activity Stream Card -->
+        <div class="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">Recent Platform Activity</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Real-time log of administrative and learning events</p>
+                </div>
+                <button onclick="showInfo('Logs updated in real-time', 'System Audit')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition">
+                    View All
+                </button>
+            </div>
+
+            <div class="relative space-y-6 before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-100">
+
+                <!-- Event 1 -->
+                <div class="relative flex items-start space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 ring-4 ring-white shadow-xs z-10">
+                        <i class="fas fa-user-plus text-sm"></i>
+                    </div>
+                    <div class="flex-1 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
+                        <div class="flex items-center justify-between">
+                            <p class="font-semibold text-slate-800 text-sm">New student account created</p>
+                            <span class="text-[11px] font-medium text-slate-400">2 hours ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Student registered and verified their email address.</p>
+                    </div>
+                </div>
+
+                <!-- Event 2 -->
+                <div class="relative flex items-start space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 ring-4 ring-white shadow-xs z-10">
+                        <i class="fas fa-circle-check text-sm"></i>
+                    </div>
+                    <div class="flex-1 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
+                        <div class="flex items-center justify-between">
+                            <p class="font-semibold text-slate-800 text-sm">Assessment quiz published</p>
+                            <span class="text-[11px] font-medium text-slate-400">5 hours ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">A new quiz was published to Computer Science fundamentals module.</p>
+                    </div>
+                </div>
+
+                <!-- Event 3 -->
+                <div class="relative flex items-start space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 ring-4 ring-white shadow-xs z-10">
+                        <i class="fas fa-folder-plus text-sm"></i>
+                    </div>
+                    <div class="flex-1 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
+                        <div class="flex items-center justify-between">
+                            <p class="font-semibold text-slate-800 text-sm">Question bank updated</p>
+                            <span class="text-[11px] font-medium text-slate-400">1 day ago</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">15 new multiple choice questions imported successfully.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Side Quick Info widget -->
+        <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-950 rounded-3xl p-6 sm:p-8 text-white flex flex-col justify-between shadow-xl">
+            <div>
+                <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-indigo-300 mb-6">
+                    <i class="fas fa-shield-cat text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-extrabold tracking-tight">System Health & AI Tutor</h3>
+                <p class="text-slate-300 text-xs mt-2 leading-relaxed">
+                    AI tutoring services are running smoothly with high availability and quick response rates across all course topics.
+                </p>
+
+                <div class="mt-6 space-y-3">
+                    <div class="flex items-center justify-between text-xs py-2 border-b border-white/10">
+                        <span class="text-slate-400">AI Engine</span>
+                        <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Online</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs py-2 border-b border-white/10">
+                        <span class="text-slate-400">Database Driver</span>
+                        <span class="font-semibold text-white">SQLite Active</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs py-2">
+                        <span class="text-slate-400">Paystack Gateway</span>
+                        <span class="font-semibold text-emerald-400">Connected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-indigo-200">
+                <span>Version 2.4.0-stable</span>
+                <i class="fas fa-circle-check text-emerald-400"></i>
+            </div>
+        </div>
+
     </div>
 
 </div>
