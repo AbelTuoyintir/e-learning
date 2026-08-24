@@ -1,144 +1,242 @@
 @extends('layouts.app')
 
+@section('title', 'Quiz Management')
+
 @section('content')
-{{-- SweetAlert2 --}}
-<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="space-y-8">
 
-<div class="container mx-auto p-6">
+    <!-- Executive Header & Action Area -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+                <i class="fas fa-clipboard-question text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Quiz Management</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Configure, structure, and track assessment quizzes across all modules</p>
+            </div>
+        </div>
 
-    {{-- Page header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 animate-fadeIn">
-        <h1 class="text-3xl font-extrabold text-gray-800 mb-4 sm:mb-0">Quiz Management</h1>
-        <a href="{{ route('quizzes.create') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
-            + Create New Quiz
-        </a>
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="{{ route('quizzes.create') }}"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 hover:scale-[1.02] active:scale-95 transition-all">
+                <i class="fas fa-plus text-xs"></i>
+                <span>Create New Quiz</span>
+            </a>
+        </div>
     </div>
 
-    {{-- Table card --}}
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fadeIn">
-        <table class="w-full text-left">
-            <thead>
-                <tr class="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-sm uppercase">
-                    <th class="p-4">#</th>
-                    <th class="p-4">Title</th>
-                    <th class="p-4">Description</th>
-                    <th class="p-4">Difficulty</th>
-                    <th class="p-4">Question Bank</th>
-                    <th class="p-4">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse ($quizzes as $quiz)
-                    <tr class="hover:bg-gray-50 transition duration-150 hover:scale-[1.01] transform origin-left">
-                        <td class="p-4 font-mono text-gray-500">{{ $quiz->id }}</td>
-                        <td class="p-4 font-semibold text-gray-800">{{ $quiz->title }}</td>
-                        <td class="p-4 text-gray-600">{{ Str::limit($quiz->description, 50) }}</td>
-                        <td class="p-4">
+    <!-- Stats Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Quizzes</span>
+                <p class="text-2xl font-extrabold text-slate-900 mt-1">{{ $quizzes->count() }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base">
+                <i class="fas fa-list-check"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Question Limits</span>
+                <p class="text-2xl font-extrabold text-slate-900 mt-1">60 Items / Quiz</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-base">
+                <i class="fas fa-cubes"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Status</span>
+                <div class="flex items-center gap-1.5 mt-1 text-xs font-bold text-emerald-600">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Assessments Active</span>
+                </div>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base">
+                <i class="fas fa-shield-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quizzes Table Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+
+        <!-- Toolbar / Search -->
+        <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <h2 class="text-lg font-bold text-slate-900">Configured Assessments</h2>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                    {{ $quizzes->count() }} Active
+                </span>
+            </div>
+
+            <!-- Search input -->
+            <div class="relative max-w-xs w-full">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fas fa-search text-xs"></i>
+                </div>
+                <input type="text" id="quizSearchInput" onkeyup="filterQuizzes()" placeholder="Filter quizzes..."
+                       class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 transition">
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="quizzesTable">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-100 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                        <th class="px-6 py-4"># ID</th>
+                        <th class="px-6 py-4">Quiz Details</th>
+                        <th class="px-6 py-4">Difficulty</th>
+                        <th class="px-6 py-4">Question Usage</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    @forelse ($quizzes as $quiz)
+                    <tr class="hover:bg-slate-50/60 transition-colors group quiz-row">
+                        <!-- ID -->
+                        <td class="px-6 py-4 font-mono text-xs font-bold text-slate-400">
+                            #{{ $quiz->id }}
+                        </td>
+
+                        <!-- Title & Description -->
+                        <td class="px-6 py-4 max-w-md">
+                            <p class="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors quiz-title">
+                                {{ $quiz->title }}
+                            </p>
+                            <p class="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                                {{ $quiz->description ?: 'No specific description provided.' }}
+                            </p>
+                        </td>
+
+                        <!-- Difficulty Badge -->
+                        <td class="px-6 py-4">
                             @php
-                                $colors = [
-                                    'easy'  => 'bg-green-100 text-green-700',
-                                    'medium'=> 'bg-yellow-100 text-yellow-700',
-                                    'hard'  => 'bg-red-100 text-red-700'
+                                $diffColors = [
+                                    'easy'   => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                    'medium' => 'bg-amber-50 text-amber-700 border-amber-100',
+                                    'hard'   => 'bg-rose-50 text-rose-700 border-rose-100'
                                 ];
+                                $diffClass = $diffColors[strtolower($quiz->difficulty ?? 'easy')] ?? 'bg-slate-100 text-slate-700 border-slate-200';
                             @endphp
-                            <span class="px-3 py-1 text-xs rounded-full animate-pulseOnce {{ $colors[$quiz->difficulty] ?? 'bg-gray-100 text-gray-700' }}">
-                                {{ ucfirst($quiz->difficulty) }}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border capitalize {{ $diffClass }}">
+                                <span class="w-1.5 h-1.5 rounded-full mr-1.5 {{ strtolower($quiz->difficulty) === 'hard' ? 'bg-rose-500' : (strtolower($quiz->difficulty) === 'medium' ? 'bg-amber-500' : 'bg-emerald-500') }}"></span>
+                                {{ $quiz->difficulty ?? 'Easy' }}
                             </span>
                         </td>
-                        <td class="p-4 text-sm text-gray-700">
-                            {{ $quiz->questions_count }} / {{ $quiz->question_limit ?? 60 }}
+
+                        <!-- Question Usage Meter -->
+                        <td class="px-6 py-4">
+                            @php
+                                $limit = $quiz->question_limit ?? 60;
+                                $count = $quiz->questions_count ?? 0;
+                                $percent = min(100, round(($count / max(1, $limit)) * 100));
+                            @endphp
+                            <div class="w-36">
+                                <div class="flex justify-between items-center text-xs mb-1">
+                                    <span class="font-semibold text-slate-700">{{ $count }} / {{ $limit }}</span>
+                                    <span class="text-[10px] text-slate-400 font-bold">{{ $percent }}%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ $percent }}%"></div>
+                                </div>
+                            </div>
                         </td>
-                        <td class="p-4">
-                            <div class="flex flex-wrap gap-2">
-                                {{-- Manage Questions --}}
+
+                        <!-- Action Buttons -->
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                {{-- Questions Bank --}}
                                 <a href="{{ route('questions.index', $quiz) }}"
-                                   class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-md shadow hover:shadow-md transition transform hover:-translate-y-0.5">
-                                    Questions
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-all shadow-2xs">
+                                    <i class="fas fa-list-check text-xs"></i>
+                                    <span>Questions</span>
                                 </a>
 
                                 {{-- Edit --}}
                                 <a href="{{ route('quizzes.edit', $quiz->id) }}"
-                                   class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded-md shadow hover:shadow-md transition transform hover:-translate-y-0.5">
-                                    Edit
+                                   class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                                   title="Edit Quiz">
+                                    <i class="fas fa-pen text-sm"></i>
                                 </a>
 
-                                {{-- Delete --}}
-                                <form action="{{ route('quizzes.destroy', $quiz) }}" method="POST" class="inline delete-form">
-                                    @csrf @method('DELETE')
+                                {{-- Delete Form --}}
+                                <form action="{{ route('quizzes.destroy', $quiz) }}" method="POST" class="inline delete-quiz-form">
+                                    @csrf
+                                    @method('DELETE')
                                     <button type="submit"
-                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md shadow hover:shadow-md transition transform hover:-translate-y-0.5">
-                                        Delete
+                                            class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                                            title="Delete Quiz">
+                                        <i class="fas fa-trash-can text-sm"></i>
                                     </button>
                                 </form>
                             </div>
                         </td>
                     </tr>
-                @empty
+                    @empty
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-gray-400">
-                            <i class="fas fa-inbox text-4xl mb-3 opacity-40"></i>
-                            <p>No quizzes yet – create your first one!</p>
+                        <td colspan="5" class="px-6 py-16 text-center text-slate-400">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-inbox text-2xl"></i>
+                            </div>
+                            <p class="font-bold text-slate-700">No quizzes available</p>
+                            <p class="text-xs text-slate-400 mt-1 mb-4">Get started by creating your first assessment quiz.</p>
+                            <a href="{{ route('quizzes.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs shadow-md">
+                                <i class="fas fa-plus"></i> Create Quiz
+                            </a>
                         </td>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
+
 </div>
 
-{{-- Tailwind animations --}}
-<style>
-    @keyframes fadeIn { from { opacity:0; transform:translateY(-10px) } to { opacity:1; transform:translateY(0) } }
-    .animate-fadeIn { animation: fadeIn .6s ease-out forwards; }
-
-    @keyframes pulseOnce { 0%,100% { transform:scale(1) } 50% { transform:scale(1.05) } }
-    .animate-pulseOnce { animation: pulseOnce .8s ease-in-out; }
-</style>
-
-{{-- SweetAlert toast helpers --}}
 <script>
-    /* Show toast for successful create/update */
-    @if(session('success'))
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: "{{ session('success') }}",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
-    @endif
+    function filterQuizzes() {
+        const input = document.getElementById('quizSearchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('.quiz-row');
 
-    /* Confirm before delete + toast after */
-    document.querySelectorAll('.delete-form').forEach(form => {
-        form.addEventListener('submit', function (e) {
+        rows.forEach(row => {
+            const title = row.querySelector('.quiz-title')?.textContent.toLowerCase() || '';
+            if (title.includes(input)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Delete confirmation handler
+    document.querySelectorAll('.delete-quiz-form').forEach(form => {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+            const result = await Swal.fire({
+                title: 'Delete Quiz?',
+                text: 'Are you sure you want to delete this quiz? All associated questions will be removed.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete it!'
-            }).then(result => {
-                if (result.isConfirmed) {
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'},
-                        body: new FormData(form)
-                    }).then(res => {
-                        if (res.ok) {
-                            Swal.fire({ toast: true, icon: 'success', title: 'Quiz deleted!', timer: 2000, position: 'top-end', showConfirmButton: false });
-                            setTimeout(() => location.reload(), 800);
-                        } else {
-                            Swal.fire({ toast: true, icon: 'error', title: 'Something went wrong', timer: 2000, position: 'top-end', showConfirmButton: false });
-                        }
-                    });
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'rounded-xl px-5 py-2.5 font-bold',
+                    cancelButton: 'rounded-xl px-5 py-2.5 font-bold'
                 }
             });
+
+            if (result.isConfirmed) {
+                form.submit();
+            }
         });
     });
 </script>
