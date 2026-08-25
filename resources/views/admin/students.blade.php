@@ -43,10 +43,13 @@
                 </span>
             </div>
 
-            <!-- Informational Banner Pill -->
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-700 text-xs font-medium">
-                <i class="fas fa-circle-info text-blue-500"></i>
-                <span>Click action icons to view complete academic profile or update details.</span>
+            <!-- Search input -->
+            <div class="relative max-w-xs w-full">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fas fa-search text-xs"></i>
+                </div>
+                <input type="text" id="studentSearchInput" onkeyup="filterStudents()" placeholder="Filter students by name or email..."
+                       class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 transition">
             </div>
         </div>
 
@@ -65,7 +68,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm">
                     @forelse($students as $student)
-                    <tr class="hover:bg-slate-50/60 transition-colors group">
+                    <tr class="hover:bg-slate-50/60 transition-colors group student-row">
                         <!-- Student Name & Avatar -->
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-3.5">
@@ -326,6 +329,21 @@
 </div>
 
 <script>
+function filterStudents() {
+    const input = document.getElementById('studentSearchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('.student-row');
+
+    rows.forEach(row => {
+        const name = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
+        const email = row.querySelector('.student-email')?.textContent.toLowerCase() || '';
+        if (name.includes(input) || email.includes(input)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
 // Student Details Modal Logic
 window.showStudentDetails = function (button) {
     const studentId = button.getAttribute('data-student-id');
