@@ -34,22 +34,29 @@
     <!-- Students Table Card -->
     <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
 
-        <!-- Table Toolbar -->
+        <!-- Table Toolbar & Filters -->
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <h2 class="text-lg font-bold text-slate-900">Registered Students</h2>
-                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100">
                     {{ $students->count() }} Total
                 </span>
             </div>
 
-            <!-- Search input -->
-            <div class="relative max-w-xs w-full">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <i class="fas fa-search text-xs"></i>
+            <!-- Search Filter Bar -->
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="relative max-w-xs w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                    <input type="text" id="studentSearchInput" onkeyup="filterStudentTable()" placeholder="Search by name or email..."
+                           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
-                <input type="text" id="studentSearchInput" onkeyup="filterStudents()" placeholder="Filter students by name or email..."
-                       class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 transition">
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-700 text-xs font-semibold">
+                    <i class="fas fa-circle-info text-blue-500"></i>
+                    <span>Click icons to view profile or edit</span>
+                </div>
             </div>
         </div>
 
@@ -66,7 +73,7 @@
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-sm">
+                <tbody class="divide-y divide-slate-100 text-sm" id="studentsTableBody">
                     @forelse($students as $student)
                     <tr class="hover:bg-slate-50/60 transition-colors group student-row">
                         <!-- Student Name & Avatar -->
@@ -329,13 +336,14 @@
 </div>
 
 <script>
-function filterStudents() {
+function filterStudentTable() {
     const input = document.getElementById('studentSearchInput').value.toLowerCase();
     const rows = document.querySelectorAll('.student-row');
 
     rows.forEach(row => {
         const name = row.querySelector('.student-name')?.textContent.toLowerCase() || '';
         const email = row.querySelector('.student-email')?.textContent.toLowerCase() || '';
+
         if (name.includes(input) || email.includes(input)) {
             row.style.display = '';
         } else {
