@@ -42,81 +42,81 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
 
         <!-- Total Students -->
-        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Students</span>
-                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Total Students</span>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
                         {{ \App\Models\Student::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
+                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-fit border border-emerald-100">
                         <i class="fas fa-arrow-trend-up text-[10px]"></i>
                         <span>Active Enrollees</span>
                     </div>
                 </div>
-                <div class="w-13 h-13 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-user-graduate text-xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 group-hover:bg-gradient-to-tr group-hover:from-indigo-600 group-hover:to-purple-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-user-graduate text-2xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Total Courses -->
-        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Courses</span>
-                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Active Courses</span>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
                         {{ \App\Models\Course::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
+                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-fit border border-emerald-100">
                         <i class="fas fa-layer-group text-[10px]"></i>
-                        <span>Published</span>
+                        <span>Published Catalog</span>
                     </div>
                 </div>
-                <div class="w-13 h-13 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-book-bookmark text-xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 group-hover:bg-gradient-to-tr group-hover:from-emerald-600 group-hover:to-teal-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-book-bookmark text-2xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Total Quizzes -->
-        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Quizzes</span>
-                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Total Quizzes</span>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
                         {{ \App\Models\Quiz::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full w-fit">
+                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full w-fit border border-purple-100">
                         <i class="fas fa-circle-check text-[10px]"></i>
-                        <span>Assessments</span>
+                        <span>Active Assessments</span>
                     </div>
                 </div>
-                <div class="w-13 h-13 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shadow-xs group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-circle-question text-xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shadow-sm group-hover:scale-110 group-hover:bg-gradient-to-tr group-hover:from-purple-600 group-hover:to-indigo-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-circle-question text-2xl"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Total Questions -->
-        <div class="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200/80 transition-all duration-300 overflow-hidden">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <!-- Question Bank -->
+        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Question Bank</span>
-                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1 tracking-tight">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Question Bank</span>
+                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
                         {{ \App\Models\Question::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full w-fit">
+                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full w-fit border border-amber-100">
                         <i class="fas fa-list-check text-[10px]"></i>
                         <span>Items Available</span>
                     </div>
                 </div>
-                <div class="w-13 h-13 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-xs group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-cubes text-xl"></i>
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-sm group-hover:scale-110 group-hover:bg-gradient-to-tr group-hover:from-amber-600 group-hover:to-orange-600 group-hover:text-white transition-all duration-300">
+                    <i class="fas fa-cubes text-2xl"></i>
                 </div>
             </div>
         </div>
