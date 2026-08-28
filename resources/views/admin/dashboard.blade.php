@@ -6,33 +6,36 @@
 <div class="space-y-8">
 
     <!-- Hero Welcome Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-xl shadow-indigo-950/20">
-        <!-- Abstract background pattern elements -->
-        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute right-1/3 -top-10 w-60 h-60 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-2xl shadow-indigo-950/30 border border-white/10">
+        <!-- Abstract glowing background pattern elements -->
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-gradient-to-br from-indigo-500/25 to-purple-500/25 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-10 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/4 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="space-y-2 max-w-xl">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-semibold">
+            <div class="space-y-3 max-w-xl">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-semibold shadow-inner">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Admin Control Center
+                    <span>Admin Control Center</span>
+                    <span class="text-white/40">•</span>
+                    <span class="text-emerald-300 font-mono text-[11px]">Live Updates</span>
                 </div>
-                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-heading leading-tight">
                     Welcome back, {{ Auth::user()->name ?? 'Admin' }}! 👋
                 </h1>
                 <p class="text-indigo-200/90 text-sm sm:text-base leading-relaxed">
-                    Here's what is happening across your learning platform today. Manage courses, track student performance, and monitor system metrics.
+                    Here's what is happening across your learning platform today. Manage courses, track student performance, and monitor system metrics seamlessly.
                 </p>
             </div>
 
             <!-- Quick Action CTA Pill -->
             <div class="flex items-center gap-3 shrink-0">
-                <a href="{{ route('quizzes.create') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200">
+                <a href="{{ route('quizzes.create') }}" class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-sm shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200 border border-white/20">
                     <i class="fas fa-plus text-xs"></i>
                     <span>Create New Quiz</span>
                 </a>
-                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white transition-all duration-200">
-                    <i class="fas fa-sliders"></i>
+                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white shadow-md hover:scale-105 active:scale-95 transition-all duration-200" title="Manage Courses">
+                    <i class="fas fa-sliders text-base"></i>
                 </a>
             </div>
         </div>
@@ -42,15 +45,15 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
 
         <!-- Total Students -->
-        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+        <a href="{{ route('students.index') }}" class="group relative bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 border border-slate-200/80 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Total Students</span>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
+                    <h3 class="text-3xl sm:text-4xl font-black text-slate-900 mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Student::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-fit border border-emerald-100">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-fit border border-emerald-100">
                         <i class="fas fa-arrow-trend-up text-[10px]"></i>
                         <span>Active Enrollees</span>
                     </div>
@@ -59,18 +62,18 @@
                     <i class="fas fa-user-graduate text-2xl"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Total Courses -->
-        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+        <a href="{{ route('courses.index') }}" class="group relative bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 border border-slate-200/80 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Active Courses</span>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
+                    <h3 class="text-3xl sm:text-4xl font-black text-slate-900 mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Course::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-fit border border-emerald-100">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full w-fit border border-emerald-100">
                         <i class="fas fa-layer-group text-[10px]"></i>
                         <span>Published Catalog</span>
                     </div>
@@ -79,18 +82,18 @@
                     <i class="fas fa-book-bookmark text-2xl"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Total Quizzes -->
-        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+        <a href="{{ route('quizzes.index') }}" class="group relative bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 border border-slate-200/80 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Total Quizzes</span>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
+                    <h3 class="text-3xl sm:text-4xl font-black text-slate-900 mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Quiz::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full w-fit border border-purple-100">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full w-fit border border-purple-100">
                         <i class="fas fa-circle-check text-[10px]"></i>
                         <span>Active Assessments</span>
                     </div>
@@ -99,18 +102,18 @@
                     <i class="fas fa-circle-question text-2xl"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
         <!-- Question Bank -->
-        <div class="group relative bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 border border-slate-200/80 transition-all duration-300 overflow-hidden">
+        <a href="{{ route('quizzes.index') }}" class="group relative bg-white/90 backdrop-blur-md rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 border border-slate-200/80 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 opacity-90"></div>
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Question Bank</span>
-                    <h3 class="text-3xl font-black text-slate-900 mt-1 tracking-tight">
+                    <h3 class="text-3xl sm:text-4xl font-black text-slate-900 mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Question::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full w-fit border border-amber-100">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full w-fit border border-amber-100">
                         <i class="fas fa-list-check text-[10px]"></i>
                         <span>Items Available</span>
                     </div>
@@ -119,7 +122,7 @@
                     <i class="fas fa-cubes text-2xl"></i>
                 </div>
             </div>
-        </div>
+        </a>
 
     </div>
 

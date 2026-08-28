@@ -6,14 +6,14 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
         <div>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                    <i class="fas fa-user-graduate text-lg"></i>
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-500/25">
+                    <i class="fas fa-user-graduate text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Manage Students</h1>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-heading">Manage Students</h1>
                     <p class="text-xs text-slate-500 mt-0.5">View, monitor, and update student profiles and performance</p>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Direct student registration via admin portal is enabled.', 'Add Student')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition">
+            <button onclick="showInfo('Direct student registration via admin portal is enabled.', 'Add Student')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
             </button>
