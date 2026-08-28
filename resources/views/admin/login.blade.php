@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -22,10 +22,14 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
+        .font-heading {
+            font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+        }
+
         .ambient-glow {
             background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.2) 0px, transparent 50%);
         }
     </style>
 </head>
@@ -58,7 +62,7 @@
                     Secured Administrative Access
                 </div>
 
-                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight text-white">
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight text-white font-heading">
                     Empowering Next-Gen Learning Management.
                 </h2>
                 <p class="text-indigo-200/90 text-sm leading-relaxed">
@@ -94,7 +98,7 @@
 
                 <!-- Heading -->
                 <div>
-                    <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight">Admin Sign In</h3>
+                    <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight font-heading">Admin Sign In</h3>
                     <p class="text-xs text-slate-500 mt-1">Please enter your authorized administrative credentials to continue.</p>
                 </div>
 

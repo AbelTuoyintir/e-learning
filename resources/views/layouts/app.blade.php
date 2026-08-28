@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <!-- SweetAlert2 & AlpineJS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -24,43 +24,55 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
+        .font-heading {
+            font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+        }
 
-        /* Custom scrollbar */
+        /* Custom sleek scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-thumb:hover { background: #818cf8; }
 
         /* Glassmorphism utility classes */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .glass-dark {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Ambient glow background */
         .ambient-bg {
             background-color: #f8fafc;
             background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.06) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.04) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+        }
+
+        .glow-purple {
+            box-shadow: 0 0 40px -10px rgba(168, 85, 247, 0.3);
+        }
+
+        .glow-indigo {
+            box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.3);
         }
 
         /* Custom subtle hover scale effects */
         .card-hover-effect {
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .card-hover-effect:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.12);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px -12px rgba(99, 102, 241, 0.15);
         }
     </style>
 </head>
@@ -90,10 +102,10 @@
                 <div class="flex items-center space-x-3 sm:space-x-4">
 
                     <!-- Search quick button trigger -->
-                    <button class="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-slate-100/80 hover:bg-slate-200/70 border border-slate-200 text-slate-500 text-xs font-medium rounded-lg transition-all" onclick="showInfo('Press Cmd + K to search features', 'Quick Search')">
-                        <i class="fas fa-search text-slate-400"></i>
+                    <button class="hidden md:flex items-center space-x-2.5 px-3.5 py-1.5 bg-slate-100/80 hover:bg-indigo-50/80 hover:border-indigo-200 border border-slate-200/90 text-slate-500 hover:text-indigo-600 text-xs font-medium rounded-xl transition-all shadow-2xs" onclick="toggleSearchModal()">
+                        <i class="fas fa-search text-slate-400 group-hover:text-indigo-500"></i>
                         <span>Search...</span>
-                        <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-400 rounded text-[10px] font-mono shadow-2xs">⌘K</kbd>
+                        <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-400 rounded-md text-[10px] font-mono shadow-2xs">⌘K</kbd>
                     </button>
 
                     <!-- Notifications Dropdown -->
@@ -296,6 +308,53 @@
 
     </div>
 
+    <!-- Quick Search Command Palette Modal -->
+    <div id="quickSearchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden flex items-start justify-center pt-20 px-4 transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full border border-slate-100 overflow-hidden transform transition-all" @click.away="toggleSearchModal()">
+            <div class="p-4 border-b border-slate-100 flex items-center space-x-3 bg-slate-50/50">
+                <i class="fas fa-search text-slate-400 text-lg ml-2"></i>
+                <input type="text" id="quickSearchInput" placeholder="Type to search admin tools, courses, students..."
+                       class="w-full bg-transparent border-none text-slate-800 text-sm font-semibold focus:outline-none focus:ring-0 placeholder:text-slate-400"
+                       oninput="handleQuickSearch(this.value)">
+                <kbd class="px-2 py-1 bg-white border border-slate-200 text-slate-400 rounded-lg text-xs font-mono shadow-xs">ESC</kbd>
+            </div>
+            <div class="p-4 max-h-80 overflow-y-auto space-y-2" id="searchResultsContainer">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1">Quick Actions</p>
+                <a href="{{ route('quizzes.create') }}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl hover:bg-indigo-50/70 text-slate-700 hover:text-indigo-600 transition group">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition">
+                        <i class="fas fa-plus text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold">Create New Assessment Quiz</p>
+                        <p class="text-[11px] text-slate-400">Add questions and assign modules</p>
+                    </div>
+                </a>
+                <a href="{{ route('students.index') }}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl hover:bg-blue-50/70 text-slate-700 hover:text-blue-600 transition group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
+                        <i class="fas fa-users-gear text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold">Manage Registered Students</p>
+                        <p class="text-[11px] text-slate-400">View performance metrics and profiles</p>
+                    </div>
+                </a>
+                <a href="{{ route('courses.index') }}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl hover:bg-emerald-50/70 text-slate-700 hover:text-emerald-600 transition group">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
+                        <i class="fas fa-layer-group text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold">Manage Course Catalog</p>
+                        <p class="text-[11px] text-slate-400">Configure modules, topics & pricing</p>
+                    </div>
+                </a>
+            </div>
+            <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 px-5 font-medium">
+                <span>Navigate with shortcuts</span>
+                <span>Press <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-500 font-mono">⌘K</kbd> anytime</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Modern Clean Footer -->
     <footer class="mt-auto border-t border-slate-200/80 bg-white/50 backdrop-blur-md py-6 text-slate-500 text-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -378,6 +437,43 @@
                 }
             }
         });
+
+        // Quick search palette logic
+        window.toggleSearchModal = function() {
+            const modal = document.getElementById('quickSearchModal');
+            if (!modal) return;
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => document.getElementById('quickSearchInput')?.focus(), 100);
+            } else {
+                modal.classList.add('hidden');
+            }
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                toggleSearchModal();
+            }
+            if (e.key === 'Escape') {
+                document.getElementById('quickSearchModal')?.classList.add('hidden');
+            }
+        });
+
+        window.handleQuickSearch = function(query) {
+            const container = document.getElementById('searchResultsContainer');
+            if (!container) return;
+            const items = container.querySelectorAll('a');
+            const q = query.toLowerCase();
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(q)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        };
 
         // Helper Notification Triggers
         window.showSuccess = function(message) {
