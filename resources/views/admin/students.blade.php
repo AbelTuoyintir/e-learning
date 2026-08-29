@@ -6,25 +6,25 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/80">
         <div>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                    <i class="fas fa-user-graduate text-lg"></i>
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-600/20">
+                    <i class="fas fa-user-graduate text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Manage Students</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">View, monitor, and update student profiles and performance</p>
+                    <h1 class="text-2xl font-heading font-extrabold text-slate-900 tracking-tight">Manage Students</h1>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">View, monitor, and update student profiles and performance</p>
                 </div>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition">
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition">
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Direct student registration via admin portal is enabled.', 'Add Student')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-md shadow-indigo-600/20 transition">
+            <button onclick="showInfo('Direct student registration via admin portal is enabled.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
             </button>
@@ -32,13 +32,13 @@
     </div>
 
     <!-- Students Table Card -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+    <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden">
 
         <!-- Table Toolbar & Filters -->
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <h2 class="text-lg font-bold text-slate-900">Registered Students</h2>
-                <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <h2 class="text-lg font-heading font-bold text-slate-900">Registered Students</h2>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-indigo-600 border border-indigo-100">
                     {{ $students->count() }} Total
                 </span>
             </div>
@@ -46,11 +46,11 @@
             <!-- Search Filter Bar -->
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative max-w-xs w-full">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fas fa-search text-xs"></i>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i class="fas fa-magnifying-glass text-xs"></i>
                     </div>
                     <input type="text" id="studentSearchInput" onkeyup="filterStudentTable()" placeholder="Search by name or email..."
-                           class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500 transition">
+                           class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-2xs">
                 </div>
 
                 <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-50/80 border border-blue-100 text-blue-700 text-xs font-semibold">
@@ -75,13 +75,13 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-sm" id="studentsTableBody">
                     @forelse($students as $student)
-                    <tr class="hover:bg-slate-50/60 transition-colors group student-row">
+                    <tr class="hover:bg-indigo-50/40 transition-colors group student-row">
                         <!-- Student Name & Avatar -->
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-3.5">
                                 <img src="https://ui-avatars.com/api/?name={{ urlencode($student->firstname . ' ' . $student->lastname) }}&background=e0e7ff&color=4f46e5&bold=true"
                                      alt="{{ $student->firstname }}"
-                                     class="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-100 shrink-0">
+                                     class="w-10 h-10 rounded-xl object-cover ring-2 ring-indigo-500/20 shrink-0 shadow-2xs">
                                 <div>
                                     <p class="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors student-name">
                                         {{ $student->firstname }} {{ $student->lastname }}
@@ -94,19 +94,19 @@
                         </td>
 
                         <!-- Email -->
-                        <td class="px-6 py-4 text-slate-600 font-medium student-email">
+                        <td class="px-6 py-4 text-slate-600 font-semibold text-xs student-email">
                             {{ $student->email }}
                         </td>
 
                         <!-- Phone -->
-                        <td class="px-6 py-4 text-slate-600">
+                        <td class="px-6 py-4 text-slate-600 text-xs font-medium">
                             {{ $student->phone ?? '—' }}
                         </td>
 
                         <!-- Program Badge -->
                         <td class="px-6 py-4">
                             @if($student->program || $student->Program)
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
                                 <i class="fas fa-graduation-cap mr-1.5 text-indigo-500"></i>
                                 {{ $student->program ?? $student->Program }}
                             </span>
@@ -122,7 +122,7 @@
 
                         <!-- Action Buttons -->
                         <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end space-x-2">
+                            <div class="flex items-center justify-end space-x-1.5">
                                 <button onclick="showStudentDetails(this)" 
                                         data-student-id="{{ $student->id }}"
                                         data-route="{{ route('student.details', ['student' => $student->id]) }}"
@@ -160,8 +160,8 @@
                             <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-users-slash text-2xl"></i>
                             </div>
-                            <p class="font-semibold text-slate-700">No students registered yet</p>
-                            <p class="text-xs text-slate-400 mt-1">Students will appear here once registered.</p>
+                            <p class="font-bold text-slate-700">No students registered yet</p>
+                            <p class="text-xs text-slate-400 mt-1 font-medium">Students will appear here once registered.</p>
                         </td>
                     </tr>
                     @endforelse
@@ -173,13 +173,13 @@
 </div>
 
 <!-- Student Details Modal -->
-<div id="studentDetailsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden overflow-y-auto">
+<div id="studentDetailsModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden overflow-y-auto">
     <div class="min-h-screen px-4 py-8 flex items-center justify-center">
         <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-100">
             
             <!-- Modal Header -->
             <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex justify-between items-center z-10">
-                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <h2 class="text-lg font-heading font-bold text-slate-800 flex items-center gap-2">
                     <i class="fas fa-user-graduate text-indigo-600"></i>
                     Student Performance Profile
                 </h2>
@@ -204,13 +204,13 @@
 </div>
 
 <!-- Edit Student Modal -->
-<div id="editStudentModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 hidden overflow-y-auto">
+<div id="editStudentModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden overflow-y-auto">
     <div class="min-h-screen px-4 py-8 flex items-center justify-center">
         <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-100">
             
             <!-- Modal Header -->
             <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 py-4 flex justify-between items-center z-10">
-                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <h2 class="text-lg font-heading font-bold text-slate-800 flex items-center gap-2">
                     <i class="fas fa-user-pen text-indigo-600"></i>
                     Edit Student Profile
                 </h2>
@@ -233,7 +233,7 @@
                                 First Name <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="edit_firstname" name="firstname" required
-                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Last Name -->
@@ -242,7 +242,7 @@
                                 Last Name <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="edit_lastname" name="lastname" required
-                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Email -->
@@ -251,7 +251,7 @@
                                 Email Address <span class="text-rose-500">*</span>
                             </label>
                             <input type="email" id="edit_email" name="email" required
-                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Phone -->
@@ -260,7 +260,7 @@
                                 Phone Number
                             </label>
                             <input type="tel" id="edit_phone" name="phone"
-                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Program -->
@@ -269,7 +269,7 @@
                                 Academic Program
                             </label>
                             <select id="edit_program" name="program"
-                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                                 <option value="">Select Program</option>
                                 <option value="Computer Science">Computer Science</option>
                                 <option value="Information Technology">Information Technology</option>
@@ -287,7 +287,7 @@
                                 Account Status
                             </label>
                             <select id="edit_status" name="status"
-                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
@@ -306,13 +306,13 @@
                             <div>
                                 <label class="block text-xs font-medium text-slate-500 mb-1">New Password</label>
                                 <input type="password" id="edit_password" name="password"
-                                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 font-medium"
                                        placeholder="Leave blank to keep current">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-500 mb-1">Confirm Password</label>
                                 <input type="password" id="edit_password_confirmation" name="password_confirmation"
-                                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                                       class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 font-medium"
                                        placeholder="Confirm new password">
                             </div>
                         </div>
@@ -321,11 +321,11 @@
                     <!-- Form Actions -->
                     <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
                         <button type="button" onclick="closeEditModal()"
-                                class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-xs hover:bg-slate-200 transition">
+                                class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-200 transition">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold text-xs shadow-md shadow-indigo-600/20 transition">
+                                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-bold text-xs shadow-md shadow-indigo-600/20 transition">
                             Save Changes
                         </button>
                     </div>
@@ -405,7 +405,7 @@ function renderStudentDetails(data) {
         <div class="flex flex-col sm:flex-row items-center gap-5 p-6 bg-slate-50 rounded-2xl border border-slate-100 mb-6">
             <img src="${student.avatar}" alt="${student.fullname}" class="w-16 h-16 rounded-2xl object-cover ring-4 ring-white shadow-xs">
             <div class="text-center sm:text-left flex-1">
-                <h3 class="text-xl font-extrabold text-slate-900">${student.fullname}</h3>
+                <h3 class="text-xl font-heading font-extrabold text-slate-900">${student.fullname}</h3>
                 <p class="text-xs text-slate-500 mt-0.5">${student.email} • ${student.phone || 'No Phone'}</p>
                 <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
                     <span class="px-2.5 py-0.5 ${student.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} text-[11px] font-bold rounded-full">
@@ -419,20 +419,20 @@ function renderStudentDetails(data) {
         <!-- Stats Summary Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <div class="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-indigo-600">${stats.total_courses || 0}</p>
-                <p class="text-[11px] font-semibold text-slate-500 mt-1">Courses Enrolled</p>
+                <p class="text-2xl font-heading font-extrabold text-indigo-600">${stats.total_courses || 0}</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-1">Courses Enrolled</p>
             </div>
             <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-emerald-600">${stats.completed_courses || 0}</p>
-                <p class="text-[11px] font-semibold text-slate-500 mt-1">Completed</p>
+                <p class="text-2xl font-heading font-extrabold text-emerald-600">${stats.completed_courses || 0}</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-1">Completed</p>
             </div>
             <div class="bg-purple-50/60 border border-purple-100 rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-purple-600">${stats.total_quizzes_taken || 0}</p>
-                <p class="text-[11px] font-semibold text-slate-500 mt-1">Quizzes Taken</p>
+                <p class="text-2xl font-heading font-extrabold text-purple-600">${stats.total_quizzes_taken || 0}</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-1">Quizzes Taken</p>
             </div>
             <div class="bg-amber-50/60 border border-amber-100 rounded-2xl p-4 text-center">
-                <p class="text-2xl font-extrabold text-amber-600">${stats.average_score || 0}%</p>
-                <p class="text-[11px] font-semibold text-slate-500 mt-1">Average Score</p>
+                <p class="text-2xl font-heading font-extrabold text-amber-600">${stats.average_score || 0}%</p>
+                <p class="text-[11px] font-bold text-slate-500 mt-1">Average Score</p>
             </div>
         </div>
 
