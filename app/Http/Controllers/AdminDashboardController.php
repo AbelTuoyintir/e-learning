@@ -8,7 +8,10 @@ class AdminDashboardController extends Controller
 {
     //
     public function index(){
+        $totalStudents = \App\Models\Student::count();
         $activeStudents = \App\Models\Student::where('status', 'active')->count();
+        $quizCount = \App\Models\Quiz::count();
+        $questionCount = \App\Models\Question::count();
         $totalResultsCount = \App\Models\Result::count();
         $modulePassRate = $totalResultsCount > 0 ? (\App\Models\Result::where('passed', 1)->count() / $totalResultsCount * 100) : 0;
         $averageScore = \App\Models\Result::avg('percentage') ?? 0;
@@ -42,6 +45,7 @@ class AdminDashboardController extends Controller
             ->get();
 
         return view('admin.dashboard', compact(
+            'totalStudents',
             'activeStudents',
             'courseCompletionRate',
             'modulePassRate',
@@ -49,6 +53,8 @@ class AdminDashboardController extends Controller
             'aiUsageStats',
             'courseCount',
             'moduleCount',
+            'quizCount',
+            'questionCount',
             'mostDifficultTopics'
         ));
     }
