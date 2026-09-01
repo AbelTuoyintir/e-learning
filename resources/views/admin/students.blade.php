@@ -6,7 +6,7 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800/80">
         <div>
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold shadow-inner">
@@ -14,17 +14,17 @@
                 </div>
                 <div>
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">Manage Students</h1>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Monitor, inspect academic records, and edit student profiles</p>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Monitor enrollment, inspect performance analytics, and manage student accounts</p>
                 </div>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs transition">
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs transition shadow-sm">
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all">
+            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
             </button>
@@ -32,13 +32,13 @@
     </div>
 
     <!-- Students Table Card -->
-    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden">
+    <div class="glass-panel rounded-3xl shadow-2xl overflow-hidden border border-slate-800/80">
 
         <!-- Table Toolbar & Filters -->
-        <div class="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="p-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/40">
             <div class="flex items-center gap-3">
                 <h2 class="text-lg font-bold text-white font-heading">Registered Student Roster</h2>
-                <span class="px-3 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <span class="px-3 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm">
                     {{ $students->count() }} Enrolled
                 </span>
             </div>
@@ -46,11 +46,11 @@
             <!-- Search Filter Bar -->
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative max-w-xs w-full">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fas fa-search text-xs"></i>
                     </div>
                     <input type="text" id="studentSearchInput" onkeyup="filterStudentTable()" placeholder="Search name or email..."
-                           class="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-2xl text-xs font-semibold text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
+                           class="w-full pl-9 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs font-semibold text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
                 </div>
 
                 <div class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
@@ -64,7 +64,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">
+                    <tr class="bg-slate-950/90 border-b border-slate-800/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">
                         <th class="px-6 py-4">Student Profile</th>
                         <th class="px-6 py-4">Email Address</th>
                         <th class="px-6 py-4">Phone</th>
@@ -73,15 +73,15 @@
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/80 text-sm" id="studentsTableBody">
+                <tbody class="divide-y divide-slate-800/60 text-sm" id="studentsTableBody">
                     @forelse($students as $student)
-                    <tr class="hover:bg-slate-800/40 transition-colors group student-row">
+                    <tr class="hover:bg-slate-800/30 transition-colors group student-row">
                         <!-- Student Name & Avatar -->
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-3.5">
                                 <img src="https://ui-avatars.com/api/?name={{ urlencode($student->firstname . ' ' . $student->lastname) }}&background=6366f1&color=ffffff&bold=true"
                                      alt="{{ $student->firstname }}"
-                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-indigo-500/30 shrink-0">
+                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-indigo-500/30 shrink-0 shadow-md">
                                 <div>
                                     <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors student-name font-heading">
                                         {{ $student->firstname }} {{ $student->lastname }}
@@ -127,7 +127,7 @@
                                         data-student-id="{{ $student->id }}"
                                         data-route="{{ route('student.details', ['student' => $student->id]) }}"
                                         title="View Student Details"
-                                        class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-all">
+                                        class="p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/80 transition-all border border-transparent hover:border-slate-700">
                                     <i class="fas fa-eye text-sm"></i>
                                 </button>
 
@@ -142,13 +142,13 @@
                                         data-student-status="{{ $student->status }}"
                                         data-route="{{ route('student.update', $student->id) }}"
                                         title="Edit Student Info"
-                                        class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-all">
+                                        class="p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/80 transition-all border border-transparent hover:border-slate-700">
                                     <i class="fas fa-pen text-sm"></i>
                                 </button>
 
                                 <button onclick="showInfo('Student record archiving enabled', 'Info')"
                                         title="Delete Student"
-                                        class="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all">
+                                        class="p-2.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-500/20">
                                     <i class="fas fa-trash-can text-sm"></i>
                                 </button>
                             </div>
@@ -157,7 +157,7 @@
                     @empty
                     <tr>
                         <td colspan="6" class="px-6 py-16 text-center text-slate-400">
-                            <div class="w-16 h-16 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center mx-auto mb-3">
                                 <i class="fas fa-users-slash text-2xl"></i>
                             </div>
                             <p class="font-bold text-slate-200">No students registered yet</p>
@@ -173,9 +173,9 @@
 </div>
 
 <!-- Student Details Modal -->
-<div id="studentDetailsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden overflow-y-auto">
+<div id="studentDetailsModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-xl z-50 hidden overflow-y-auto">
     <div class="min-h-screen px-4 py-8 flex items-center justify-center">
-        <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
+        <div class="bg-slate-900/95 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
             
             <!-- Modal Header -->
             <div class="sticky top-0 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center z-10">
@@ -204,9 +204,9 @@
 </div>
 
 <!-- Edit Student Modal -->
-<div id="editStudentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden overflow-y-auto">
+<div id="editStudentModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-xl z-50 hidden overflow-y-auto">
     <div class="min-h-screen px-4 py-8 flex items-center justify-center">
-        <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
+        <div class="bg-slate-900/95 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
             
             <!-- Modal Header -->
             <div class="sticky top-0 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center z-10">

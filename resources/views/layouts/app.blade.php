@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-900">
+<html lang="en" class="h-full bg-slate-950">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Admin Portal - @yield('title', 'Dashboard')</title>
+    <title>Admin Control Center - @yield('title', 'Dashboard')</title>
 
     <!-- Tailwind CSS & App Assets -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,8 +46,8 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0b0f17;
-            color: #f1f5f9;
+            background-color: #07090e;
+            color: #f8fafc;
         }
 
         h1, h2, h3, h4, .font-heading {
@@ -56,37 +56,56 @@
 
         /* Custom smooth scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
         /* Dark Glassmorphism UI */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
         }
 
         .glass-card {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 12px 35px -10px rgba(99, 102, 241, 0.2);
         }
 
-        /* Dark Ambient Glow Background */
+        /* Dynamic Ambient Radial Lighting */
         .dark-ambient-bg {
-            background-color: #0b0f17;
+            background-color: #07090e;
             background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
-                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 40%),
-                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 45%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.14) 0px, transparent 45%),
+                radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 40%);
+        }
+
+        /* Subtle Active Nav Glow */
+        .nav-active-glow {
+            position: relative;
+        }
+        .nav-active-glow::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: linear-gradient(to bottom, #6366f1, #a855f7);
+            border-radius: 4px;
+            box-shadow: 0 0 12px #6366f1;
         }
     </style>
 </head>
@@ -96,20 +115,20 @@
       @keydown.window.ctrl.k.prevent="cmdPaletteOpen = true">
 
     <!-- Top Navigation Header -->
-    <header class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 shadow-xl" x-data="{ mobileMenuOpen: false }">
+    <header class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-2xl border-b border-slate-800/80 shadow-2xl" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
 
                 <!-- Left: Logo & Brand -->
                 <div class="flex items-center space-x-4">
                     <a href="{{ Auth::user()->role === 'admin' ? route('admin.dashboard') : route('tutor.dashboard') }}" class="group flex items-center space-x-3 transition-transform duration-200 active:scale-95">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-all duration-300">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 group-hover:scale-105 transition-all duration-300">
                             <i class="fas fa-shield-halved text-white text-lg"></i>
                         </div>
                         <div>
                             <span class="text-white font-heading font-extrabold text-lg tracking-tight flex items-center gap-2">
                                 {{ Auth::user()->role === 'admin' ? 'Admin Control' : 'Tutor Portal' }}
-                                <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v2.5</span>
+                                <span class="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border border-indigo-500/30 shadow-sm">v3.0</span>
                             </span>
                         </div>
                     </a>
@@ -119,25 +138,25 @@
                 <div class="flex items-center space-x-3 sm:space-x-4">
 
                     <!-- Search trigger button -->
-                    <button @click="cmdPaletteOpen = true" class="hidden md:flex items-center space-x-3 px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-slate-200 text-xs font-medium rounded-xl transition-all shadow-inner">
+                    <button @click="cmdPaletteOpen = true" class="hidden md:flex items-center space-x-3 px-3.5 py-1.5 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 text-xs font-medium rounded-2xl transition-all shadow-inner hover:border-indigo-500/30">
                         <i class="fas fa-search text-indigo-400"></i>
                         <span>Search actions, students...</span>
-                        <kbd class="px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-400 rounded text-[10px] font-mono shadow-xs">⌘K</kbd>
+                        <kbd class="px-2 py-0.5 bg-slate-950 border border-slate-700 text-slate-400 rounded-lg text-[10px] font-mono shadow-xs">⌘K</kbd>
                     </button>
 
                     <!-- Notifications Button -->
                     <div class="relative">
-                        <button id="notificationBtn" class="relative p-2.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800/80 rounded-xl transition-all duration-200 focus:outline-none border border-transparent hover:border-slate-700">
+                        <button id="notificationBtn" class="relative p-2.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-900/80 rounded-2xl transition-all duration-200 focus:outline-none border border-transparent hover:border-slate-800">
                             <i class="fas fa-bell text-lg"></i>
-                            <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-indigo-500 rounded-full ring-2 ring-slate-900 animate-pulse"></span>
+                            <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-indigo-500 rounded-full ring-2 ring-slate-950 animate-pulse shadow-sm shadow-indigo-500"></span>
                         </button>
                     </div>
 
-                    <div class="h-6 w-px bg-slate-800 hidden sm:block"></div>
+                    <div class="h-6 w-px bg-slate-800/80 hidden sm:block"></div>
 
                     <!-- User Profile Dropdown -->
                     <div class="relative group" x-data="{ open: false }">
-                        <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-slate-800/80 border border-transparent hover:border-slate-700/80 transition-all duration-200 focus:outline-none">
+                        <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-3 p-1.5 rounded-2xl hover:bg-slate-900/80 border border-transparent hover:border-slate-800 transition-all duration-200 focus:outline-none">
                             <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=6366f1&color=ffffff&bold=true"
                                  alt="{{ Auth::user()->name }}"
                                  class="w-9 h-9 rounded-xl ring-2 ring-indigo-500/40 object-cover shadow-md">
@@ -156,7 +175,7 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="transform opacity-100 scale-100"
                              x-transition:leave-end="transform opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-800 py-2 z-50 divide-y divide-slate-800"
+                             class="absolute right-0 mt-2 w-56 bg-slate-950/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-800 py-2 z-50 divide-y divide-slate-800/80"
                              style="display: none;">
                             <div class="px-4 py-2.5">
                                 <p class="text-xs text-slate-400 font-medium">Signed in as</p>
@@ -185,7 +204,7 @@
                     </div>
 
                     <!-- Mobile Menu Button -->
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 text-slate-400 hover:bg-slate-800 rounded-xl transition-all">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 text-slate-400 hover:bg-slate-900 rounded-2xl transition-all">
                         <i class="fas" :class="mobileMenuOpen ? 'fa-xmark text-lg' : 'fa-bars text-lg'"></i>
                     </button>
                 </div>
@@ -193,30 +212,30 @@
         </div>
 
         <!-- Mobile Navigation Drawer -->
-        <div x-show="mobileMenuOpen" x-transition class="lg:hidden border-t border-slate-800 bg-slate-900/95 backdrop-blur-xl px-4 py-5 shadow-2xl space-y-4">
+        <div x-show="mobileMenuOpen" x-transition class="lg:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl px-4 py-5 shadow-2xl space-y-4">
             <nav class="space-y-1">
                 @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800' }}">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-semibold {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-900' }}">
                     <i class="fas fa-chart-pie w-5 text-indigo-400"></i>
                     <span>Dashboard</span>
                 </a>
                 @else
-                <a href="{{ route('tutor.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('tutor.dashboard') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800' }}">
+                <a href="{{ route('tutor.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-semibold {{ request()->routeIs('tutor.dashboard') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-900' }}">
                     <i class="fas fa-chart-pie w-5 text-indigo-400"></i>
                     <span>Tutor Dashboard</span>
                 </a>
                 @endif
-                <a href="{{ route('quizzes.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('quizzes.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800' }}">
+                <a href="{{ route('quizzes.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-semibold {{ request()->routeIs('quizzes.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-900' }}">
                     <i class="fas fa-circle-question w-5 text-purple-400"></i>
                     <span>Manage Quizzes</span>
                 </a>
                 @if(Auth::user()->role === 'admin')
-                <a href="{{ route('students.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('students.*') || request()->routeIs('admin.students') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800' }}">
+                <a href="{{ route('students.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-semibold {{ request()->routeIs('students.*') || request()->routeIs('admin.students') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-900' }}">
                     <i class="fas fa-user-graduate w-5 text-blue-400"></i>
                     <span>Students</span>
                 </a>
                 @endif
-                <a href="{{ route('courses.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold {{ request()->routeIs('courses.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-800' }}">
+                <a href="{{ route('courses.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-2xl text-sm font-semibold {{ request()->routeIs('courses.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:bg-slate-900' }}">
                     <i class="fas fa-book-bookmark w-5 text-emerald-400"></i>
                     <span>Manage Courses</span>
                 </a>
@@ -229,14 +248,14 @@
 
         <!-- Modern Desktop Sidebar Navigation -->
         <aside class="w-64 hidden lg:block shrink-0">
-            <div class="sticky top-24 glass-panel rounded-3xl p-4 space-y-6 shadow-xl">
+            <div class="sticky top-24 glass-panel rounded-3xl p-4 space-y-6 shadow-2xl border border-slate-800/80">
 
                 <!-- Main Nav Group -->
                 <div>
                     <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 font-heading">Core Navigation</p>
-                    <nav class="space-y-1">
+                    <nav class="space-y-1.5">
                         @if(Auth::user()->role === 'admin')
-                        <a href="{{ route('admin.dashboard') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}">
+                        <a href="{{ route('admin.dashboard') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50 nav-active-glow' : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200' }}">
                             <div class="flex items-center space-x-3">
                                 <i class="fas fa-chart-pie text-base {{ request()->routeIs('admin.dashboard') ? 'text-indigo-400' : 'text-slate-500 group-hover:text-indigo-400' }} transition-colors"></i>
                                 <span>Dashboard</span>
@@ -246,7 +265,7 @@
                             @endif
                         </a>
                         @else
-                        <a href="{{ route('tutor.dashboard') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('tutor.dashboard') ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}">
+                        <a href="{{ route('tutor.dashboard') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('tutor.dashboard') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50 nav-active-glow' : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200' }}">
                             <div class="flex items-center space-x-3">
                                 <i class="fas fa-chart-pie text-base {{ request()->routeIs('tutor.dashboard') ? 'text-indigo-400' : 'text-slate-500 group-hover:text-indigo-400' }} transition-colors"></i>
                                 <span>Tutor Dashboard</span>
@@ -254,7 +273,7 @@
                         </a>
                         @endif
 
-                        <a href="{{ route('quizzes.index') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('quizzes.*') ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}">
+                        <a href="{{ route('quizzes.index') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('quizzes.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50 nav-active-glow' : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200' }}">
                             <div class="flex items-center space-x-3">
                                 <i class="fas fa-circle-question text-base {{ request()->routeIs('quizzes.*') ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400' }} transition-colors"></i>
                                 <span>Quizzes</span>
@@ -262,7 +281,7 @@
                         </a>
 
                         @if(Auth::user()->role === 'admin')
-                        <a href="{{ route('students.index') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('students.*') || request()->routeIs('admin.students') ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}">
+                        <a href="{{ route('students.index') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('students.*') || request()->routeIs('admin.students') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50 nav-active-glow' : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200' }}">
                             <div class="flex items-center space-x-3">
                                 <i class="fas fa-user-graduate text-base {{ request()->routeIs('students.*') || request()->routeIs('admin.students') ? 'text-blue-400' : 'text-slate-500 group-hover:text-blue-400' }} transition-colors"></i>
                                 <span>Students</span>
@@ -270,7 +289,7 @@
                         </a>
                         @endif
 
-                        <a href="{{ route('courses.index') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('courses.*') ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200' }}">
+                        <a href="{{ route('courses.index') }}" class="group flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 {{ request()->routeIs('courses.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-md shadow-indigo-950/50 nav-active-glow' : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200' }}">
                             <div class="flex items-center space-x-3">
                                 <i class="fas fa-book-bookmark text-base {{ request()->routeIs('courses.*') ? 'text-emerald-400' : 'text-slate-500 group-hover:text-emerald-400' }} transition-colors"></i>
                                 <span>Courses</span>
@@ -280,10 +299,10 @@
                 </div>
 
                 <!-- Secondary Nav Group -->
-                <div class="pt-4 border-t border-slate-800">
+                <div class="pt-4 border-t border-slate-800/80">
                     <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 font-heading">Control Tools</p>
-                    <nav class="space-y-1">
-                        <button @click="cmdPaletteOpen = true" class="w-full text-left group flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition">
+                    <nav class="space-y-1.5">
+                        <button @click="cmdPaletteOpen = true" class="w-full text-left group flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-sm font-medium text-slate-400 hover:bg-slate-900/80 hover:text-slate-200 transition">
                             <i class="fas fa-terminal text-base text-slate-500 group-hover:text-indigo-400 transition-colors"></i>
                             <span>Command Palette</span>
                         </button>
@@ -291,14 +310,15 @@
                 </div>
 
                 <!-- Quick System Status Badge Card -->
-                <div class="p-4 bg-gradient-to-br from-slate-900 via-indigo-950/80 to-purple-950/50 rounded-2xl text-white border border-slate-800 shadow-lg">
+                <div class="p-4 bg-gradient-to-br from-slate-900/90 via-indigo-950/60 to-purple-950/40 rounded-2xl text-white border border-slate-800/80 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-semibold text-slate-400">Platform Status</span>
+                        <span class="text-xs font-semibold text-slate-400">System Engine</span>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> Optimal
                         </span>
                     </div>
-                    <p class="text-[11px] text-slate-300">Engine v2.5 Stable • 99.9% Uptime</p>
+                    <p class="text-[11px] text-slate-300 font-medium">Engine v3.0 • 99.99% Uptime</p>
                 </div>
 
             </div>
@@ -329,7 +349,7 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20 bg-slate-950/80 backdrop-blur-md flex items-start justify-center"
+         class="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20 bg-slate-950/85 backdrop-blur-xl flex items-start justify-center"
          style="display: none;"
          @click.away="cmdPaletteOpen = false">
 
@@ -339,11 +359,11 @@
                 <input type="text"
                        placeholder="Type a command or search section..."
                        class="w-full bg-transparent border-0 px-4 py-4 text-slate-100 placeholder-slate-500 focus:ring-0 text-sm font-medium">
-                <button @click="cmdPaletteOpen = false" class="px-2 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs font-mono">ESC</button>
+                <button @click="cmdPaletteOpen = false" class="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-xl text-xs font-mono">ESC</button>
             </div>
 
             <div class="p-4 space-y-2 max-h-96 overflow-y-auto">
-                <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Quick Actions</p>
+                <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 font-heading">Quick Actions</p>
 
                 <a href="{{ route('quizzes.create') }}" class="flex items-center justify-between p-3 hover:bg-slate-800/80 rounded-2xl transition text-slate-300 hover:text-white">
                     <div class="flex items-center gap-3">
@@ -381,10 +401,10 @@
     </div>
 
     <!-- Modern Clean Footer -->
-    <footer class="mt-auto border-t border-slate-800/80 bg-slate-900/60 backdrop-blur-md py-6 text-slate-400 text-sm">
+    <footer class="mt-auto border-t border-slate-800/80 bg-slate-950/60 backdrop-blur-md py-6 text-slate-400 text-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">A</div>
+                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">A</div>
                 <p class="text-xs font-medium text-slate-400">&copy; {{ date('Y') }} LMS Control Center. Built with modern precision.</p>
             </div>
             <div class="flex items-center space-x-6 text-xs text-slate-500 font-medium">
@@ -405,7 +425,7 @@
             showConfirmButton: false,
             timer: 3500,
             timerProgressBar: true,
-            background: '#0f172a',
+            background: '#090d16',
             color: '#f8fafc',
             didOpen: (toast) => {
                 toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -442,7 +462,7 @@
                         title: 'Validation Error',
                         text: errors[0],
                         confirmButtonColor: '#6366f1',
-                        background: '#0f172a',
+                        background: '#090d16',
                         color: '#fff',
                         iconColor: '#ef4444'
                     });
@@ -457,7 +477,7 @@
                         title: 'Validation Errors',
                         html: errorList,
                         confirmButtonColor: '#6366f1',
-                        background: '#0f172a',
+                        background: '#090d16',
                         color: '#fff'
                     });
                 }
@@ -477,7 +497,7 @@
                 text: message,
                 icon: 'info',
                 confirmButtonColor: '#6366f1',
-                background: '#0f172a',
+                background: '#090d16',
                 color: '#fff'
             });
         };
@@ -493,7 +513,7 @@
                 cancelButtonColor: '#334155',
                 confirmButtonText: 'Yes, Sign Out',
                 cancelButtonText: 'Cancel',
-                background: '#0f172a',
+                background: '#090d16',
                 color: '#fff',
                 customClass: {
                     popup: 'rounded-2xl border border-slate-800',
@@ -511,7 +531,7 @@
         document.getElementById('notificationBtn')?.addEventListener('click', function() {
             Swal.fire({
                 title: 'System Notifications',
-                background: '#0f172a',
+                background: '#090d16',
                 color: '#fff',
                 html: `
                     <div class="text-left space-y-3 mt-3">
