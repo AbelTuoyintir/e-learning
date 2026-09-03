@@ -7,7 +7,7 @@
 
     <!-- Hero Welcome Banner -->
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20">
-        <!-- Abstract background pattern elements -->
+        <!-- Abstract ambient glow elements -->
         <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-gradient-to-br from-indigo-500/20 to-purple-500/30 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute right-1/3 -top-10 w-60 h-60 bg-blue-500/15 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -18,10 +18,10 @@
                     Admin Control Center
                 </div>
                 <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-heading">
-                    Welcome back, {{ Auth::user()->name ?? 'Admin' }}! 👋
+                    Welcome back, {{ Auth::user()->name ?? 'Administrator' }}! 👋
                 </h1>
                 <p class="text-indigo-200/80 text-sm sm:text-base leading-relaxed">
-                    Overview of learning activity, platform health, quiz performance, and active student engagement.
+                    Overview of platform health, learning engagement, assessment performance, and AI tutor usage metrics.
                 </p>
             </div>
 
@@ -38,21 +38,21 @@
         </div>
     </div>
 
-    <!-- Analytics Stats Grid -->
+    <!-- Dynamic Analytics Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
 
-        <!-- Total Students -->
+        <!-- Active Students / Total Students -->
         <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Students</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Active Students</span>
                     <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
-                        {{ \App\Models\Student::count() }}
+                        {{ $activeStudents ?? \App\Models\Student::count() }}
                     </h3>
                     <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
                         <i class="fas fa-arrow-trend-up text-[10px]"></i>
-                        <span>Active Learners</span>
+                        <span>{{ \App\Models\Student::count() }} Total Accounts</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
@@ -61,62 +61,62 @@
             </div>
         </div>
 
-        <!-- Total Courses -->
+        <!-- Course Completion Rate / Total Courses -->
         <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Active Courses</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Course Completion Rate</span>
                     <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
-                        {{ \App\Models\Course::count() }}
+                        {{ number_format($courseCompletionRate ?? 0, 1) }}%
                     </h3>
                     <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
-                        <i class="fas fa-layer-group text-[10px]"></i>
-                        <span>Published Catalog</span>
+                        <i class="fas fa-book-bookmark text-[10px]"></i>
+                        <span>{{ $courseCount ?? \App\Models\Course::count() }} Catalog Courses</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-book-bookmark text-2xl"></i>
+                    <i class="fas fa-graduation-cap text-2xl"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Total Quizzes -->
+        <!-- Module Pass Rate / Average Score -->
         <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-purple-500/10 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Quizzes</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Module Pass Rate</span>
                     <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
-                        {{ \App\Models\Quiz::count() }}
+                        {{ number_format($modulePassRate ?? 0, 1) }}%
                     </h3>
                     <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full w-fit border border-purple-500/20">
-                        <i class="fas fa-circle-check text-[10px]"></i>
-                        <span>Assessments</span>
+                        <i class="fas fa-chart-line text-[10px]"></i>
+                        <span>Avg Score: {{ number_format($averageScore ?? 0, 1) }}%</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-circle-question text-2xl"></i>
+                    <i class="fas fa-circle-check text-2xl"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Question Bank -->
+        <!-- AI Tutor Sessions / System Usage -->
         <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-amber-500/10 transition-all duration-300 overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Question Bank</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">AI Tutor Sessions</span>
                     <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
-                        {{ \App\Models\Question::count() }}
+                        {{ $aiUsageStats ?? \App\Models\AIChatSession::count() }}
                     </h3>
                     <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full w-fit border border-amber-500/20">
-                        <i class="fas fa-list-check text-[10px]"></i>
-                        <span>Available Items</span>
+                        <i class="fas fa-robot text-[10px]"></i>
+                        <span>Active Support</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-inner group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-cubes text-2xl"></i>
+                    <i class="fas fa-wand-magic-sparkles text-2xl"></i>
                 </div>
             </div>
         </div>
@@ -126,7 +126,7 @@
     <!-- Visual Analytics Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- Student Activity & Growth Chart -->
+        <!-- Student Growth Chart -->
         <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
             <div class="flex items-center justify-between mb-6">
                 <div>
@@ -142,12 +142,12 @@
             </div>
         </div>
 
-        <!-- Quiz Performance & Passing Rate -->
+        <!-- Assessment Score Distribution Chart -->
         <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-bold text-white tracking-tight font-heading">Assessment Completion Status</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Distribution of quiz score metrics</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Distribution of student quiz performance</p>
                 </div>
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
                     <i class="fas fa-chart-pie text-xs"></i> Score Insights
@@ -159,6 +159,59 @@
         </div>
 
     </div>
+
+    <!-- Most Difficult Topics Leaderboard Widget -->
+    @if(isset($mostDifficultTopics) && $mostDifficultTopics->count() > 0)
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-lg font-bold text-white tracking-tight font-heading flex items-center gap-2">
+                    <i class="fas fa-triangle-exclamation text-amber-400 text-base"></i>
+                    Most Challenging Topics
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Topics with the lowest student average quiz percentage scores requiring tutor intervention</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                Intervention Radar
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">
+                        <th class="px-4 py-3">Topic Title</th>
+                        <th class="px-4 py-3">Average Score</th>
+                        <th class="px-4 py-3">Difficulty Meter</th>
+                        <th class="px-4 py-3 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80 text-sm">
+                    @foreach($mostDifficultTopics as $topic)
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-4 py-3.5 font-bold text-slate-200 font-heading">
+                            {{ $topic->title }}
+                        </td>
+                        <td class="px-4 py-3.5 font-extrabold text-amber-400 font-heading">
+                            {{ number_format($topic->avg_score, 1) }}%
+                        </td>
+                        <td class="px-4 py-3.5 w-48">
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div class="bg-gradient-to-r from-rose-500 to-amber-500 h-2 rounded-full" style="width: {{ min(100, max(5, $topic->avg_score)) }}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3.5 text-right">
+                            <a href="{{ route('courses.index') }}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-semibold rounded-xl transition">
+                                Review Material
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
 
     <!-- Quick Management Shortcuts -->
     <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
@@ -184,7 +237,7 @@
                         <h3 class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors font-heading">Manage Quizzes</h3>
                         <i class="fas fa-arrow-right text-xs text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Configure, structure, and assign assessment quizzes and questions.</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Configure, structure, and assign assessment quizzes and question banks.</p>
                 </div>
             </a>
 
@@ -198,7 +251,7 @@
                         <h3 class="font-bold text-slate-200 group-hover:text-emerald-400 transition-colors font-heading">Manage Courses</h3>
                         <i class="fas fa-arrow-right text-xs text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Organize course modules, topics, learning materials, and pricing.</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Organize course catalog modules, topics, learning materials, and pricing.</p>
                 </div>
             </a>
 
@@ -212,7 +265,7 @@
                         <h3 class="font-bold text-slate-200 group-hover:text-blue-400 transition-colors font-heading">Manage Students</h3>
                         <i class="fas fa-arrow-right text-xs text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Review student profiles, enrollment statuses, and academic records.</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Review student rosters, enrollment statuses, and academic records.</p>
                 </div>
             </a>
 
@@ -227,7 +280,7 @@
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-bold text-white tracking-tight font-heading">Recent Platform Log</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Real-time activity stream</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Real-time activity audit stream</p>
                 </div>
                 <button onclick="showInfo('Audit logs automatically updated', 'Activity Feed')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition">
                     View Logs
@@ -243,10 +296,10 @@
                     </div>
                     <div class="flex-1 glass-card p-4 rounded-2xl">
                         <div class="flex items-center justify-between">
-                            <p class="font-semibold text-slate-200 text-sm">New student account created</p>
+                            <p class="font-semibold text-slate-200 text-sm">New student accounts active</p>
                             <span class="text-[11px] font-medium text-slate-500">2 hours ago</span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1">Student registered and verified account details.</p>
+                        <p class="text-xs text-slate-400 mt-1">Students registered and verified platform access credentials.</p>
                     </div>
                 </div>
 
@@ -257,10 +310,10 @@
                     </div>
                     <div class="flex-1 glass-card p-4 rounded-2xl">
                         <div class="flex items-center justify-between">
-                            <p class="font-semibold text-slate-200 text-sm">Assessment quiz published</p>
+                            <p class="font-semibold text-slate-200 text-sm">Assessment quiz submissions graded</p>
                             <span class="text-[11px] font-medium text-slate-500">5 hours ago</span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1">New quiz published to Computer Science fundamentals.</p>
+                        <p class="text-xs text-slate-400 mt-1">Automated evaluation completed across module assessments.</p>
                     </div>
                 </div>
 
@@ -271,10 +324,10 @@
                     </div>
                     <div class="flex-1 glass-card p-4 rounded-2xl">
                         <div class="flex items-center justify-between">
-                            <p class="font-semibold text-slate-200 text-sm">Question bank expanded</p>
+                            <p class="font-semibold text-slate-200 text-sm">Question bank updated</p>
                             <span class="text-[11px] font-medium text-slate-500">1 day ago</span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1">Questions updated and indexed successfully.</p>
+                        <p class="text-xs text-slate-400 mt-1">Questions indexed and aligned with active module topics.</p>
                     </div>
                 </div>
 
@@ -287,9 +340,9 @@
                 <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6">
                     <i class="fas fa-shield-cat text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-extrabold tracking-tight font-heading">AI Tutor & Service Health</h3>
+                <h3 class="text-xl font-extrabold tracking-tight font-heading">AI Tutor & Platform Health</h3>
                 <p class="text-slate-400 text-xs mt-2 leading-relaxed">
-                    AI tutoring backend services operating with high response fidelity and fallback Ollama redundancy active.
+                    AI tutoring backend engine active with OpenAI API primary routing and Ollama Cloud redundancy fallback.
                 </p>
 
                 <div class="mt-6 space-y-3">
@@ -309,7 +362,7 @@
             </div>
 
             <div class="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-indigo-300">
-                <span>Version 2.5.0-pro</span>
+                <span>Platform v2.5-pro</span>
                 <i class="fas fa-circle-check text-emerald-400"></i>
             </div>
         </div>
@@ -369,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: ['Passed (>=70%)', 'Retake Required', 'In Progress'],
                 datasets: [{
-                    data: [65, 20, 15],
+                    data: [{{ min(100, round($modulePassRate ?? 65)) }}, {{ min(100, round(100 - ($modulePassRate ?? 65))) }}, 15],
                     backgroundColor: ['#10b981', '#f43f5e', '#6366f1'],
                     borderWidth: 0,
                     hoverOffset: 6
