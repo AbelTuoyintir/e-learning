@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    //
-    public function index(){
+    /**
+     * Display the modern admin dashboard with key metrics and analytics.
+     */
+    public function index()
+    {
         $activeStudents = \App\Models\Student::where('status', 'active')->count();
         $totalResultsCount = \App\Models\Result::count();
         $modulePassRate = $totalResultsCount > 0 ? (\App\Models\Result::where('passed', 1)->count() / $totalResultsCount * 100) : 0;
