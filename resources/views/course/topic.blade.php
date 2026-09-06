@@ -1,399 +1,216 @@
 @extends('layouts.app')
-@section('title','Topic Management')
+@section('title', 'Topic Management')
 @section('content')
-<div class="min-h-screen bg-gray-50 text-gray-800"
-     x-data="topicManager()"
-     x-init="loadTopic({{ $topic->id ?? 0 }})">
+<div class="space-y-8" x-data="topicManager()">
 
-  {{-- HEADER --}}
-  <header class="max-w-5xl mx-auto px-6 pt-10 pb-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"
-            x-text="editId ? 'Edit Topic' : 'Create Topic'"></h1>
-        <p class="text-gray-600 text-sm mt-1">Module: <span class="font-semibold text-gray-800">{{ $module->title }}</span></p>
-      </div>
-      <a href="{{ route('courses.modules',$module->id) }}"
-         class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition text-sm">
-        <i class="fas fa-arrow-left mr-2"></i>Back to module
-      </a>
-    </div>
-  </header>
-
-      {{-- TOPICS TABLE --}}
-    <div class="max-w-7xl mx-auto px-6 pb-10">
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-            {{-- Table --}}
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Topic
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Module
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Course
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Order
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Created
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($topics as $topic)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            {{ $topic->title }}
-                                        </div>
-                                        <div class="text-sm text-gray-500">
-                                            {{ Str::limit($topic->content, 50) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $topic->module->title ?? 'N/A' }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $topic->module->course->title ?? 'N/A' }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $topic->order }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    {{ $topic->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
-                                    {{ $topic->is_active ? 'Active' : 'Draft' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $topic->created_at->format('M d, Y') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex items-center space-x-2">
-                                    <a href="{{ route('admin.topics.edit', $topic->id) }}"
-                                       class="text-indigo-600 hover:text-indigo-900 transition"
-                                       title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-
-                                    <form action="{{ route('admin.topics.destroy', $topic->id) }}" method="POST"
-                                          class="inline delete-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="text-red-600 hover:text-red-900 transition"
-                                                title="Delete"
-                                                onclick="return confirm('Are you sure you want to delete this topic?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-3 text-gray-300"></i>
-                                <p class="text-lg">No topics found</p>
-                                <p class="text-sm mt-1">Get started by creating your first topic</p>
-                                <button class="mt-3 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                                    id="createTopicBtn">
-                                    <i class="fas fa-plus mr-2"></i>Create Topic
-                                </button>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+    <!-- HEADER & BAR -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                <i class="fas fa-book-open text-xl"></i>
             </div>
-
-            {{-- Pagination --}}
-            @if($topics->hasPages())
-            <div class="bg-white px-6 py-4 border-t border-gray-200">
-                {{ $topics->links() }}
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">
+                    Topic Management
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Module: <span class="font-bold text-indigo-400">{{ $module->title }}</span></p>
             </div>
-            @endif
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="{{ route('courses.modules', $module->course_id) }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-bold text-xs transition">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Modules</span>
+            </a>
+
+            <button id="createTopicBtn" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:scale-[1.02] active:scale-95 transition-all">
+                <i class="fas fa-plus"></i>
+                <span>Create Topic</span>
+            </button>
         </div>
     </div>
-</div>
 
-{{-- MAIN FORM --}}
-<div id="topicModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <!-- TOPICS TABLE CARD -->
+    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">
+                        <th class="px-6 py-4">Topic</th>
+                        <th class="px-6 py-4">Module</th>
+                        <th class="px-6 py-4">Course</th>
+                        <th class="px-6 py-4">Order</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Created</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80 text-sm">
+                    @forelse($topics as $topicItem)
+                    <tr class="hover:bg-slate-800/40 transition-colors group">
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors font-heading">
+                                {{ $topicItem->title }}
+                            </p>
+                            @if($topicItem->content)
+                            <p class="text-xs text-slate-400 mt-0.5 line-clamp-1">{{ Str::limit($topicItem->content, 50) }}</p>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-xs font-semibold text-slate-300">
+                            {{ $topicItem->module->title ?? 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 text-xs font-semibold text-slate-300">
+                            {{ $topicItem->module->course->title ?? 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 font-mono text-xs font-bold text-slate-400">
+                            #{{ $topicItem->order }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold {{ $topicItem->is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $topicItem->is_active ? 'bg-emerald-400' : 'bg-slate-500' }}"></span>
+                                {{ $topicItem->is_active ? 'Active' : 'Draft' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-xs font-medium text-slate-400">
+                            {{ $topicItem->created_at ? $topicItem->created_at->format('M d, Y') : 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <a href="{{ route('admin.topics.edit', $topicItem->id) }}"
+                                   class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-all"
+                                   title="Edit Topic">
+                                    <i class="fas fa-pen text-sm"></i>
+                                </a>
 
-
-    <!-- POPUP BOX -->
-    <div class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-xl p-6 relative">
-        <h1 class ="text-3xl text-center font-extrabold mb-3 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600"> Create Topic </h1>
-        <!-- CLOSE BUTTON -->
-        <button id="closeTopicModal"
-                class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">
-            &times;
-        </button>
-    <form method="POST"
-      action="{{route('admin.topics.store') }}"
-      enctype="multipart/form-data"
-      id="myForm"
-      class="max-w-5xl mx-auto px-6 pb-10">
-    @csrf
-
-    <input type="hidden" name="module_id" value="{{ $module->id }}">
-
-    <div class="grid md:grid-cols-2 gap-4">
-
-      {{-- LEFT: Topic core --}}
-      <div class="md:col-span-2 space-y-6">
-        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-5">
-
-          {{-- Title --}}
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Topic Title *</label>
-            <input type="text" name="title" value="{{ old('title', $topic->title ?? '') }}" required
-                   class="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            @error('title')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-          </div>
-
-         <div>
-            <label class="text-sm text-gray-600">Order</label>
-            <input type="number" name="order" value="{{ old('order', $topic->order ?? 0) }}" min="0"
-                   class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
-            @error('order')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <div>
-            <label class="text-sm text-gray-600">Status</label>
-            <select name="is_active"
-                    class="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-xl">
-              <option value="1" {{ old('is_active', $topic->is_active ?? 1) ? 'selected' : '' }}>Active</option>
-              <option value="0" {{ !old('is_active', $topic->is_active ?? 1) ? 'selected' : '' }}>Draft</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube Video URL</label>
-            <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url ?? '') }}"
-                   placeholder="https://www.youtube.com/watch?v=..."
-                   class="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            @error('video_url')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Document (PDF or PPTX)</label>
-            <input type="file" name="document" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                   class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl">
-            <p class="text-xs text-gray-500 mt-1">Max size: 10MB</p>
-            @error('document')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-          </div>
-
+                                <form action="{{ route('admin.topics.destroy', $topicItem->id) }}" method="POST"
+                                      class="inline delete-form">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                                            title="Delete Topic"
+                                            onclick="return confirm('Are you sure you want to delete this topic?')">
+                                        <i class="fas fa-trash-can text-sm"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-16 text-center text-slate-400">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-inbox text-2xl"></i>
+                            </div>
+                            <p class="font-bold text-slate-200">No topics created yet</p>
+                            <p class="text-xs text-slate-400 mt-1">Get started by creating your first topic for this module.</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <button type="submit"
-                class="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2 font-semibold">
-          <span>Save Topic</span>
-          <i class="fas fa-save"></i>
-        </button>
+
+        @if($topics->hasPages())
+        <div class="p-4 border-t border-slate-800">
+            {{ $topics->links() }}
+        </div>
+        @endif
     </div>
 
+</div>
+
+<!-- CREATE TOPIC MODAL -->
+<div id="topicModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border border-slate-800 p-6 sm:p-8 relative">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+            <h2 class="text-xl font-bold text-white font-heading">Create Topic</h2>
+            <button id="closeTopicModal" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <form method="POST" action="{{ route('admin.topics.store') }}" enctype="multipart/form-data" id="myForm" class="space-y-4">
+            @csrf
+            <input type="hidden" name="module_id" value="{{ $module->id }}">
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Topic Title *</label>
+                <input type="text" name="title" value="{{ old('title') }}" required
+                       class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 transition">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Display Order</label>
+                    <input type="number" name="order" value="{{ old('order', 0) }}" min="0"
+                           class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Status</label>
+                    <select name="is_active" class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 transition">
+                        <option value="1" {{ old('is_active', 1) ? 'selected' : '' }}>Active</option>
+                        <option value="0" {{ !old('is_active', 1) ? 'selected' : '' }}>Draft</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">YouTube Video URL</label>
+                <input type="url" name="video_url" value="{{ old('video_url') }}" placeholder="https://www.youtube.com/watch?v=..."
+                       class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Document (PDF or PPTX)</label>
+                <input type="file" name="document" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                       class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-indigo-600 file:text-white file:text-xs">
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+                <button type="button" id="cancelModalBtn" class="px-4 py-2.5 bg-slate-800 text-slate-300 rounded-2xl text-xs font-bold hover:bg-slate-700 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition">
+                    Save Topic
+                </button>
+            </div>
+        </form>
     </div>
-  </form>
-</div>
 </div>
 
-</div>
-
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let contentCounter = {{ count(old('contents', [])) }};
-    let questionCounter = {{ count(old('questions', [])) }};
+    function topicManager() { return {}; }
 
-    // Add content block
-    const addContentBtn = document.getElementById('addContent');
-    if (addContentBtn) {
-      addContentBtn.addEventListener('click', function() {
-        const contentsList = document.getElementById('contentsList');
-        if (!contentsList) return;
-        const index = contentCounter++;
+    document.addEventListener('DOMContentLoaded', function() {
+        const openBtn = document.getElementById("createTopicBtn");
+        const modal = document.getElementById("topicModal");
+        const closeBtn = document.getElementById("closeTopicModal");
+        const cancelBtn = document.getElementById("cancelModalBtn");
 
-        const contentHTML = `
-        <div class="content-block bg-gray-50 border border-gray-200 rounded-xl p-4 relative">
-            <div class="flex items-start justify-between">
-                <span class="text-xs text-gray-500">Block ${contentCounter}</span>
-                <button type="button" class="remove-content text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <select name="contents[${index}][type]" class="content-type mt-2 w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
-                <option value="text">Text / HTML</option>
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-                <option value="pdf">PDF</option>
-            </select>
-            <textarea name="contents[${index}][body]" class="text-content mt-2 w-full px-3 py-2 bg-white border border-gray-300 rounded-xl" rows="4" placeholder="Write or paste HTML..."></textarea>
-            <input type="file" name="contents[${index}][file]" class="file-content mt-2 w-full text-sm text-gray-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white">
-        </div>
-        `;
-
-        contentsList.insertAdjacentHTML('beforeend', contentHTML);
-      });
-    }
-
-    // Add question block
-    const addQuestionBtn = document.getElementById('addQuestion');
-    if (addQuestionBtn) {
-      addQuestionBtn.addEventListener('click', function() {
-        const questionsList = document.getElementById('questionsList');
-        if (!questionsList) return;
-        const index = questionCounter++;
-
-        const questionHTML = `
-        <div class="question-block bg-gray-50 border border-gray-200 rounded-xl p-4 mb-3">
-            <div class="flex items-start justify-between">
-                <span class="text-xs text-gray-500">Q${questionCounter}</span>
-                <button type="button" class="remove-question text-red-600 hover:text-red-800">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <input type="text" name="questions[${index}][text]" placeholder="Question text" class="w-full mt-2 px-3 py-2 bg-white border border-gray-300 rounded-xl">
-            <div class="mt-3 space-y-2">
-                <div class="flex items-center gap-2 option-row">
-                    <input type="text" name="questions[${index}][options][0][text]" placeholder="Option" class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
-                    <label class="text-xs text-gray-600 flex items-center gap-1">
-                        <input type="radio" name="questions[${index}][correct]" value="0" class="text-indigo-600 bg-white border-gray-300" checked>
-                        Correct
-                    </label>
-                    <button type="button" class="remove-option text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2 option-row">
-                    <input type="text" name="questions[${index}][options][1][text]" placeholder="Option" class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
-                    <label class="text-xs text-gray-600 flex items-center gap-1">
-                        <input type="radio" name="questions[${index}][correct]" value="1" class="text-indigo-600 bg-white border-gray-300">
-                        Correct
-                    </label>
-                    <button type="button" class="remove-option text-red-600 hover:text-red-800">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <button type="button" class="add-option text-xs text-indigo-600 hover:text-indigo-800">
-                    + Add option
-                </button>
-            </div>
-        </div>
-        `;
-
-        questionsList.insertAdjacentHTML('beforeend', questionHTML);
-      });
-    }
-
-    // Remove handlers (delegated)
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-content')) {
-            e.target.closest('.content-block').remove();
+        if (openBtn && modal) {
+            openBtn.addEventListener("click", () => {
+                modal.classList.remove("hidden");
+                modal.classList.add("flex");
+            });
         }
-        if (e.target.closest('.remove-question')) {
-            e.target.closest('.question-block').remove();
-        }
-        if (e.target.closest('.remove-option')) {
-            if (e.target.closest('.question-block').querySelectorAll('.option-row').length > 1) {
-                e.target.closest('.option-row').remove();
+
+        const closeModal = () => {
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
             }
-        }
-        if (e.target.closest('.add-option')) {
-            const questionBlock = e.target.closest('.question-block');
-            const optionIndex = questionBlock.querySelectorAll('.option-row').length;
-            const questionIndex = Array.from(questionBlock.parentNode.children).indexOf(questionBlock);
+        };
 
-            const optionHTML = `
-            <div class="flex items-center gap-2 option-row">
-                <input type="text" name="questions[${questionIndex}][options][${optionIndex}][text]" placeholder="Option" class="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm">
-                <label class="text-xs text-gray-600 flex items-center gap-1">
-                    <input type="radio" name="questions[${questionIndex}][correct]" value="${optionIndex}" class="text-indigo-600 bg-white border-gray-300">
-                    Correct
-                </label>
-                <button type="button" class="remove-option text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-            `;
-            e.target.insertAdjacentHTML('beforebegin', optionHTML);
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+        if (modal) {
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) closeModal();
+            });
         }
     });
-});
-
-// Function to show the loading alert
-function showLoading() {
-    Swal.fire({
-        title: 'Now loading',
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-        onOpen: () => {
-            Swal.showLoading(); // This shows the loading spinner
-        }
-    });
-}
-
-// Example: Show loading when a form is submitted
-const topicForm = document.getElementById('myForm');
-if (topicForm) {
-    topicForm.addEventListener('submit', function(event) {
-        showLoading();
-    });
-}
-
-
-const openBtn = document.getElementById("createTopicBtn");
-const modal = document.getElementById("topicModal");
-const closeBtn = document.getElementById("closeTopicModal");
-
-if (openBtn && modal) {
-    openBtn.addEventListener("click", () => {
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-    });
-}
-
-// Close when clicking X
-if (closeBtn && modal) {
-    closeBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
-}
-
-// Close when clicking outside the popup box
-if (modal) {
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.classList.add("hidden");
-        }
-    });
-}
 </script>
 @endsection

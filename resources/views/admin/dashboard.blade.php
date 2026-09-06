@@ -6,7 +6,7 @@
 <div class="space-y-8">
 
     <!-- Hero Welcome Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20">
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/90 to-purple-950/90 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20">
         <!-- Abstract background pattern elements -->
         <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-gradient-to-br from-indigo-500/20 to-purple-500/30 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute right-1/3 -top-10 w-60 h-60 bg-blue-500/15 rounded-full blur-2xl pointer-events-none"></div>
@@ -21,7 +21,7 @@
                     Welcome back, {{ Auth::user()->name ?? 'Admin' }}! 👋
                 </h1>
                 <p class="text-indigo-200/80 text-sm sm:text-base leading-relaxed">
-                    Overview of learning activity, platform health, quiz performance, and active student engagement.
+                    Overview of learning activity, platform health, assessment metrics, and student engagement.
                 </p>
             </div>
 
@@ -31,7 +31,7 @@
                     <i class="fas fa-plus text-xs"></i>
                     <span>Create Quiz</span>
                 </a>
-                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white transition-all duration-200">
+                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white transition-all duration-200" title="Course Settings">
                     <i class="fas fa-sliders"></i>
                 </a>
             </div>
@@ -167,7 +167,7 @@
                 <h2 class="text-lg font-bold text-white tracking-tight font-heading">Management Shortcuts</h2>
                 <p class="text-xs text-slate-400 mt-0.5">Jump directly to administrative tasks</p>
             </div>
-            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/80 text-slate-300 border border-slate-700">
                 <i class="fas fa-bolt text-amber-400 mr-1.5"></i> Fast Navigation
             </span>
         </div>
@@ -229,7 +229,7 @@
                     <h2 class="text-lg font-bold text-white tracking-tight font-heading">Recent Platform Log</h2>
                     <p class="text-xs text-slate-400 mt-0.5">Real-time activity stream</p>
                 </div>
-                <button onclick="showInfo('Audit logs automatically updated', 'Activity Feed')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition">
+                <button onclick="showInfo('Audit logs automatically updated in real time.', 'Activity Feed')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition">
                     View Logs
                 </button>
             </div>
