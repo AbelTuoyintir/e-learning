@@ -6,9 +6,9 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800/80">
         <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 shrink-0">
                 <i class="fas fa-book-bookmark text-xl"></i>
             </div>
             <div>
@@ -18,11 +18,11 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 shrink-0">
-            <button onclick="openCourseModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:scale-[1.02] active:scale-95 transition-all">
+            <button onclick="openCourseModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:scale-[1.02] active:scale-95 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 transition-all">
                 <i class="fas fa-plus"></i>
                 <span>Add Course</span>
             </button>
-            <button onclick="openModuleModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs shadow-lg shadow-emerald-500/30 hover:scale-[1.02] active:scale-95 transition-all">
+            <button onclick="openModuleModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:scale-[1.02] active:scale-95 text-white font-bold text-xs shadow-lg shadow-emerald-500/30 transition-all">
                 <i class="fas fa-layer-group"></i>
                 <span>Add Module</span>
             </button>
@@ -77,17 +77,17 @@
         <div class="relative flex-1 min-w-[200px]">
             <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
             <input type="text" id="searchInput" placeholder="Search courses by title..."
-                   class="w-full pl-9 pr-4 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
+                   class="w-full pl-9 pr-4 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
         </div>
 
-        <select id="categoryFilter" class="px-3 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-200 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
+        <select id="categoryFilter" class="px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-200 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
             <option value="">All Categories</option>
             <option value="Technology">Technology</option>
             <option value="Science">Science</option>
             <option value="Business">Business</option>
         </select>
 
-        <select id="statusFilter" class="px-3 py-2 bg-slate-900/80 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-200 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
+        <select id="statusFilter" class="px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-xl text-xs font-medium text-slate-200 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
             <option value="">All Status</option>
             <option value="Published">Published</option>
             <option value="Draft">Draft</option>
@@ -99,7 +99,7 @@
     </div>
 
     <!-- Courses Table Card -->
-    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden">
+    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden border border-slate-800/80">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -114,7 +114,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-800/80 text-sm" id="coursesContainer">
                     @forelse ($courses as $course)
-                    <tr class="hover:bg-slate-800/40 transition-colors group course-row"
+                    <tr class="hover:bg-slate-800/50 transition-colors group course-row"
                         data-title="{{ strtolower($course->title) }}"
                         data-category="{{ strtolower($course->category ?? '') }}"
                         data-status="published">
@@ -125,7 +125,7 @@
                                     <i class="fas fa-laptop-code"></i>
                                 </div>
                                 <div>
-                                    <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors course-title font-heading">
+                                    <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors course-title font-heading text-sm sm:text-base">
                                         {{ $course->title }}
                                     </p>
                                     <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">
@@ -137,18 +137,18 @@
 
                         <!-- Category -->
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 course-category">
+                            <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 course-category">
                                 {{ $course->category ?? 'General' }}
                             </span>
                         </td>
 
                         <!-- Duration -->
-                        <td class="px-6 py-4 text-xs font-semibold text-slate-300">
+                        <td class="px-6 py-4 text-xs font-bold text-slate-300">
                             {{ $course->duration ? $course->duration . ' hrs' : 'Self-paced' }}
                         </td>
 
                         <!-- Price -->
-                        <td class="px-6 py-4 text-xs font-bold text-slate-200">
+                        <td class="px-6 py-4 text-xs font-extrabold text-slate-200">
                             @if((float) ($course->price ?? 0) > 0)
                                 GHS {{ number_format((float) $course->price, 2) }}
                             @else
@@ -159,7 +159,7 @@
                         <!-- Status -->
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 course-status">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Published
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Published
                             </span>
                         </td>
 

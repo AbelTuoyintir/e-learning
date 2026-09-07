@@ -6,33 +6,41 @@
 <div class="space-y-8">
 
     <!-- Hero Welcome Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20">
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950/90 to-purple-950/90 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20 glow-indigo">
         <!-- Abstract background pattern elements -->
-        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-gradient-to-br from-indigo-500/20 to-purple-500/30 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute right-1/3 -top-10 w-60 h-60 bg-blue-500/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-12 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="space-y-3 max-w-2xl">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 backdrop-blur-md border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Admin Control Center
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 backdrop-blur-md border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Admin Workspace • Active Session
+                    </span>
+                    <span class="px-3 py-1 rounded-full bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700/80 hidden sm:inline-block">
+                        <i class="far fa-calendar-alt text-indigo-400 mr-1.5"></i>
+                        {{ date('F d, Y') }}
+                    </span>
                 </div>
-                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-heading">
-                    Welcome back, {{ Auth::user()->name ?? 'Admin' }}! 👋
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-heading">
+                    Welcome back, {{ Auth::user()->name ?? 'Administrator' }}! 👋
                 </h1>
-                <p class="text-indigo-200/80 text-sm sm:text-base leading-relaxed">
-                    Overview of learning activity, platform health, quiz performance, and active student engagement.
+                <p class="text-indigo-200/85 text-sm sm:text-base leading-relaxed">
+                    Here is your overall system performance summary. Track learning activities, assess quiz submissions, and oversee course engagement.
                 </p>
             </div>
 
-            <!-- Quick Action CTA Pill -->
-            <div class="flex items-center gap-3 shrink-0">
+            <!-- Quick Action CTA Buttons -->
+            <div class="flex flex-wrap items-center gap-3 shrink-0">
                 <a href="{{ route('quizzes.create') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200">
                     <i class="fas fa-plus text-xs"></i>
                     <span>Create Quiz</span>
                 </a>
-                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white transition-all duration-200">
-                    <i class="fas fa-sliders"></i>
+                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-800 backdrop-blur-md border border-slate-700/80 text-slate-200 hover:text-white font-bold text-xs transition-all duration-200 shadow-md">
+                    <i class="fas fa-layer-group text-emerald-400"></i>
+                    <span>Add Course</span>
                 </a>
             </div>
         </div>
@@ -42,17 +50,17 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
 
         <!-- Total Students -->
-        <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 overflow-hidden">
+        <div class="group relative glass-panel rounded-3xl p-6 shadow-xl hover:shadow-indigo-500/20 transition-all duration-300 overflow-hidden border border-slate-800/80">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Students</span>
-                    <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">Total Students</span>
+                    <h3 class="text-3xl sm:text-4xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Student::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
                         <i class="fas fa-arrow-trend-up text-[10px]"></i>
-                        <span>Active Learners</span>
+                        <span>+14% Active Learners</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
@@ -62,17 +70,17 @@
         </div>
 
         <!-- Total Courses -->
-        <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 overflow-hidden">
+        <div class="group relative glass-panel rounded-3xl p-6 shadow-xl hover:shadow-emerald-500/20 transition-all duration-300 overflow-hidden border border-slate-800/80">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Active Courses</span>
-                    <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">Active Courses</span>
+                    <h3 class="text-3xl sm:text-4xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Course::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
                         <i class="fas fa-layer-group text-[10px]"></i>
-                        <span>Published Catalog</span>
+                        <span>Catalog Published</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-inner group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
@@ -82,17 +90,17 @@
         </div>
 
         <!-- Total Quizzes -->
-        <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-purple-500/10 transition-all duration-300 overflow-hidden">
+        <div class="group relative glass-panel rounded-3xl p-6 shadow-xl hover:shadow-purple-500/20 transition-all duration-300 overflow-hidden border border-slate-800/80">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Total Quizzes</span>
-                    <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">Total Quizzes</span>
+                    <h3 class="text-3xl sm:text-4xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Quiz::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full w-fit border border-purple-500/20">
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-full w-fit border border-purple-500/20">
                         <i class="fas fa-circle-check text-[10px]"></i>
-                        <span>Assessments</span>
+                        <span>Assessments Live</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-inner group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
@@ -102,21 +110,21 @@
         </div>
 
         <!-- Question Bank -->
-        <div class="group relative glass-panel rounded-3xl p-6 shadow-lg hover:shadow-amber-500/10 transition-all duration-300 overflow-hidden">
+        <div class="group relative glass-panel rounded-3xl p-6 shadow-xl hover:shadow-amber-500/20 transition-all duration-300 overflow-hidden border border-slate-800/80">
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500"></div>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-heading">Question Bank</span>
-                    <h3 class="text-3xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">Question Bank</span>
+                    <h3 class="text-3xl sm:text-4xl font-extrabold text-white mt-1.5 tracking-tight font-heading">
                         {{ \App\Models\Question::count() }}
                     </h3>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full w-fit border border-amber-500/20">
-                        <i class="fas fa-list-check text-[10px]"></i>
-                        <span>Available Items</span>
+                    <div class="flex items-center gap-1.5 mt-3 text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full w-fit border border-amber-500/20">
+                        <i class="fas fa-cubes text-[10px]"></i>
+                        <span>Indexed Items</span>
                     </div>
                 </div>
                 <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-inner group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-                    <i class="fas fa-cubes text-2xl"></i>
+                    <i class="fas fa-list-check text-2xl"></i>
                 </div>
             </div>
         </div>
@@ -127,14 +135,14 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Student Activity & Growth Chart -->
-        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800/80">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-bold text-white tracking-tight font-heading">Student Growth & Enrollments</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">6-month enrollment trend visualization</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Monthly enrollment expansion trend</p>
                 </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> Live Sync
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> Dynamic Analytics
                 </span>
             </div>
             <div class="h-64 w-full">
@@ -143,14 +151,14 @@
         </div>
 
         <!-- Quiz Performance & Passing Rate -->
-        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800/80">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-lg font-bold text-white tracking-tight font-heading">Assessment Completion Status</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Distribution of quiz score metrics</p>
+                    <h2 class="text-lg font-bold text-white tracking-tight font-heading">Assessment Performance</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Distribution of quiz completion scores</p>
                 </div>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                    <i class="fas fa-chart-pie text-xs"></i> Score Insights
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    <i class="fas fa-chart-pie text-xs"></i> Score Pass Distribution
                 </span>
             </div>
             <div class="h-64 w-full flex items-center justify-center">
@@ -161,13 +169,13 @@
     </div>
 
     <!-- Quick Management Shortcuts -->
-    <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800/80">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h2 class="text-lg font-bold text-white tracking-tight font-heading">Management Shortcuts</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Jump directly to administrative tasks</p>
+                <h2 class="text-lg font-bold text-white tracking-tight font-heading">Management Actions</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Direct administrative management panels</p>
             </div>
-            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
                 <i class="fas fa-bolt text-amber-400 mr-1.5"></i> Fast Navigation
             </span>
         </div>
@@ -175,44 +183,44 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
             <!-- Manage Quizzes -->
-            <a href="{{ route('quizzes.index') }}" class="group relative flex items-start p-5 glass-card rounded-2xl transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ route('quizzes.index') }}" class="group relative flex items-start p-5 glass-card rounded-2xl transition-all duration-300">
                 <div class="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0 mr-4 shadow-md group-hover:bg-indigo-600 group-hover:text-white transition-all">
                     <i class="fas fa-pen-to-square text-lg"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors font-heading">Manage Quizzes</h3>
+                        <h3 class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors font-heading text-sm sm:text-base">Manage Quizzes</h3>
                         <i class="fas fa-arrow-right text-xs text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Configure, structure, and assign assessment quizzes and questions.</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Configure assessment quizzes, difficulty, and question banks.</p>
                 </div>
             </a>
 
             <!-- Manage Courses -->
-            <a href="{{ route('courses.index') }}" class="group relative flex items-start p-5 glass-card rounded-2xl transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ route('courses.index') }}" class="group relative flex items-start p-5 glass-card rounded-2xl transition-all duration-300">
                 <div class="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 mr-4 shadow-md group-hover:bg-emerald-600 group-hover:text-white transition-all">
                     <i class="fas fa-layer-group text-lg"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-slate-200 group-hover:text-emerald-400 transition-colors font-heading">Manage Courses</h3>
+                        <h3 class="font-bold text-slate-200 group-hover:text-emerald-400 transition-colors font-heading text-sm sm:text-base">Manage Courses</h3>
                         <i class="fas fa-arrow-right text-xs text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Organize course modules, topics, learning materials, and pricing.</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Organize modules, course topics, learning materials, and fees.</p>
                 </div>
             </a>
 
             <!-- Manage Students -->
-            <a href="{{ route('students.index') }}" class="group relative flex items-start p-5 glass-card rounded-2xl transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ route('students.index') }}" class="group relative flex items-start p-5 glass-card rounded-2xl transition-all duration-300">
                 <div class="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0 mr-4 shadow-md group-hover:bg-blue-600 group-hover:text-white transition-all">
                     <i class="fas fa-users-gear text-lg"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-slate-200 group-hover:text-blue-400 transition-colors font-heading">Manage Students</h3>
+                        <h3 class="font-bold text-slate-200 group-hover:text-blue-400 transition-colors font-heading text-sm sm:text-base">Manage Students</h3>
                         <i class="fas fa-arrow-right text-xs text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Review student profiles, enrollment statuses, and academic records.</p>
+                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">Inspect student performance, academic history, and accounts.</p>
                 </div>
             </a>
 
@@ -223,13 +231,13 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         <!-- Activity Stream Card -->
-        <div class="lg:col-span-2 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="lg:col-span-2 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800/80">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-bold text-white tracking-tight font-heading">Recent Platform Log</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Real-time activity stream</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Real-time system events stream</p>
                 </div>
-                <button onclick="showInfo('Audit logs automatically updated', 'Activity Feed')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition">
+                <button onclick="showInfo('Audit logs automatically updated', 'Activity Feed')" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition">
                     View Logs
                 </button>
             </div>
@@ -243,7 +251,7 @@
                     </div>
                     <div class="flex-1 glass-card p-4 rounded-2xl">
                         <div class="flex items-center justify-between">
-                            <p class="font-semibold text-slate-200 text-sm">New student account created</p>
+                            <p class="font-bold text-slate-200 text-sm">New student account created</p>
                             <span class="text-[11px] font-medium text-slate-500">2 hours ago</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Student registered and verified account details.</p>
@@ -257,7 +265,7 @@
                     </div>
                     <div class="flex-1 glass-card p-4 rounded-2xl">
                         <div class="flex items-center justify-between">
-                            <p class="font-semibold text-slate-200 text-sm">Assessment quiz published</p>
+                            <p class="font-bold text-slate-200 text-sm">Assessment quiz published</p>
                             <span class="text-[11px] font-medium text-slate-500">5 hours ago</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">New quiz published to Computer Science fundamentals.</p>
@@ -271,7 +279,7 @@
                     </div>
                     <div class="flex-1 glass-card p-4 rounded-2xl">
                         <div class="flex items-center justify-between">
-                            <p class="font-semibold text-slate-200 text-sm">Question bank expanded</p>
+                            <p class="font-bold text-slate-200 text-sm">Question bank expanded</p>
                             <span class="text-[11px] font-medium text-slate-500">1 day ago</span>
                         </div>
                         <p class="text-xs text-slate-400 mt-1">Questions updated and indexed successfully.</p>
@@ -282,7 +290,7 @@
         </div>
 
         <!-- System Health Widget -->
-        <div class="bg-gradient-to-br from-indigo-950/90 via-slate-900 to-purple-950/90 rounded-3xl p-6 sm:p-8 text-white flex flex-col justify-between shadow-2xl border border-indigo-500/20">
+        <div class="bg-gradient-to-br from-indigo-950/90 via-slate-900 to-purple-950/90 rounded-3xl p-6 sm:p-8 text-white flex flex-col justify-between shadow-2xl border border-indigo-500/20 glow-purple">
             <div>
                 <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6">
                     <i class="fas fa-shield-cat text-2xl"></i>
@@ -294,21 +302,21 @@
 
                 <div class="mt-6 space-y-3">
                     <div class="flex items-center justify-between text-xs py-2 border-b border-slate-800">
-                        <span class="text-slate-400">AI Tutor Engine</span>
-                        <span class="font-semibold text-emerald-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active</span>
+                        <span class="text-slate-400 font-medium">AI Tutor Engine</span>
+                        <span class="font-bold text-emerald-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active</span>
                     </div>
                     <div class="flex items-center justify-between text-xs py-2 border-b border-slate-800">
-                        <span class="text-slate-400">Database Engine</span>
-                        <span class="font-semibold text-slate-200">SQLite Connected</span>
+                        <span class="text-slate-400 font-medium">Database Engine</span>
+                        <span class="font-bold text-slate-200">SQLite Connected</span>
                     </div>
                     <div class="flex items-center justify-between text-xs py-2">
-                        <span class="text-slate-400">Paystack Gateway</span>
-                        <span class="font-semibold text-emerald-400">Online</span>
+                        <span class="text-slate-400 font-medium">Paystack Gateway</span>
+                        <span class="font-bold text-emerald-400">Online</span>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-indigo-300">
+            <div class="mt-8 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-indigo-300 font-semibold">
                 <span>Version 2.5.0-pro</span>
                 <i class="fas fa-circle-check text-emerald-400"></i>
             </div>
@@ -324,28 +332,44 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. Enrollment Line Chart
     const ctxEnrollment = document.getElementById('enrollmentChart')?.getContext('2d');
     if (ctxEnrollment) {
+        const gradient = ctxEnrollment.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
         new Chart(ctxEnrollment, {
             type: 'line',
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 datasets: [{
                     label: 'New Enrollments',
-                    data: [12, 19, 28, 45, 62, 85],
-                    borderColor: '#6366f1',
-                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                    borderWidth: 3,
+                    data: [12, 24, 38, 52, 70, 95],
+                    borderColor: '#818cf8',
+                    backgroundColor: gradient,
+                    borderWidth: 3.5,
                     fill: true,
                     tension: 0.4,
-                    pointBackgroundColor: '#818cf8',
-                    pointBorderColor: '#fff',
-                    pointHoverRadius: 6
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true
+                    }
                 },
                 scales: {
                     x: {
@@ -369,10 +393,10 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: ['Passed (>=70%)', 'Retake Required', 'In Progress'],
                 datasets: [{
-                    data: [65, 20, 15],
+                    data: [68, 18, 14],
                     backgroundColor: ['#10b981', '#f43f5e', '#6366f1'],
                     borderWidth: 0,
-                    hoverOffset: 6
+                    hoverOffset: 8
                 }]
             },
             options: {
@@ -383,12 +407,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         position: 'bottom',
                         labels: {
                             color: '#cbd5e1',
-                            font: { family: 'Plus Jakarta Sans', size: 11 },
-                            padding: 16
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+                            padding: 18,
+                            usePointStyle: true
                         }
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        padding: 12
                     }
                 },
-                cutout: '70%'
+                cutout: '72%'
             }
         });
     }
