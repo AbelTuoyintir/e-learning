@@ -6,16 +6,14 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
-        <div>
-            <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold shadow-inner">
-                    <i class="fas fa-user-graduate text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">Manage Students</h1>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Monitor, inspect academic records, and edit student profiles</p>
-                </div>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800/80">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 shrink-0">
+                <i class="fas fa-user-graduate text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">Manage Students</h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Monitor, inspect academic records, and edit student profiles</p>
             </div>
         </div>
 
@@ -24,7 +22,7 @@
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all">
+            <button onclick="showInfo('Student accounts can be registered via the student signup portal.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
             </button>
@@ -32,13 +30,13 @@
     </div>
 
     <!-- Students Table Card -->
-    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden">
+    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden border border-slate-800/80">
 
         <!-- Table Toolbar & Filters -->
         <div class="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <h2 class="text-lg font-bold text-white font-heading">Registered Student Roster</h2>
-                <span class="px-3 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <span class="px-3 py-0.5 rounded-full text-xs font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                     {{ $students->count() }} Enrolled
                 </span>
             </div>
@@ -46,11 +44,11 @@
             <!-- Search Filter Bar -->
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative max-w-xs w-full">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fas fa-search text-xs"></i>
                     </div>
-                    <input type="text" id="studentSearchInput" onkeyup="filterStudentTable()" placeholder="Search name or email..."
-                           class="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-2xl text-xs font-semibold text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
+                    <input type="text" id="studentSearchInput" onkeyup="filterStudentTable()" placeholder="Search student name, email..."
+                           class="w-full pl-9 pr-4 py-2.5 bg-slate-900/90 border border-slate-700/80 rounded-2xl text-xs font-semibold text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
 
                 <div class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
@@ -75,15 +73,18 @@
                 </thead>
                 <tbody class="divide-y divide-slate-800/80 text-sm" id="studentsTableBody">
                     @forelse($students as $student)
-                    <tr class="hover:bg-slate-800/40 transition-colors group student-row">
+                    <tr class="hover:bg-slate-800/50 transition-colors group student-row">
                         <!-- Student Name & Avatar -->
                         <td class="px-6 py-4">
                             <div class="flex items-center space-x-3.5">
-                                <img src="https://ui-avatars.com/api/?name={{ urlencode($student->firstname . ' ' . $student->lastname) }}&background=6366f1&color=ffffff&bold=true"
-                                     alt="{{ $student->firstname }}"
-                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-indigo-500/30 shrink-0">
+                                <div class="relative shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($student->firstname . ' ' . $student->lastname) }}&background=6366f1&color=ffffff&bold=true"
+                                         alt="{{ $student->firstname }}"
+                                         class="w-10 h-10 rounded-2xl object-cover ring-2 ring-indigo-500/40 shadow-md">
+                                    <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full {{ ($student->status ?? 'active') === 'active' ? 'bg-emerald-400 ring-2 ring-slate-900' : 'bg-slate-500 ring-2 ring-slate-900' }}"></span>
+                                </div>
                                 <div>
-                                    <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors student-name font-heading">
+                                    <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors student-name font-heading text-sm">
                                         {{ $student->firstname }} {{ $student->lastname }}
                                     </p>
                                     @if($student->middlename)
@@ -99,24 +100,24 @@
                         </td>
 
                         <!-- Phone -->
-                        <td class="px-6 py-4 text-slate-400">
+                        <td class="px-6 py-4 text-slate-400 font-medium">
                             {{ $student->phone ?? '—' }}
                         </td>
 
                         <!-- Program Badge -->
                         <td class="px-6 py-4">
                             @if($student->program || $student->Program)
-                            <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                            <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                                 <i class="fas fa-graduation-cap mr-1.5 text-indigo-400"></i>
                                 {{ $student->program ?? $student->Program }}
                             </span>
                             @else
-                            <span class="text-xs text-slate-500 italic">Unassigned</span>
+                            <span class="text-xs text-slate-500 italic font-medium">Unassigned</span>
                             @endif
                         </td>
 
                         <!-- Created At -->
-                        <td class="px-6 py-4 text-xs font-medium text-slate-400">
+                        <td class="px-6 py-4 text-xs font-semibold text-slate-400">
                             {{ $student->created_at ? $student->created_at->format('M d, Y') : 'N/A' }}
                         </td>
 
@@ -233,7 +234,7 @@
                                 First Name <span class="text-rose-400">*</span>
                             </label>
                             <input type="text" id="edit_firstname" name="firstname" required
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Last Name -->
@@ -242,7 +243,7 @@
                                 Last Name <span class="text-rose-400">*</span>
                             </label>
                             <input type="text" id="edit_lastname" name="lastname" required
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Email -->
@@ -251,7 +252,7 @@
                                 Email Address <span class="text-rose-400">*</span>
                             </label>
                             <input type="email" id="edit_email" name="email" required
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Phone -->
@@ -260,7 +261,7 @@
                                 Phone Number
                             </label>
                             <input type="tel" id="edit_phone" name="phone"
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                         </div>
                         
                         <!-- Program -->
@@ -269,7 +270,7 @@
                                 Academic Program
                             </label>
                             <select id="edit_program" name="program"
-                                    class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                    class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                                 <option value="">Select Program</option>
                                 <option value="Computer Science">Computer Science</option>
                                 <option value="Information Technology">Information Technology</option>
@@ -287,7 +288,7 @@
                                 Account Status
                             </label>
                             <select id="edit_status" name="status"
-                                    class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                    class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
@@ -321,11 +322,11 @@
                     <!-- Form Actions -->
                     <div class="flex items-center gap-3 pt-4 border-t border-slate-800">
                         <button type="button" onclick="closeEditModal()"
-                                class="flex-1 px-4 py-2.5 bg-slate-800 text-slate-300 rounded-2xl font-semibold text-xs hover:bg-slate-700 transition">
+                                class="flex-1 px-4 py-2.5 bg-slate-800 text-slate-300 rounded-2xl font-bold text-xs hover:bg-slate-700 transition">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition">
+                                class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-600/30 transition">
                             Save Changes
                         </button>
                     </div>
