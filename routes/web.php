@@ -9,6 +9,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminDashboardController;
 
 Route::get('/', function () {
     return view('home');
@@ -22,9 +23,7 @@ Route::get('/accessibility', function(){ return view('accessibility');})->name('
 // Admin Authentication Routes (using web guard)
 
 Route::middleware(['auth:web', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/admin/students', function () {
         $students = \App\Models\Student::all();
