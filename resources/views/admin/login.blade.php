@@ -20,12 +20,14 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070a11;
         }
 
         .ambient-glow {
             background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.2) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.2) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 60%);
         }
     </style>
 </head>

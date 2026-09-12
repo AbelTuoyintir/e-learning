@@ -56,37 +56,64 @@
 
         /* Custom smooth scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: #0b0f17; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
-        /* Dark Glassmorphism UI */
+        /* Premium Dark Glassmorphism UI */
         .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
         }
 
         .glass-card {
-            background: rgba(30, 41, 59, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 35px -10px rgba(99, 102, 241, 0.25), 0 0 20px -5px rgba(168, 85, 247, 0.15);
+            transform: translateY(-2px);
         }
 
-        /* Dark Ambient Glow Background */
+        /* Glowing Border Overlay */
+        .border-glow {
+            position: relative;
+        }
+        .border-glow::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.4));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+        .border-glow:hover::before {
+            opacity: 1;
+        }
+
+        /* Ambient Mesh Dynamic Glow Background */
         .dark-ambient-bg {
-            background-color: #0b0f17;
+            background-color: #070a11;
             background-image:
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
-                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 40%),
-                radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 45%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 45%),
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 55%),
+                radial-gradient(at 80% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
         }
     </style>
 </head>

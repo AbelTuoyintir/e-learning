@@ -6,33 +6,39 @@
 <div class="space-y-8">
 
     <!-- Hero Welcome Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20">
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-indigo-950/90 to-slate-900 p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/25 border-glow">
         <!-- Ambient background glows -->
-        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-gradient-to-br from-indigo-500/20 to-purple-500/30 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute right-1/3 -top-10 w-60 h-60 bg-blue-500/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-gradient-to-br from-indigo-500/25 to-purple-500/35 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute left-1/4 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="space-y-3 max-w-2xl">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 backdrop-blur-md border border-indigo-500/30 text-indigo-300 text-xs font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Admin Control Center
+            <div class="space-y-3.5 max-w-2xl">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/15 backdrop-blur-md border border-indigo-500/30 text-indigo-300 text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400"></span>
+                        Admin Control Center
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold">
+                        <i class="fas fa-bolt text-amber-400 text-[10px]"></i> Real-time Analytics
+                    </span>
                 </div>
-                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-heading">
-                    Welcome back, {{ Auth::user()->name ?? 'Admin' }}! 👋
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-heading leading-tight">
+                    Welcome back, <span class="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">{{ Auth::user()->name ?? 'Admin' }}</span>! 👋
                 </h1>
                 <p class="text-indigo-200/80 text-sm sm:text-base leading-relaxed">
-                    Overview of learning activity, platform health, quiz performance, and active student engagement.
+                    Real-time monitoring of learning engagements, AI tutoring sessions, quiz completion metrics, and course catalog status.
                 </p>
             </div>
 
             <!-- Quick Action CTA Pill -->
             <div class="flex items-center gap-3 shrink-0">
-                <a href="{{ route('quizzes.create') }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200">
+                <a href="{{ route('quizzes.create') }}" class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-95 transition-all duration-200">
                     <i class="fas fa-plus text-xs"></i>
                     <span>Create Quiz</span>
                 </a>
-                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white transition-all duration-200" title="Manage Catalog">
-                    <i class="fas fa-sliders"></i>
+                <a href="{{ route('courses.index') }}" class="inline-flex items-center justify-center p-3.5 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 backdrop-blur-md border border-slate-700 text-slate-300 hover:text-white transition-all duration-200 shadow-md" title="Manage Catalog">
+                    <i class="fas fa-sliders text-sm"></i>
                 </a>
             </div>
         </div>
@@ -316,39 +322,55 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Enrollment Line Chart
+        // 1. Enrollment Line Chart with Gradient Fill
     const ctxEnrollment = document.getElementById('enrollmentChart')?.getContext('2d');
     if (ctxEnrollment) {
+            const gradient = ctxEnrollment.createLinearGradient(0, 0, 0, 250);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
         new Chart(ctxEnrollment, {
             type: 'line',
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 datasets: [{
-                    label: 'New Enrollments',
+                        label: 'New Student Registrations',
                     data: [12, 19, 28, 45, 62, 85],
-                    borderColor: '#6366f1',
-                    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                        borderColor: '#818cf8',
                     borderWidth: 3,
+                        backgroundColor: gradient,
                     fill: true,
                     tension: 0.4,
-                    pointBackgroundColor: '#818cf8',
-                    pointBorderColor: '#fff',
-                    pointHoverRadius: 6
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleColor: '#f8fafc',
+                            bodyColor: '#c7d2fe',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 12,
+                            displayColors: false
+                        }
                 },
                 scales: {
                     x: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
                         ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
                     },
                     y: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
                         ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 11 } }
                     }
                 }
