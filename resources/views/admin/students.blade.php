@@ -6,25 +6,25 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border-glow">
         <div>
-            <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold shadow-inner">
-                    <i class="fas fa-user-graduate text-xl"></i>
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold shadow-lg shrink-0">
+                    <i class="fas fa-user-graduate text-2xl"></i>
                 </div>
                 <div>
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">Manage Students</h1>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Monitor, inspect academic records, and edit student profiles</p>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Monitor, inspect academic progress records, and manage student profiles</p>
                 </div>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs transition">
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition shadow-sm">
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-95 transition-all">
+            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-95 transition-all">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
             </button>
