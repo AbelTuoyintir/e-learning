@@ -149,6 +149,15 @@
         @yield('content')
     </main>
 
+    @php
+        // Hide AI tutor widget on quiz-taking and quiz-results pages.
+        $currentRouteName = request()->route()?->getName();
+        $isQuizTaking = $currentRouteName === 'quiz.start';
+        $isQuizResults = $currentRouteName === 'quiz.results';
+    @endphp
+
+    @if(!($isQuizTaking || $isQuizResults))
+
     <!-- Global AI Tutor Floating Widget -->
     <div class="fixed bottom-6 right-6 z-50">
         <button onclick="openAIChat()" class="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 group relative">
@@ -469,11 +478,14 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @endif
+
     <script>
         function toggleDropdown() {
             const dropdown = document.getElementById('profileDropdown');
             dropdown.classList.toggle('hidden');
         }
+
 
         function toggleNotifications() {
             const dropdown = document.getElementById('notificationsDropdown');
