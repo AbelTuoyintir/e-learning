@@ -6,7 +6,7 @@
 <div class="space-y-8">
 
     <!-- Header & Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl border-glow">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 border-glow">
         <div>
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 border border-indigo-500/30 text-indigo-400 flex items-center justify-center font-bold shadow-lg shrink-0">
@@ -24,7 +24,7 @@
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-95 transition-all">
+            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-95 transition-all border border-indigo-400/30">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
             </button>
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Students Table Card -->
-    <div class="glass-panel rounded-3xl shadow-xl overflow-hidden">
+    <div class="glass-panel rounded-3xl shadow-2xl overflow-hidden border border-slate-800">
 
         <!-- Table Toolbar & Filters -->
         <div class="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -46,11 +46,11 @@
             <!-- Search Filter Bar -->
             <div class="flex flex-wrap items-center gap-3">
                 <div class="relative max-w-xs w-full">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fas fa-search text-xs"></i>
                     </div>
                     <input type="text" id="studentSearchInput" onkeyup="filterStudentTable()" placeholder="Search name or email..."
-                           class="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700/80 rounded-2xl text-xs font-semibold text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
+                           class="w-full pl-9 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-2xl text-xs font-semibold text-slate-200 placeholder-slate-500 focus:bg-slate-900 focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
 
                 <div class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
@@ -64,7 +64,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-900/90 border-b border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">
+                    <tr class="bg-slate-950/90 border-b border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 font-heading">
                         <th class="px-6 py-4">Student Profile</th>
                         <th class="px-6 py-4">Email Address</th>
                         <th class="px-6 py-4">Phone</th>
@@ -81,7 +81,7 @@
                             <div class="flex items-center space-x-3.5">
                                 <img src="https://ui-avatars.com/api/?name={{ urlencode($student->firstname . ' ' . $student->lastname) }}&background=6366f1&color=ffffff&bold=true"
                                      alt="{{ $student->firstname }}"
-                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-indigo-500/30 shrink-0">
+                                     class="w-10 h-10 rounded-2xl object-cover ring-2 ring-indigo-500/30 shrink-0 shadow-md">
                                 <div>
                                     <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors student-name font-heading">
                                         {{ $student->firstname }} {{ $student->lastname }}
@@ -127,7 +127,7 @@
                                         data-student-id="{{ $student->id }}"
                                         data-route="{{ route('student.details', ['student' => $student->id]) }}"
                                         title="View Student Details"
-                                        class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-all">
+                                        class="p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/80 border border-transparent hover:border-slate-700/80 transition-all">
                                     <i class="fas fa-eye text-sm"></i>
                                 </button>
 
@@ -142,13 +142,13 @@
                                         data-student-status="{{ $student->status }}"
                                         data-route="{{ route('student.update', $student->id) }}"
                                         title="Edit Student Info"
-                                        class="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-all">
+                                        class="p-2.5 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/80 border border-transparent hover:border-slate-700/80 transition-all">
                                     <i class="fas fa-pen text-sm"></i>
                                 </button>
 
                                 <button onclick="showInfo('Student record archiving enabled', 'Info')"
                                         title="Delete Student"
-                                        class="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all">
+                                        class="p-2.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all">
                                     <i class="fas fa-trash-can text-sm"></i>
                                 </button>
                             </div>
@@ -157,10 +157,10 @@
                     @empty
                     <tr>
                         <td colspan="6" class="px-6 py-16 text-center text-slate-400">
-                            <div class="w-16 h-16 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-800/80 text-slate-400 flex items-center justify-center mx-auto mb-3 border border-slate-700">
                                 <i class="fas fa-users-slash text-2xl"></i>
                             </div>
-                            <p class="font-bold text-slate-200">No students registered yet</p>
+                            <p class="font-bold text-slate-200 font-heading">No students registered yet</p>
                             <p class="text-xs text-slate-400 mt-1">Students will appear here once registered.</p>
                         </td>
                     </tr>
@@ -173,9 +173,9 @@
 </div>
 
 <!-- Student Details Modal -->
-<div id="studentDetailsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden overflow-y-auto">
+<div id="studentDetailsModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden overflow-y-auto">
     <div class="min-h-screen px-4 py-8 flex items-center justify-center">
-        <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
+        <div class="bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
             
             <!-- Modal Header -->
             <div class="sticky top-0 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center z-10">
@@ -183,7 +183,7 @@
                     <i class="fas fa-user-graduate text-indigo-400"></i>
                     Student Performance Profile
                 </h2>
-                <button onclick="closeStudentModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition">
+                <button onclick="closeStudentModal()" class="w-8 h-8 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition border border-slate-700/80">
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>
@@ -204,9 +204,9 @@
 </div>
 
 <!-- Edit Student Modal -->
-<div id="editStudentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden overflow-y-auto">
+<div id="editStudentModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden overflow-y-auto">
     <div class="min-h-screen px-4 py-8 flex items-center justify-center">
-        <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
+        <div class="bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative border border-slate-800">
             
             <!-- Modal Header -->
             <div class="sticky top-0 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center z-10">
@@ -214,7 +214,7 @@
                     <i class="fas fa-user-pen text-indigo-400"></i>
                     Edit Student Profile
                 </h2>
-                <button onclick="closeEditModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition">
+                <button onclick="closeEditModal()" class="w-8 h-8 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition border border-slate-700/80">
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>
@@ -233,7 +233,7 @@
                                 First Name <span class="text-rose-400">*</span>
                             </label>
                             <input type="text" id="edit_firstname" name="firstname" required
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         </div>
                         
                         <!-- Last Name -->
@@ -242,7 +242,7 @@
                                 Last Name <span class="text-rose-400">*</span>
                             </label>
                             <input type="text" id="edit_lastname" name="lastname" required
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         </div>
                         
                         <!-- Email -->
@@ -251,7 +251,7 @@
                                 Email Address <span class="text-rose-400">*</span>
                             </label>
                             <input type="email" id="edit_email" name="email" required
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         </div>
                         
                         <!-- Phone -->
@@ -260,7 +260,7 @@
                                 Phone Number
                             </label>
                             <input type="tel" id="edit_phone" name="phone"
-                                   class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                   class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                         </div>
                         
                         <!-- Program -->
@@ -269,7 +269,7 @@
                                 Academic Program
                             </label>
                             <select id="edit_program" name="program"
-                                    class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                    class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                                 <option value="">Select Program</option>
                                 <option value="Computer Science">Computer Science</option>
                                 <option value="Information Technology">Information Technology</option>
@@ -287,7 +287,7 @@
                                 Account Status
                             </label>
                             <select id="edit_status" name="status"
-                                    class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                                    class="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
@@ -306,13 +306,13 @@
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">New Password</label>
                                 <input type="password" id="edit_password" name="password"
-                                       class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                                       class="w-full px-4 py-2 bg-slate-800/80 border border-slate-700 rounded-2xl text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500"
                                        placeholder="Leave blank to keep current">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Confirm Password</label>
                                 <input type="password" id="edit_password_confirmation" name="password_confirmation"
-                                       class="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-2xl text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                                       class="w-full px-4 py-2 bg-slate-800/80 border border-slate-700 rounded-2xl text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500"
                                        placeholder="Confirm new password">
                             </div>
                         </div>
@@ -325,7 +325,7 @@
                             Cancel
                         </button>
                         <button type="submit"
-                                class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition">
+                                class="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition border border-indigo-400/30">
                             Save Changes
                         </button>
                     </div>
@@ -400,7 +400,7 @@ function renderStudentDetails(data) {
     
     const html = `
         <!-- Profile Banner Header -->
-        <div class="flex flex-col sm:flex-row items-center gap-5 p-6 bg-slate-800/60 rounded-2xl border border-slate-700/80 mb-6">
+        <div class="flex flex-col sm:flex-row items-center gap-5 p-6 bg-slate-800/60 rounded-2xl border border-slate-700/80 mb-6 shadow-md">
             <img src="${student.avatar}" alt="${student.fullname}" class="w-16 h-16 rounded-2xl object-cover ring-4 ring-indigo-500/30 shadow-md">
             <div class="text-center sm:text-left flex-1">
                 <h3 class="text-xl font-extrabold text-white font-heading">${student.fullname}</h3>
@@ -442,18 +442,18 @@ function renderStudentDetails(data) {
             </h4>
             <div class="space-y-3">
                 ${enrolledCourses.map(course => `
-                    <div class="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl">
+                    <div class="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl shadow-sm">
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <p class="font-bold text-slate-200 text-sm font-heading">${course.title}</p>
                                 <p class="text-xs text-slate-400">Code: ${course.code} | Enrolled: ${course.enrolled_at}</p>
                             </div>
-                            <span class="text-xs font-bold ${course.progress >= 100 ? 'text-emerald-400' : 'text-indigo-400'}">
+                            <span class="text-xs font-bold ${course.progress >= 100 ? 'text-emerald-400' : 'text-indigo-400'} font-heading">
                                 ${course.progress}% Completed
                             </span>
                         </div>
-                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
-                            <div class="bg-indigo-500 h-2 rounded-full transition-all duration-300" style="width: ${course.progress}%"></div>
+                        <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-300" style="width: ${course.progress}%"></div>
                         </div>
                     </div>
                 `).join('')}
