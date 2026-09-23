@@ -24,7 +24,7 @@
                     </span>
                 </div>
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-heading leading-tight">
-                    Welcome back, <span class="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">{{ Auth::user()->name ?? 'Admin' }}</span>! 👋
+                    Welcome back, <span class="bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 bg-clip-text text-transparent inline-block font-extrabold">{{ Auth::user()->name ?? 'Admin' }}</span>! 👋
                 </h1>
                 <p class="text-indigo-200/80 text-sm sm:text-base leading-relaxed">
                     Real-time monitoring of learning engagements, AI tutoring sessions, quiz completion metrics, and course catalog status.
