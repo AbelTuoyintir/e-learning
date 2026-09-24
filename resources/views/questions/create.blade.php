@@ -1,61 +1,105 @@
 @extends('layouts.app')
 
+@section('title', 'Add Question')
+
 @section('content')
-<div class="container mx-auto p-6 max-w-3xl">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">
-        Edit Question in: <span class="text-blue-600">{{ $quiz->title }}</span>
-    </h1>
+<div class="space-y-6 max-w-3xl mx-auto">
 
-    <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <form action="{{ route('questions.update',[$quiz->id, $question->id]) }}" method="POST" class="space-y-6">
+    <!-- Header Card -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30">
+                <i class="fas fa-plus text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">Add Question</h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Quiz: <span class="font-bold text-indigo-400">{{ $quiz->title }}</span></p>
+            </div>
+        </div>
+
+        <a href="{{ route('questions.index', $quiz->id) }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs transition">
+            <i class="fas fa-arrow-left"></i>
+            <span>Question Bank</span>
+        </a>
+    </div>
+
+    <!-- Form Container -->
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl">
+        <form action="{{ route('questions.store', ['quiz' => $quiz]) }}" method="POST" class="space-y-6">
             @csrf
-            @method('PUT')
 
-            <!-- Question Text -->
+            <!-- Question -->
             <div>
-                <label class="block text-gray-700 font-medium mb-1">Question</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Question Text <span class="text-rose-400">*</span></label>
                 <textarea name="question_text" rows="3"
-                          class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                          placeholder="Enter your question here..." required>{{ old('question_text', $question->question_text) }}</textarea>
+                          class="w-full px-4 py-3 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition font-medium placeholder-slate-500"
+                          placeholder="Enter question prompt..." required>{{ old('question_text') }}</textarea>
             </div>
 
-            <!-- Points -->
-            <div>
-                <label class="block text-gray-700 font-medium mb-1">Points</label>
-                <input type="number" name="points"
-                       class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                       value="{{ old('points', $question->points) }}" min="1" required>
-            </div>
+            <!-- Options Grid -->
+            <div class="space-y-3">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 font-heading">Answer Options (A, B, C, D) <span class="text-rose-400">*</span></label>
 
-            <!-- Options -->
-            <div>
-                <label class="block text-gray-700 font-medium mb-2">Answer Options</label>
-                <p class="text-sm text-gray-500 mb-3">Enter possible answers and select the correct one.</p>
-
-                @for ($i = 0; $i < 4; $i++)
-                    <div class="flex items-center space-x-3 mb-3">
-                        <!-- Correct Answer -->
-                        <input type="radio" name="correct_option" value="{{ $i }}"
-                               class="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                               @if(old('correct_option', $question->correct_option) == $i) checked @endif required>
-
-                        <!-- Option Text -->
-                        <input type="text" name="options[]"
-                               class="border p-3 flex-1 rounded-lg focus:ring focus:ring-blue-300"
-                               placeholder="Option {{ $i + 1 }}"
-                               value="{{ old('options.' . $i, $question->options[$i] ?? '') }}" required>
+                <div class="space-y-3">
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-3 text-xs font-extrabold text-indigo-400">A.</span>
+                        <input type="text" name="option_a" placeholder="Option A" value="{{ old('option_a') }}"
+                               class="w-full pl-9 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium placeholder-slate-500" required>
                     </div>
-                @endfor
+
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-3 text-xs font-extrabold text-indigo-400">B.</span>
+                        <input type="text" name="option_b" placeholder="Option B" value="{{ old('option_b') }}"
+                               class="w-full pl-9 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium placeholder-slate-500" required>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-3 text-xs font-extrabold text-indigo-400">C.</span>
+                        <input type="text" name="option_c" placeholder="Option C" value="{{ old('option_c') }}"
+                               class="w-full pl-9 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium placeholder-slate-500" required>
+                    </div>
+
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-3 text-xs font-extrabold text-indigo-400">D.</span>
+                        <input type="text" name="option_d" placeholder="Option D" value="{{ old('option_d') }}"
+                               class="w-full pl-9 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium placeholder-slate-500" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Correct Option & Points Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Correct Option <span class="text-rose-400">*</span></label>
+                    <select name="correct_option" class="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 font-bold transition" required>
+                        <option value="" disabled @selected(!old('correct_option'))>-- Select Correct Answer --</option>
+                        <option value="A" @selected(old('correct_option') === 'A')>Option A</option>
+                        <option value="B" @selected(old('correct_option') === 'B')>Option B</option>
+                        <option value="C" @selected(old('correct_option') === 'C')>Option C</option>
+                        <option value="D" @selected(old('correct_option') === 'D')>Option D</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Points <span class="text-rose-400">*</span></label>
+                    <input type="number" name="points" min="1" value="{{ old('points', 1) }}"
+                           class="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 font-bold transition" required>
+                </div>
             </div>
 
             <!-- Submit -->
-            <div class="flex justify-end">
+            <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+                <a href="{{ route('questions.index', $quiz->id) }}" class="px-5 py-2.5 rounded-2xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs transition">
+                    Cancel
+                </a>
                 <button type="submit"
-                        class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg shadow">
-                    Update Question
+                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/30 transition">
+                    <i class="fas fa-floppy-disk text-xs"></i>
+                    <span>Save Question</span>
                 </button>
             </div>
         </form>
     </div>
+
 </div>
 @endsection

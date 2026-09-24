@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    //
-    public function index(){
+    /**
+     * Display the admin control center dashboard with real-time platform metrics.
+     */
+    public function index()
+    {
         $activeStudents = \App\Models\Student::where('status', 'active')->count();
         $totalResultsCount = \App\Models\Result::count();
         $modulePassRate = $totalResultsCount > 0 ? (\App\Models\Result::where('passed', 1)->count() / $totalResultsCount * 100) : 0;
@@ -16,15 +19,17 @@ class AdminDashboardController extends Controller
         $courseCount = \App\Models\Course::count();
         $moduleCount = \App\Models\Module::count();
 
-        // Optimized Course Completion Rate calculation
+        // Course Completion Rate calculation
         $courseCompletionRate = 0;
         $totalEnrollmentsCount = \App\Models\Enrollment::count();
         if ($totalEnrollmentsCount > 0) {
-            $completedEnrollmentsCount = \App\Models\Enrollment::whereHas('course', function($q) {
-                $q->whereHas('quizzes', function($sq) { $sq->where('quiz_type', 'module_assessment'); });
-            })->whereDoesntHave('course.quizzes', function($q) {
+            $completedEnrollmentsCount = \App\Models\Enrollment::whereHas('course', function ($q) {
+                $q->whereHas('quizzes', function ($sq) {
+                    $sq->where('quiz_type', 'module_assessment');
+                });
+            })->whereDoesntHave('course.quizzes', function ($q) {
                 $q->where('quiz_type', 'module_assessment')
-                  ->whereDoesntHave('results', function($sq) {
+                  ->whereDoesntHave('results', function ($sq) {
                       $sq->where('passed', 1)->whereColumn('results.student_id', 'enrollments.student_id');
                   });
             })->count();
@@ -32,7 +37,7 @@ class AdminDashboardController extends Controller
             $courseCompletionRate = ($completedEnrollmentsCount / $totalEnrollmentsCount) * 100;
         }
 
-        // Most Difficult Topics
+        // Most Difficult Topics ranking
         $mostDifficultTopics = \App\Models\Topic::select('topics.title', \Illuminate\Support\Facades\DB::raw('AVG(results.percentage) as avg_score'))
             ->join('quizzes', 'topics.id', '=', 'quizzes.topic_id')
             ->join('results', 'quizzes.id', '=', 'results.quiz_id')

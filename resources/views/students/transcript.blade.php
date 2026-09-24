@@ -37,14 +37,19 @@
         </thead>
         <tbody>
             @foreach($results as $result)
+            @php
+                $questionCount = $result->quiz->questions->count();
+                $totalPossible = $result->total_possible_points ?? ($questionCount > 0 ? $questionCount : 1);
+                $percentage = $result->percentage ?? (($totalPossible > 0) ? ($result->score / $totalPossible) * 100 : 0);
+            @endphp
             <tr>
                 <td>{{ $result->quiz->title }}</td>
-                <td>{{ $result->score }}/{{ $result->quiz->questions->count() }}</td>
-                <td>{{ number_format(($result->score / $result->quiz->questions->count()) * 100, 1) }}%</td>
+                <td>{{ $result->score }}/{{ $totalPossible }}</td>
+                <td>{{ number_format($percentage, 1) }}%</td>
                 <td class="{{ $result->passed ? 'passed' : 'failed' }}">
                     {{ $result->passed ? 'Passed' : 'Failed' }}
                 </td>
-                <td>{{ $result->completed_at->format('M d, Y') }}</td>
+                <td>{{ $result->completed_at ? $result->completed_at->format('M d, Y') : 'N/A' }}</td>
             </tr>
             @endforeach
         </tbody>

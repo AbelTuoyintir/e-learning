@@ -1,23 +1,39 @@
 @extends('layouts.app')
 
+@section('title', 'Quiz Settings')
+
 @section('content')
-<div class="container mx-auto p-6 max-w-3xl">
-    <!-- Page Header -->
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">
-        ⚙️ Quiz Settings for: <span class="text-blue-600">{{ $quiz->title }}</span>
-    </h1>
+<div class="space-y-6 max-w-3xl mx-auto">
+
+    <!-- Header Card -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                <i class="fas fa-sliders text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Quiz Settings</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Custom configurations for {{ $quiz->title }}</p>
+            </div>
+        </div>
+
+        <a href="{{ route('quizzes.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back</span>
+        </a>
+    </div>
 
     <!-- Settings Card -->
-    <div class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
         <form action="{{ route('quizzes.settings.update', $quiz->id) }}" method="POST" class="space-y-6">
             @csrf
             @method('PUT')
 
             <!-- Difficulty -->
             <div>
-                <label class="block text-gray-700 font-medium mb-1">Difficulty Level</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Difficulty Level</label>
                 <select name="difficulty"
-                        class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300">
+                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 transition font-medium capitalize">
                     <option value="easy" {{ $quiz->difficulty == 'easy' ? 'selected' : '' }}>Easy</option>
                     <option value="medium" {{ $quiz->difficulty == 'medium' ? 'selected' : '' }}>Medium</option>
                     <option value="hard" {{ $quiz->difficulty == 'hard' ? 'selected' : '' }}>Hard</option>
@@ -26,44 +42,53 @@
 
             <!-- Time Limit -->
             <div>
-                <label class="block text-gray-700 font-medium mb-1">Time Limit (minutes)</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Time Limit (minutes)</label>
                 <input type="number" name="time_limit"
-                       class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
+                       class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 transition font-medium"
                        placeholder="e.g. 30" min="0"
                        value="{{ $quiz->time_limit ?? '' }}">
-                <p class="text-sm text-gray-500 mt-1">Leave blank for no time limit.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Leave blank for untimed quiz mode.</p>
             </div>
 
             <!-- Shuffle Options -->
-            <div class="flex items-center space-x-3">
-                <input type="checkbox" id="shuffle_questions" name="shuffle_questions" value="1"
-                       {{ $quiz->shuffle_questions ? 'checked' : '' }}
-                       class="h-5 w-5 text-blue-600 focus:ring-blue-500 rounded">
-                <label for="shuffle_questions" class="text-gray-700">Shuffle Questions</label>
-            </div>
+            <div class="p-4 bg-slate-50/70 border border-slate-100 rounded-2xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label for="shuffle_questions" class="text-xs font-bold text-slate-800">Shuffle Questions</label>
+                        <p class="text-[11px] text-slate-500">Randomize question order for each attempt</p>
+                    </div>
+                    <input type="checkbox" id="shuffle_questions" name="shuffle_questions" value="1"
+                           {{ $quiz->shuffle_questions ? 'checked' : '' }}
+                           class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded transition">
+                </div>
 
-            <div class="flex items-center space-x-3">
-                <input type="checkbox" id="shuffle_answers" name="shuffle_answers" value="1"
-                       {{ $quiz->shuffle_answers ? 'checked' : '' }}
-                       class="h-5 w-5 text-blue-600 focus:ring-blue-500 rounded">
-                <label for="shuffle_answers" class="text-gray-700">Shuffle Answer Options</label>
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <div>
+                        <label for="shuffle_answers" class="text-xs font-bold text-slate-800">Shuffle Options</label>
+                        <p class="text-[11px] text-slate-500">Randomize order of options A, B, C, D</p>
+                    </div>
+                    <input type="checkbox" id="shuffle_answers" name="shuffle_answers" value="1"
+                           {{ $quiz->shuffle_answers ? 'checked' : '' }}
+                           class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded transition">
+                </div>
             </div>
 
             <!-- Pass Mark -->
             <div>
-                <label class="block text-gray-700 font-medium mb-1">Pass Mark (%)</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Pass Mark (%)</label>
                 <input type="number" name="pass_mark"
-                       class="border p-3 w-full rounded-lg focus:ring focus:ring-blue-300"
-                       placeholder="e.g. 50" min="0" max="100"
+                       class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 transition font-medium"
+                       placeholder="e.g. 70" min="0" max="100"
                        value="{{ $quiz->pass_mark ?? '' }}">
-                <p class="text-sm text-gray-500 mt-1">Percentage required to pass this quiz.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Score percentage required to unlock next module.</p>
             </div>
 
             <!-- Submit -->
-            <div class="flex justify-end">
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
                 <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow">
-                    Save Settings
+                        class="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 transition">
+                    <i class="fas fa-floppy-disk"></i>
+                    <span>Save Settings</span>
                 </button>
             </div>
         </form>

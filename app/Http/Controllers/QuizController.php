@@ -63,6 +63,8 @@ class QuizController extends Controller
             'module_id' => 'nullable|exists:modules,id',
             'topic_id' => 'nullable|exists:topics,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'max_attempts' => 'nullable|integer|min:1',
         ]);
 
         // Handle image upload if present
@@ -88,6 +90,8 @@ class QuizController extends Controller
             'module_id' => 'nullable|exists:modules,id',
             'topic_id' => 'nullable|exists:topics,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'passing_score' => 'nullable|integer|min:0|max:100',
+            'max_attempts' => 'nullable|integer|min:1',
         ]);
 
         // Handle new image upload

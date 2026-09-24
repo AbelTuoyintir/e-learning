@@ -8,11 +8,11 @@ use App\Models\Question;
 use App\Models\Result;
 use App\Models\Student;
 use App\Models\Notification;
+use App\Models\Course;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use App\Mail\StudentResultMail;
-use App\Services\CourseProgressionService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -204,7 +204,32 @@ public function submit(Request $request, Quiz $quiz)
         return $this->denyQuizAccess($quiz);
     }
 
-    
+    // Check module progress/retake status before allowing submission
+    if ($quiz->module_id) {
+        $moduleProgress = \App\Models\ModuleProgress::where([
+            'student_id' => Auth::id(),
+            'module_id' => $quiz->module_id
+        ])->first();
+
+        if ($moduleProgress) {
+            if ($moduleProgress->status === 'Retake Required') {
+                return redirect()->back()->with('error', 'Module retake required. Please review all module topics before attempting the assessment again.');
+            }
+
+            if ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
+                $moduleProgress->update(['status' => 'Retake Required']);
+
+                // Reset all topic progress for this module to 'In Progress'
+                $topicIds = \App\Models\Topic::where('module_id', $quiz->module_id)->pluck('id');
+                \App\Models\TopicProgress::where('student_id', Auth::id())
+                    ->whereIn('topic_id', $topicIds)
+                    ->update(['status' => 'In Progress']);
+
+                return redirect()->back()->with('error', 'Maximum attempts reached. Module retake required.');
+            }
+        }
+    }
+
     \Log::info('=== QUIZ SUBMIT START ===', [
         'quiz_id' => $quiz->id,
         'quiz_title' => $quiz->title,
@@ -231,7 +256,7 @@ public function submit(Request $request, Quiz $quiz)
 
             // Eager load questions to avoid N+1 query
             $quiz->load(['questions' => function($query) {
-                $query->select('id', 'quiz_id', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'points'); // Added 'points'
+                $query->select('id', 'quiz_id', 'type', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'points'); // Added 'points'
             }]);
 
             \Log::debug('Questions loaded', [
@@ -389,13 +414,13 @@ public function submit(Request $request, Quiz $quiz)
             ]);
 
             // Update module progress attempts
-            $progressionService = new CourseProgressionService();
             if ($quiz->module_id) {
                 $moduleProgress = \App\Models\ModuleProgress::where('student_id', Auth::id())
                     ->where('module_id', $quiz->module_id)
                     ->first();
                 if ($moduleProgress) {
-                    $moduleProgress->increment('attempts_since_retake');
+                    $moduleProgress->attempts_since_retake = ($moduleProgress->attempts_since_retake ?? 0) + 1;
+                    $moduleProgress->save();
                     if ($passed) {
                         $moduleProgress->update(['status' => 'Completed']);
 
@@ -415,16 +440,16 @@ public function submit(Request $request, Quiz $quiz)
                             'type' => 'success',
                         ]);
 
-                        $courseId = $quiz->module->course_id;
-                        $totalModules = \App\Models\Module::where('course_id', $courseId)->count();
+                        // Check for Course Completion
+                        $totalModules = \App\Models\Module::where('course_id', $quiz->module->course_id)->count();
                         $completedModules = \App\Models\ModuleProgress::where('student_id', Auth::id())
-                            ->whereHas('module', function($q) use ($courseId) {
-                                $q->where('course_id', $courseId);
+                            ->whereHas('module', function($q) use ($quiz) {
+                                $q->where('course_id', $quiz->module->course_id);
                             })
                             ->where('status', 'Completed')
                             ->count();
 
-                        if ($completedModules >= $totalModules) {
+                        if ($completedModules === $totalModules) {
                             \App\Models\Notification::create([
                                 'student_id' => Auth::id(),
                                 'title' => 'Course Completed!',
@@ -435,42 +460,21 @@ public function submit(Request $request, Quiz $quiz)
                             \App\Models\LearningHistory::create([
                                 'student_id' => Auth::id(),
                                 'activity_type' => 'course_completed',
-                                'related_id' => $courseId,
+                                'related_id' => $quiz->module->course_id,
                                 'related_type' => 'course',
                                 'description' => "Completed course '{$quiz->module->course->title}'",
                             ]);
                         }
                     } elseif ($moduleProgress->attempts_since_retake >= ($quiz->max_attempts ?? 4)) {
                         $moduleProgress->update(['status' => 'Retake Required']);
+
+                        // Reset topic progress for this module to force re-learning
+                        \App\Models\TopicProgress::where('student_id', Auth::id())
+                            ->whereHas('topic', function($q) use ($quiz) {
+                                $q->where('module_id', $quiz->module_id);
+                            })
+                            ->update(['status' => 'In Progress']);
                     }
-                }
-            }
-
-            if ($progressionService->isCourseCompletionQuiz($quiz) && $passed) {
-                $courseId = $quiz->course_id;
-                $moduleCount = \App\Models\Module::where('course_id', $courseId)->count();
-                $completedModuleCount = \App\Models\ModuleProgress::where('student_id', Auth::id())
-                    ->whereHas('module', function ($query) use ($courseId) {
-                        $query->where('course_id', $courseId);
-                    })
-                    ->where('status', 'Completed')
-                    ->count();
-
-                if ($moduleCount === 0 || $completedModuleCount >= $moduleCount) {
-                    \App\Models\Notification::create([
-                        'student_id' => Auth::id(),
-                        'title' => 'Course Completed!',
-                        'message' => "Amazing! You passed the course completion quiz and finished the course: {$quiz->course->title}.",
-                        'type' => 'success',
-                    ]);
-
-                    \App\Models\LearningHistory::create([
-                        'student_id' => Auth::id(),
-                        'activity_type' => 'course_completed',
-                        'related_id' => $courseId,
-                        'related_type' => 'course',
-                        'description' => "Completed course '{$quiz->course->title}'",
-                    ]);
                 }
             }
 
@@ -613,9 +617,9 @@ private function calculatePercentage($score, $total): float
  */
 private function isPassed($percentage, $quiz): bool
 {
-    // Strict final quiz rule: use quizzes.passing_score (default 65).
+    // Strict final quiz rule: use quizzes.passing_score (default 70).
     // Practice quizzes are non-gating (still computed, but module progression ignores it).
-    $passPercentage = $quiz->passing_score ?? 65;
+    $passPercentage = $quiz->passing_score ?? 70;
     return $percentage >= $passPercentage;
 }
 
@@ -1267,6 +1271,65 @@ public function updateStudent(Request $request, $studentId)
             'message' => 'Failed to update student: ' . $e->getMessage()
         ], 500);
     }
+}
+
+/**
+ * Generate and download academic transcript as PDF.
+ */
+public function downloadTranscript()
+{
+    $student = Auth::user();
+    $results = Result::where('student_id', $student->id)
+        ->with(['quiz.questions'])
+        ->get();
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.transcript', compact('student', 'results'));
+    return $pdf->download("transcript-{$student->id}.pdf");
+}
+
+/**
+ * Generate and download course completion certificate as PDF.
+ */
+public function downloadCertificate(Course $course)
+{
+    $student = Auth::user();
+
+    // Verify enrollment
+    $isEnrolled = $student->enrollments()->where('course_id', $course->id)->exists();
+    if (!$isEnrolled) {
+        return redirect()->back()->with('error', 'You must be enrolled in this course to download the certificate.');
+    }
+
+    // Check for course completion (all modules must be completed)
+    $totalModules = $course->modules()->count();
+    $completedModules = \App\Models\ModuleProgress::where('student_id', $student->id)
+        ->whereHas('module', function ($q) use ($course) {
+            $q->where('course_id', $course->id);
+        })
+        ->where('status', 'Completed')
+        ->count();
+
+    if ($totalModules === 0 || $completedModules < $totalModules) {
+        return redirect()->back()->with('error', 'You must complete all modules in this course to download your certificate.');
+    }
+
+    // Determine completion date
+    $latestCompletion = \App\Models\ModuleProgress::where('student_id', $student->id)
+        ->whereHas('module', function ($q) use ($course) {
+            $q->where('course_id', $course->id);
+        })
+        ->where('status', 'Completed')
+        ->latest('updated_at')
+        ->first();
+
+    $completionDate = $latestCompletion && $latestCompletion->updated_at
+        ? $latestCompletion->updated_at->format('F d, Y')
+        : now()->format('F d, Y');
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.certificate', compact('student', 'course', 'completionDate'))
+        ->setPaper('a4', 'landscape');
+
+    return $pdf->download("certificate-{$course->id}.pdf");
 }
 
 }

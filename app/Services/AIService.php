@@ -23,6 +23,10 @@ class AIService
         $enrichedPrompt = $this->buildContextPrompt($prompt, $context);
         $cacheKey = 'ai_response_' . md5($enrichedPrompt . serialize($context));
 
+        // Let's re-read the configuration so that runtime config updates are taken into account
+        $this->openaiApiKey = config('services.openai.key');
+        $this->ollamaBaseUrl = config('services.ollama.url') ?: 'https://api.ollama.cloud';
+
         return \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(1), function () use ($enrichedPrompt, $context) {
             if ($this->openaiApiKey) {
                 try {
@@ -92,7 +96,7 @@ class AIService
             $ollamaModel = config('services.ollama.model', env('OLLAMA_MODEL', 'llama2'));
 
             $url = rtrim($this->ollamaBaseUrl, '/');
-            if (!str_ends_with($url, '/api/generate')) {
+            if (!str_ends_with($url, '/api/generate') && !str_contains($url, '/api/generate')) {
                 $url .= '/api/generate';
             }
 

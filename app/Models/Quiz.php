@@ -26,6 +26,7 @@ class Quiz extends Model
         'is_active',
         'question_distribution',
         'type',
+        'quiz_type',
         'related_to_id',     // For polymorphic relationship
         'related_to_type'    // For polymorphic relationship
     ];

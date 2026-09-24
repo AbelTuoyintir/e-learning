@@ -21,6 +21,8 @@ class AIServiceTest extends TestCase
 
         config(['services.openai.key' => 'test-key']);
 
+        \Illuminate\Support\Facades\Cache::flush();
+
         $service = new AIService();
 
         $response = $service->ask('Hello');
@@ -31,12 +33,18 @@ class AIServiceTest extends TestCase
 
     public function test_ask_falls_back_to_ollama_on_openai_failure()
     {
+        config(['services.openai.key' => 'test-key']);
+        config(['services.ollama.url' => 'https://ollama.com']);
+
         Http::fake([
             'api.openai.com/*' => Http::response([], 500),
-            'ollama.com/api/*' => Http::response(['response' => 'Ollama response'], 200),
+            'api.ollama.cloud/*' => Http::response(['response' => 'Ollama response'], 200),
         ]);
 
-        config(['services.openai.key' => 'test-key']);
+        config([
+            'services.openai.key' => 'test-key',
+            'services.ollama.url' => 'https://api.ollama.cloud',
+        ]);
 
         $service = new AIService();
 
