@@ -15,6 +15,39 @@ use App\Models\Student;
 
 class AuthController extends Controller
 {
+    public function showStudentRegistrationForm()
+    {
+        return view('students.register');
+    }
+
+    public function registerStudent(Request $request)
+    {
+        $validated = $request->validate([
+            'firstname' => ['required', 'string', 'max:255'],
+            'middlename' => ['nullable', 'string', 'max:255'],
+            'lastname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:students,email'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'program' => ['nullable', 'string', 'max:255'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $student = Student::create([
+            'firstname' => $validated['firstname'],
+            'middlename' => $validated['middlename'] ?? null,
+            'lastname' => $validated['lastname'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'Program' => $validated['program'] ?? null,
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        Auth::guard('student')->login($student);
+        $request->session()->regenerate();
+
+        return redirect()->route('students.dashboard');
+    }
+
     // Student Login Methods
     public function login(){
         return view('students.studLogin');

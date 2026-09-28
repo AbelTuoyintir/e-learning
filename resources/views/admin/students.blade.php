@@ -24,10 +24,10 @@
                 <i class="fas fa-arrow-left"></i>
                 <span>Dashboard</span>
             </a>
-            <button onclick="showInfo('Student accounts can be registered via the student signup page.', 'Add Student')" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-95 transition-all">
+            <a href="{{ route('admin.students.create') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] active:scale-95 transition-all">
                 <i class="fas fa-plus"></i>
                 <span>Add Student</span>
-            </button>
+            </a>
         </div>
     </div>
 

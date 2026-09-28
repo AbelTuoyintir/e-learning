@@ -39,8 +39,10 @@ Route::middleware('guest:web')->group(function () {
 // Student Authentication Routes
 Route::get('/student/login', [AuthController::class, 'login'])->name('login');
 Route::post('/student/login/submit', [AuthController::class, 'studentLogin'])->name('student.login.submit');
-Route::get('/student/register', [AuthController::class, 'showStudentRegistrationForm'])->name('student.register');
-Route::post('/student/register', [AuthController::class, 'registerStudent'])->name('student.register.submit');  
+Route::middleware('guest:student')->group(function () {
+    Route::get('/student/register', [AuthController::class, 'showStudentRegistrationForm'])->name('student.register');
+    Route::post('/student/register', [AuthController::class, 'registerStudent'])->name('student.register.submit');
+});
 Route::get('/tutor/login', [AuthController::class, 'tutorLogin'])->name('tutor.login');
 Route::post('/tutor/login', [AuthController::class, 'tutorLoginSubmit'])->name('tutor.login.submit');
 
@@ -49,16 +51,6 @@ Route::get('/student/forgot-password', [AuthController::class, 'showForgotPasswo
 Route::post('/student/forgot-password', [AuthController::class, 'sendResetLink'])->name('student.forgot.password.submit');
 Route::get('/student/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('student.reset.password');
 Route::post('/student/reset-password', [AuthController::class, 'resetPassword'])->name('student.reset.password.submit');
-
-// Route::middleware('guest:student')->group(function () {
-//     // Public student routes
-//     Route::get('/students/courses',[App\Http\Controllers\CourseController::class, 'courseReg'])->name('students.courses');
-//     Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
-//     Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
-// });
-
-    Route::get('/students/registeration', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students');
-    Route::post('/students/registeration', [App\Http\Controllers\UserController::class, 'store'])->name('students.store');
 
 // Authenticated Student Routes
 Route::middleware('auth:student')->group(function () {
@@ -157,6 +149,8 @@ Route::prefix('tutor')->middleware(['auth:web', 'role:tutor'])->group(function (
 });
 
 Route::prefix('admin')->middleware(['auth:web', 'role:admin'])->group(function () {
+    Route::get('/students/create', [App\Http\Controllers\UserController::class, 'regstu'])->name('admin.students.create');
+    Route::post('/students', [App\Http\Controllers\UserController::class, 'store'])->name('admin.students.store');
     Route::get('/student/{student}/details', [StudentController::class, 'getStudentDetails'])->name('student.details');
      Route::put('/student/{student}', [StudentController::class, 'updateStudent'])->name('student.update');
     Route::get('manage/quizzes', [QuizController::class, 'index'])->name('quizzes.index');

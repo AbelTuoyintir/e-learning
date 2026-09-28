@@ -10,14 +10,14 @@
             <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
                 <i class="fas fa-user-graduate text-3xl text-indigo-600"></i>
             </div>
-            <h1 class="text-4xl font-extrabold text-gray-800 tracking-tight">Create Your Account</h1>
-            <p class="mt-2 text-gray-500">Join thousands of students already learning with us.</p>
+            <h1 class="text-4xl font-extrabold text-gray-800 tracking-tight">Add Student</h1>
+            <p class="mt-2 text-gray-500">Create a student account and send the login details to the student.</p>
         </div>
 
         <!-- Form Card -->
         <div class="bg-white/80 backdrop-blur rounded-2xl shadow-xl border border-white/20 p-8">
 
-            <form id="studentForm" action="{{ route('students.store') }}" method="POST" class="space-y-6">
+            <form id="studentForm" action="{{ route('admin.students.store') }}" method="POST" class="space-y-6">
                 @csrf
 
                 <!-- Progress Indicator -->
@@ -106,36 +106,24 @@
 
                 <!-- Program -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2" for="Program">Program</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2" for="program">Program</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                             <i class="fas fa-graduation-cap"></i>
                         </span>
-                        <input type="text" name="Program" id="Program" placeholder="e.g. Computer Science"
-                               class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent @error('Program') @enderror transition"
-                               value="{{ old('Program') }}">
+                        <input type="text" name="program" id="program" placeholder="e.g. Computer Science"
+                               class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent @error('program') @enderror transition"
+                               value="{{ old('program') }}">
                     </div>
-                    @error('Program')
+                    @error('program')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Terms -->
-                <div class="flex items-start">
-                    <input type="checkbox" id="terms" class="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 @error('terms') @enderror" required>
-                    <label for="terms" class="ml-3 text-sm text-gray-600">
-                        I agree to the <a href="#" class="text-indigo-600 hover:underline">Terms & Conditions</a>
-                        and <a href="#" class="text-indigo-600 hover:underline">Privacy Policy</a>.
-                    </label>
-                </div>
-                @error('terms')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-
                 <!-- Submit -->
                 <button type="submit" id="submitBtn"
                         class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition duration-200">
-                    <span id="btnText">Create Account</span>
+                    <span id="btnText">Add Student</span>
                     <i id="btnIcon" class="fas fa-arrow-right ml-2"></i>
                 </button>
             </form>

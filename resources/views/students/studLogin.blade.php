@@ -195,6 +195,11 @@
                     </button>
                 </form>
 
+                <p class="text-center text-sm text-white/80 mt-5">
+                    New student?
+                    <a href="{{ route('student.register') }}" class="font-semibold text-white underline underline-offset-4 hover:text-blue-100">Create an account</a>
+                </p>
+
                 <!-- DIVIDER -->
                 <div class="relative my-7">
                     <div class="absolute inset-0 flex items-center">

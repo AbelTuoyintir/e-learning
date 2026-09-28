@@ -23,7 +23,7 @@ class UserController extends Controller
             'middlename' => 'nullable|string|max:255',
             'lastname' => 'required|string|max:255',
             'email' => 'required|email|unique:students,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             'program' => 'nullable|string|max:255',
             // Don't include index_number here since we'll generate it
         ]);
@@ -37,6 +37,9 @@ class UserController extends Controller
 
             // Hash password for database
             $validated['password'] = Hash::make($plainPassword);
+
+            $validated['Program'] = $validated['program'] ?? null;
+            unset($validated['program']);
 
             // Add the generated index number
             $validated['index_number'] = $indexNumber;
