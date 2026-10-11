@@ -111,8 +111,14 @@ class TopicController extends Controller
                 }
             });
 
-            return redirect()->route('admin.topics.create', $request->module_id)
-                ->with('success', 'Topic created successfully!');
+            $redirect = route('admin.topics.create', $request->module_id);
+
+            if ($request->expectsJson()) {
+                session()->flash('success', 'Topic created successfully!');
+                return response()->json(['redirect' => $redirect]);
+            }
+
+            return redirect($redirect)->with('success', 'Topic created successfully!');
 
         } catch (\Exception $e) {
             // Don't leave an orphaned upload behind if the DB write failed
@@ -121,6 +127,11 @@ class TopicController extends Controller
             }
 
             \Log::error('Topic creation failed: ' . $e->getMessage());
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Failed to create topic: ' . $e->getMessage()], 500);
+            }
+
             return back()->with('error', 'Failed to create topic: ' . $e->getMessage())->withInput();
         }
     }
