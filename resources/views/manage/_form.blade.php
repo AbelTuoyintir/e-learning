@@ -135,8 +135,8 @@
         </div>
     </div>
 
-    <!-- Pass Score & Max Attempts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Pass Score, Max Attempts & Marking Scheme Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Passing Score (%)</label>
             <input type="number" name="passing_score" min="0" max="100" required
@@ -148,6 +148,16 @@
             <input type="number" name="max_attempts" min="1" required
                    value="{{ old('max_attempts', $quiz->max_attempts ?? 4) }}"
                    class="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
+        </div>
+        <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Quiz Marking Scheme</label>
+            <select name="marking_scheme"
+                    class="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
+                <option value="" @selected(old('marking_scheme', $quiz->marking_scheme ?? '') == '')>Inherit / Default Standard (+1, 0, 0)</option>
+                <option value="standard" @selected(old('marking_scheme', $quiz->marking_scheme ?? '') == 'standard')>Standard (+1 Correct, 0 Wrong, 0 Skipped)</option>
+                <option value="penalty" @selected(old('marking_scheme', $quiz->marking_scheme ?? '') == 'penalty')>Penalty (+1 Correct, -1 Wrong, 0 Skipped)</option>
+                <option value="wicked" @selected(old('marking_scheme', $quiz->marking_scheme ?? '') == 'wicked')>Wicked (+1 Correct, -1 Wrong, -0.5 Skipped)</option>
+            </select>
         </div>
     </div>
 

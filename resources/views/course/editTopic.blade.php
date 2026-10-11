@@ -28,7 +28,7 @@
                 @enderror
             </div>
 
-            <div class="grid sm:grid-cols-2 gap-4">
+            <div class="grid sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Order</label>
                     <input type="number" name="order" min="0" value="{{ old('order', $topic->order) }}"
@@ -48,6 +48,17 @@
                     @error('is_active')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Quiz Marking Scheme</label>
+                    <select name="marking_scheme"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="" @selected(old('marking_scheme', $topic->marking_scheme ?? '') == '')>Inherit Module Scheme</option>
+                        <option value="standard" @selected(old('marking_scheme', $topic->marking_scheme ?? '') == 'standard')>Standard (+1 Correct, 0 Wrong, 0 Skipped)</option>
+                        <option value="penalty" @selected(old('marking_scheme', $topic->marking_scheme ?? '') == 'penalty')>Penalty (+1 Correct, -1 Wrong, 0 Skipped)</option>
+                        <option value="wicked" @selected(old('marking_scheme', $topic->marking_scheme ?? '') == 'wicked')>Wicked (+1 Correct, -1 Wrong, -0.5 Skipped)</option>
+                    </select>
                 </div>
             </div>
 

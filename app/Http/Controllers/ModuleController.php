@@ -20,6 +20,7 @@ class ModuleController extends Controller
             'order' => 'nullable|integer',
             'duration_minutes' => 'nullable|integer',
             'is_active' => 'boolean',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
         ]);
 
         $module = Module::create($validated);

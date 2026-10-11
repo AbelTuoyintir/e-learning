@@ -47,6 +47,7 @@ class CourseController extends Controller
             'category' => 'nullable|string|max:255',
             'duration' => 'nullable|integer|min:0',
             'price' => 'nullable|numeric|min:0',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -312,6 +313,7 @@ public function initializePaystackPayment(Request $request, Course $course)
             'category' => 'nullable|string|max:255',
             'duration' => 'nullable|integer|min:0',
             'price' => 'nullable|numeric|min:0',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'remove_image' => 'nullable|boolean',
         ]);
