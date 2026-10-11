@@ -67,7 +67,7 @@ class TopicController extends Controller
                     }
                 },
             ],
-            'document'     => 'nullable|file|mimes:pdf|max:1048576', // 1GB (in KB)
+            'document'     => 'nullable|file|extensions:pdf,pptx|max:1048576', // 1GB (in KB)
         ]);
 
         if ($validator->fails()) {

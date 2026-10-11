@@ -114,6 +114,13 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/student/login');
+        Log::notice("student have logged out sucessfully", [
+            'firstname' => $request->input('firstname'),
+            'index number'=>$request->input('index_number'),
+            'email' => $request->input('email'),
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
     }
 
     // Forgot Password Methods for Students
