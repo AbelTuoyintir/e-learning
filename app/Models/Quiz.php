@@ -23,6 +23,7 @@ class Quiz extends Model
         'due_at',
         'max_attempts',
         'passing_score',
+        'marking_scheme',
         'is_active',
         'question_distribution',
         'type',
@@ -90,5 +91,30 @@ class Quiz extends Model
     public function relatedTo()
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Get the effective marking scheme for the quiz, resolving from quiz -> topic -> module -> course -> standard.
+     */
+    public function getEffectiveMarkingSchemeAttribute(): string
+    {
+        if (!empty($this->marking_scheme)) {
+            return $this->marking_scheme;
+        }
+
+        if ($this->topic_id && $this->topic && !empty($this->topic->marking_scheme)) {
+            return $this->topic->marking_scheme;
+        }
+
+        if ($this->module_id && $this->module && !empty($this->module->marking_scheme)) {
+            return $this->module->marking_scheme;
+        }
+
+        $course = $this->course ?? $this->module?->course ?? $this->topic?->module?->course;
+        if ($course && !empty($course->marking_scheme)) {
+            return $course->marking_scheme;
+        }
+
+        return 'standard';
     }
 }

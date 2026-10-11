@@ -14,6 +14,7 @@ class Module extends Model
         'title',
         'order',
         'is_active',
+        'marking_scheme',
     ];
 
     /**

@@ -17,6 +17,7 @@ class Course extends Model
         'duration',
         'instructor',
         'price',
+        'marking_scheme',
     ];
 
     protected $casts = [

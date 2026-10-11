@@ -95,7 +95,7 @@
           </div>
         </div>
 
-        <!-- Two Column Grid -->
+        <!-- Grid for Category & Marking Scheme -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Category -->
           <div>
@@ -105,7 +105,19 @@
             @error('category') <p class="mt-2 text-sm text-rose-400">{{ $message }}</p> @enderror
           </div>
 
-          <!-- Image Upload -->
+          <!-- Marking Scheme -->
+          <div>
+            <label for="marking_scheme" class="block text-sm font-semibold text-slate-300 mb-2">Default Quiz Marking Scheme</label>
+            <select name="marking_scheme" id="marking_scheme"
+                    class="w-full px-4 py-3 bg-slate-800 border border-white/20 rounded-xl text-slate-100 focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition">
+              <option value="standard" @selected(old('marking_scheme', $course->marking_scheme ?? 'standard') == 'standard')>Standard (+1 Correct, 0 Wrong, 0 Skipped)</option>
+              <option value="penalty" @selected(old('marking_scheme', $course->marking_scheme ?? '') == 'penalty')>Penalty (+1 Correct, -1 Wrong, 0 Skipped)</option>
+              <option value="wicked" @selected(old('marking_scheme', $course->marking_scheme ?? '') == 'wicked')>Wicked (+1 Correct, -1 Wrong, -0.5 Skipped)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
           <div>
             <label for="image" class="block text-sm font-semibold text-slate-300 mb-2">Course Image</label>
             <input type="file" name="image" id="image" accept="image/*"

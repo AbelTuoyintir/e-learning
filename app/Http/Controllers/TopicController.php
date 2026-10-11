@@ -57,6 +57,7 @@ class TopicController extends Controller
             'title'        => 'required|string|max:255',
             'order'        => 'nullable|integer|min:0',
             'is_active'    => 'boolean',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
             'video_urls'   => 'nullable|array',
             'video_urls.*' => [
                 'nullable',
@@ -96,6 +97,7 @@ class TopicController extends Controller
                     'title'     => $request->title,
                     'order'     => $request->order ?? 0,
                     'is_active' => $request->boolean('is_active', true),
+                    'marking_scheme' => $request->marking_scheme,
                     'file_path' => $filePath,
                     'file_name' => $fileName,
                     'video_url' => $urls->first(),
@@ -169,6 +171,7 @@ class TopicController extends Controller
             'title'        => 'required|string|max:255',
             'order'        => 'nullable|integer|min:0',
             'is_active'    => 'boolean',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
             'video_urls'   => 'nullable|array',
             'video_urls.*' => [
                 'nullable',
@@ -194,6 +197,7 @@ class TopicController extends Controller
                 'title'     => $request->title,
                 'order'     => $request->order ?? 0,
                 'is_active' => $request->boolean('is_active', true),
+                'marking_scheme' => $request->marking_scheme,
             ];
 
             $oldPath = $topic->file_path;

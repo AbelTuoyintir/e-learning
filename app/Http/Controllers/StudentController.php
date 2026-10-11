@@ -254,7 +254,10 @@ public function submit(Request $request, Quiz $quiz)
             $score = 0;
             $details = [];
 
-            // Eager load questions to avoid N+1 query
+            // Eager load relationships & questions to resolve effective marking scheme
+            $quiz->loadMissing('course', 'module', 'topic');
+            $markingScheme = $quiz->effective_marking_scheme;
+
             $quiz->load(['questions' => function($query) {
                 $query->select('id', 'quiz_id', 'type', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_option', 'points'); // Added 'points'
             }]);
@@ -303,15 +306,30 @@ public function submit(Request $request, Quiz $quiz)
                 if ($enteredMcqOrTfBranch) {
                     $userAnswerLetter = strtoupper($userAnswerRaw);
                     $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
+                    $hasAnswer = $this->isValidAnswer($userAnswerLetter);
+                    $questionWeight = (float) ($question->points ?: 1);
 
-                    if ($this->isValidAnswer($userAnswerLetter)) {
+                    if ($hasAnswer) {
                         $isCorrect = ($userAnswerLetter === $correctLetter);
 
                         if ($isCorrect) {
-                            $score += (int) $question->points;
-                            $pointsEarned = (int) $question->points;
+                            $pointsEarned = $questionWeight;
+                        } else {
+                            $pointsEarned = match ($markingScheme) {
+                                'penalty' => -1.0 * $questionWeight,
+                                'wicked'  => -1.0 * $questionWeight,
+                                default   => 0.0,
+                            };
                         }
+                    } else {
+                        $isCorrect = false;
+                        $pointsEarned = match ($markingScheme) {
+                            'wicked'  => -0.5 * $questionWeight,
+                            default   => 0.0,
+                        };
                     }
+
+                    $score += $pointsEarned;
                 }
 
                 // Diagnostic log: one sample question to confirm grading branch + normalization (always log once)
@@ -840,7 +858,7 @@ private function sanitizeAnswerDetail($detail): array
         'user_letter' => $detail['user_letter'] ?? '',
         'correct_letter' => $detail['correct_letter'] ?? '',
         'points' => (int) ($detail['points'] ?? 0),
-        'points_earned' => (int) ($detail['points_earned'] ?? 0),
+        'points_earned' => (float) ($detail['points_earned'] ?? 0),
     ];
 }
 

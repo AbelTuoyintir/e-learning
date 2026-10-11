@@ -18,7 +18,8 @@ class Topic extends Model
         'file_path',
         'file_name',
         'order',
-        'is_active'
+        'is_active',
+        'marking_scheme'
     ];
 
     protected $casts = [
