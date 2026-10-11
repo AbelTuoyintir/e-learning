@@ -228,24 +228,98 @@
 
       <!-- Video URL -->
       <div>
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">YouTube Video URL</label>
-        <div class="relative">
-          <i class="fab fa-youtube text-rose-500 absolute left-3.5 top-3.5 text-sm"></i>
-          <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url ?? '') }}"
-                 placeholder="https://www.youtube.com/watch?v=..."
-                 class="w-full pl-9 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium placeholder-slate-500">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">YouTube Video URLs</label>
+
+        @php
+            $videoUrls = old('video_urls', ['']);
+            if (empty($videoUrls)) { $videoUrls = ['']; }
+        @endphp
+
+        <div id="topicVideoList" class="space-y-2">
+          @foreach ($videoUrls as $i => $url)
+            <div class="topic-video-row">
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <i class="fab fa-youtube text-rose-500 absolute left-3.5 top-3.5 text-sm"></i>
+                  <input type="url" name="video_urls[]" value="{{ $url }}"
+                         placeholder="https://www.youtube.com/watch?v=..."
+                         class="w-full pl-9 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium placeholder-slate-500">
+                </div>
+                <button type="button"
+                        class="topic-remove-video w-10 h-10 shrink-0 rounded-2xl bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-700 flex items-center justify-center transition"
+                        title="Remove video">
+                  <i class="fas fa-trash text-xs"></i>
+                </button>
+              </div>
+              @error("video_urls.$i")
+                <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+              @enderror
+            </div>
+          @endforeach
         </div>
-        @error('video_url')
-            <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
+
+        <button type="button" id="addTopicVideo"
+                class="mt-3 inline-flex items-center gap-2 px-3.5 py-2 bg-slate-800 text-indigo-300 rounded-2xl font-bold text-xs hover:bg-slate-700 transition">
+          <i class="fas fa-plus text-[10px]"></i> Add another video
+        </button>
+
+        @error('video_urls')
+          <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
         @enderror
       </div>
 
       <!-- Document Upload -->
       <div>
         <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Document File (PDF or PPTX)</label>
-        <input type="file" name="document" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-               class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-xs text-slate-300 file:mr-3 file:px-3 file:py-1 file:rounded-xl file:border-0 file:bg-indigo-600 file:text-white file:font-semibold">
-        <p class="text-[11px] text-slate-400 mt-1">Maximum file size allowed: 10MB</p>
+
+        <input type="file" name="document" id="topicDocument" class="sr-only"
+               accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+
+        <!-- Drop zone -->
+        <label for="topicDocument" id="topicDropzone"
+               class="flex flex-col items-center justify-center text-center gap-2 px-4 py-8 bg-slate-800/60 border-2 border-dashed border-slate-700 rounded-2xl cursor-pointer hover:border-indigo-500 hover:bg-slate-800 transition">
+          <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
+            <i class="fas fa-cloud-arrow-up text-xl"></i>
+          </div>
+          <p class="text-sm text-slate-200 font-semibold">
+            Drag &amp; drop your file here, or <span class="text-indigo-400 underline">browse</span>
+          </p>
+          <p class="text-[11px] text-slate-400">PDF or PPTX &middot; Maximum file size: 1GB</p>
+        </label>
+
+        <!-- Selected file + progress -->
+        <div id="topicFileCard" class="hidden mt-3 p-4 bg-slate-800/80 border border-slate-700 rounded-2xl">
+          <div class="flex items-center gap-3">
+            <div id="topicFileIcon" class="w-10 h-10 shrink-0 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center">
+              <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p id="topicFileName" class="text-sm text-slate-100 font-semibold truncate"></p>
+              <p id="topicFileSize" class="text-[11px] text-slate-400"></p>
+            </div>
+            <button type="button" id="topicFileRemove"
+                    class="w-8 h-8 shrink-0 rounded-xl bg-slate-700 text-slate-400 hover:text-rose-400 hover:bg-slate-600 flex items-center justify-center transition"
+                    title="Remove file">
+              <i class="fas fa-xmark text-xs"></i>
+            </button>
+          </div>
+
+          <div id="topicProgressWrap" class="hidden mt-4">
+            <div class="flex justify-between text-[11px] text-slate-300 mb-1.5">
+              <span id="topicProgressLabel">Uploading...</span>
+              <span id="topicProgressPct" class="font-bold">0%</span>
+            </div>
+            <div class="h-2.5 w-full bg-slate-700 rounded-full overflow-hidden">
+              <div id="topicProgressBar"
+                   class="h-full w-0 rounded-full bg-gradient-to-r from-indigo-500 via-indigo-400 to-purple-500 transition-all duration-200"></div>
+            </div>
+            <button type="button" id="topicUploadCancel"
+                    class="mt-2 text-[11px] text-slate-400 hover:text-rose-400 transition">Cancel upload</button>
+          </div>
+        </div>
+
+        <div id="topicFormError" class="hidden mt-3 px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs space-y-1"></div>
+
         @error('document')
             <p class="text-rose-400 text-xs mt-1">{{ $message }}</p>
         @enderror
@@ -339,5 +413,186 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+</script>
+<script>
+(function () {
+  const modal = document.getElementById('topicModal');
+  const list  = document.getElementById('topicVideoList');
+  const addBtn = document.getElementById('addTopicVideo');
+  if (!modal || !list || !addBtn) return;
+
+  // Keep a clean template row to clone
+  const template = list.querySelector('.topic-video-row').cloneNode(true);
+  template.querySelector('input').value = '';
+  template.querySelectorAll('p').forEach(p => p.remove()); // drop old error text
+
+  addBtn.addEventListener('click', () => {
+    list.appendChild(template.cloneNode(true));
+    list.lastElementChild.querySelector('input').focus();
+  });
+
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('.topic-remove-video');
+    if (!btn) return;
+    const rows = list.querySelectorAll('.topic-video-row');
+    if (rows.length > 1) {
+      btn.closest('.topic-video-row').remove();
+    } else {
+      rows[0].querySelector('input').value = '';
+    }
+  });
+
+  // Reset to one empty video field whenever the modal gets closed
+  new MutationObserver(() => {
+    if (!modal.classList.contains('hidden')) return;
+    list.innerHTML = '';
+    list.appendChild(template.cloneNode(true));
+  }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+})();
+</script>
+<script>
+(function () {
+  const MAX_BYTES = 1024 * 1024 * 1024; // 1GB
+  const form   = document.getElementById('myForm');
+  const input  = document.getElementById('topicDocument');
+  if (!form || !input) return;
+
+  const $ = (id) => document.getElementById(id);
+  const dropzone = $('topicDropzone'), card = $('topicFileCard'),
+        nameEl = $('topicFileName'), sizeEl = $('topicFileSize'), iconEl = $('topicFileIcon'),
+        removeBtn = $('topicFileRemove'), progWrap = $('topicProgressWrap'),
+        bar = $('topicProgressBar'), pct = $('topicProgressPct'),
+        label = $('topicProgressLabel'), cancelBtn = $('topicUploadCancel'),
+        errBox = $('topicFormError');
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  let xhr = null;
+
+  const fmt = (b) => b >= 1073741824 ? (b / 1073741824).toFixed(2) + ' GB'
+                   : b >= 1048576    ? (b / 1048576).toFixed(1) + ' MB'
+                   : Math.max(1, Math.round(b / 1024)) + ' KB';
+
+  const showErrors = (msgs) => {
+    errBox.innerHTML = '';
+    msgs.forEach(m => { const p = document.createElement('p'); p.textContent = m; errBox.appendChild(p); });
+    errBox.classList.toggle('hidden', msgs.length === 0);
+  };
+
+  const resetProgress = () => {
+    progWrap.classList.add('hidden');
+    bar.style.width = '0%';
+    pct.textContent = '0%';
+    label.textContent = 'Uploading...';
+    removeBtn.classList.remove('hidden');
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+  };
+
+  const showFile = (file) => {
+    if (!file) { card.classList.add('hidden'); return; }
+    nameEl.textContent = file.name;
+    sizeEl.textContent = fmt(file.size);
+    const isPpt = /\.pptx$/i.test(file.name);
+    iconEl.className = 'w-10 h-10 shrink-0 rounded-xl flex items-center justify-center ' +
+      (isPpt ? 'bg-amber-500/15 text-amber-400' : 'bg-rose-500/15 text-rose-400');
+    iconEl.innerHTML = '<i class="fas ' + (isPpt ? 'fa-file-powerpoint' : 'fa-file-pdf') + '"></i>';
+    card.classList.remove('hidden');
+  };
+
+  const validateFile = (file) => {
+    if (!file) return true;
+    if (!/\.(pdf|pptx)$/i.test(file.name)) { showErrors(['Only PDF or PPTX files are allowed.']); return false; }
+    if (file.size > MAX_BYTES) { showErrors(['The file is larger than 1GB.']); return false; }
+    return true;
+  };
+
+  input.addEventListener('change', () => {
+    showErrors([]);
+    const file = input.files[0];
+    if (!validateFile(file)) { input.value = ''; showFile(null); return; }
+    showFile(file);
+  });
+
+  removeBtn.addEventListener('click', () => { input.value = ''; showFile(null); showErrors([]); });
+
+  // Drag & drop
+  ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, (e) => {
+    e.preventDefault(); dropzone.classList.add('border-indigo-500', 'bg-slate-800');
+  }));
+  ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, (e) => {
+    e.preventDefault(); dropzone.classList.remove('border-indigo-500', 'bg-slate-800');
+  }));
+  dropzone.addEventListener('drop', (e) => {
+    if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
+  });
+
+  cancelBtn.addEventListener('click', () => { if (xhr) xhr.abort(); });
+
+  // Submit via XHR so we get upload progress
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    showErrors([]);
+    const file = input.files[0];
+    if (!validateFile(file)) return;
+
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', form.action);
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+
+    if (file) {
+      card.classList.remove('hidden');
+      progWrap.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+    }
+
+    xhr.upload.onprogress = (ev) => {
+      if (!ev.lengthComputable) return;
+      const p = Math.round((ev.loaded / ev.total) * 100);
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+      label.textContent = p < 100 ? fmt(ev.loaded) + ' of ' + fmt(ev.total) : 'Processing on server...';
+    };
+
+    xhr.onload = () => {
+      let data = {};
+      try { data = JSON.parse(xhr.responseText); } catch (_) {}
+
+      if (xhr.status >= 200 && xhr.status < 300 && data.redirect) {
+        bar.style.width = '100%'; pct.textContent = '100%'; label.textContent = 'Done!';
+        window.location.href = data.redirect;
+        return;
+      }
+
+      resetProgress();
+      if (xhr.status === 422 && data.errors) {
+        showErrors(Object.values(data.errors).flat());
+      } else if (xhr.status === 413) {
+        showErrors(['The file is too large for the server. Check the upload size limits.']);
+      } else if (xhr.status === 419) {
+        showErrors(['Your session expired. Refresh the page and try again.']);
+      } else {
+        showErrors([data.message || 'Something went wrong while saving the topic.']);
+      }
+    };
+
+    xhr.onerror = () => { resetProgress(); showErrors(['Network error. The upload was interrupted.']); };
+    xhr.onabort = () => { resetProgress(); showErrors(['Upload cancelled.']); };
+
+    xhr.send(new FormData(form));
+  });
+
+  // Clear the file state when the modal closes
+  const modal = document.getElementById('topicModal');
+  if (modal) {
+    new MutationObserver(() => {
+      if (!modal.classList.contains('hidden') || xhr && xhr.readyState !== 4 && xhr.readyState !== 0) return;
+      input.value = ''; showFile(null); showErrors([]); resetProgress();
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+  }
+})();
 </script>
 @endsection

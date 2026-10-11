@@ -46,26 +46,30 @@ class TopicController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'module_id' => 'required|exists:modules,id',
-            'title' => 'required|string|max:255',
-            'order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-            'video_url' => 'nullable|url',
-            'document' => 'nullable|file|mimes:pdf,pptx|max:10240',
+            'module_id'    => 'required|exists:modules,id',
+            'title'        => 'required|string|max:255',
+            'order'        => 'nullable|integer|min:0',
+            'is_active'    => 'boolean',
+            'video_urls'   => 'nullable|array',
+            'video_urls.*' => [
+                'nullable',
+                'url',
+                function ($attribute, $value, $fail) {
+                    if ($value && ! $this->isYoutubeUrl($value)) {
+                        $fail('Each video must be a valid YouTube URL (youtube.com or youtu.be).');
+                    }
+                },
+            ],
+            'document'     => 'nullable|file|mimes:pdf|max:1048576', // 1GB (in KB)
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
-        try {
-            if ($request->filled('video_url') && ! $this->isYoutubeUrl($request->video_url)) {
-                return back()->withErrors([
-                    'video_url' => 'Please provide a valid YouTube URL (youtube.com or youtu.be).',
-                ])->withInput();
-            }
+        $filePath = null;
 
-            $filePath = null;
+        try {
             $fileName = null;
 
             if ($request->hasFile('document')) {
@@ -74,26 +78,42 @@ class TopicController extends Controller
                 $fileName = $file->getClientOriginalName();
             }
 
-            // Create the topic
-            Topic::create([
-                'module_id' => $request->module_id,
-                'title' => $request->title,
-                'order' => $request->order ?? 0,
-                'is_active' => $request->is_active ?? true,
-                'video_url' => $request->video_url,
-                'file_path' => $filePath,
-                'file_name' => $fileName,
-            ]);
+            DB::transaction(function () use ($request, $filePath, $fileName) {
+                $topic = Topic::create([
+                    'module_id' => $request->module_id,
+                    'title'     => $request->title,
+                    'order'     => $request->order ?? 0,
+                    'is_active' => $request->boolean('is_active', true),
+                    'file_path' => $filePath,
+                    'file_name' => $fileName,
+                ]);
+
+                $urls = collect($request->input('video_urls', []))
+                    ->filter()   // drop empty inputs
+                    ->unique()
+                    ->values();
+
+                foreach ($urls as $index => $url) {
+                    $topic->videos()->create([
+                        'url'   => $url,
+                        'order' => $index,
+                    ]);
+                }
+            });
 
             return redirect()->route('admin.topics.create', $request->module_id)
                 ->with('success', 'Topic created successfully!');
 
         } catch (\Exception $e) {
+            // Don't leave an orphaned upload behind if the DB write failed
+            if ($filePath) {
+                Storage::disk('local')->delete($filePath);
+            }
+
             \Log::error('Topic creation failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to create topic: ' . $e->getMessage())->withInput();
         }
     }
-
     /**
      * Display the specified resource.
      */
@@ -117,43 +137,82 @@ class TopicController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id): RedirectResponse
+   public function update(Request $request, Topic $topic)
     {
+        $validator = Validator::make($request->all(), [
+            'module_id'    => 'required|exists:modules,id',
+            'title'        => 'required|string|max:255',
+            'order'        => 'nullable|integer|min:0',
+            'is_active'    => 'boolean',
+            'video_urls'   => 'nullable|array',
+            'video_urls.*' => [
+                'nullable',
+                'url',
+                function ($attribute, $value, $fail) {
+                    if ($value && ! $this->isYoutubeUrl($value)) {
+                        $fail('Each video must be a valid YouTube URL (youtube.com or youtu.be).');
+                    }
+                },
+            ],
+            'document'     => 'nullable|file|extensions:pdf,pptx|max:1048576', // 1GB in KB
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $newPath = null;
+
         try {
-            // Validate the request
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'order' => 'nullable|integer|min:0',
-                'is_active' => 'required|boolean',
-                'module_id' => 'required|exists:modules,id',
-                'video_url' => 'nullable|url',
-                'document' => 'nullable|file|mimes:pdf,pptx|max:10240',
-            ]);
+            $data = [
+                'module_id' => $request->module_id,
+                'title'     => $request->title,
+                'order'     => $request->order ?? 0,
+                'is_active' => $request->boolean('is_active', true),
+            ];
 
-            // Find the topic
-            $topic = Topic::findOrFail($id);
-
-            if ($request->filled('video_url') && ! $this->isYoutubeUrl($request->video_url)) {
-                return back()->withErrors([
-                    'video_url' => 'Please provide a valid YouTube URL (youtube.com or youtu.be).',
-                ])->withInput();
-            }
+            $oldPath = $topic->file_path;
 
             if ($request->hasFile('document')) {
-                $this->deleteTopicFileIfExists($topic->file_path);
-
                 $file = $request->file('document');
-                $validated['file_path'] = $file->store('topic-materials', 'local');
-                $validated['file_name'] = $file->getClientOriginalName();
+                $newPath = $file->store('topic-materials', 'local');
+                $data['file_path'] = $newPath;
+                $data['file_name'] = $file->getClientOriginalName();
             }
 
-            // Update the topic
-            $topic->update($validated);
+            DB::transaction(function () use ($request, $topic, $data) {
+                $topic->update($data);
 
-            // For web requests, use redirect instead of JSON
-            return redirect()->back()->with('success', 'Topic updated successfully!');
+                $urls = collect($request->input('video_urls', []))
+                    ->filter()->unique()->values();
+
+                $topic->videos()->delete();
+                foreach ($urls as $index => $url) {
+                    $topic->videos()->create(['url' => $url, 'order' => $index]);
+                }
+            });
+
+            // Only delete the old file after the DB update succeeded
+            if ($newPath && $oldPath) {
+                Storage::disk('local')->delete($oldPath);
+            }
+
+           
+
+           
+            $redirect = route('admin.topics.create', $request->module_id);
+
+            if ($request->expectsJson()) {
+                session()->flash('success', 'Topic created successfully!');
+                return response()->json(['redirect' => $redirect]);
+            }
+
+            return redirect($redirect)->with('success', 'Topic created successfully!');
 
         } catch (\Exception $e) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
             \Log::error('Topic update failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to update topic: ' . $e->getMessage())->withInput();
         }

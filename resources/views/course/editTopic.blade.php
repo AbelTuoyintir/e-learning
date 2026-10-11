@@ -52,20 +52,45 @@
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube Video URL</label>
-                <input type="url" name="video_url" value="{{ old('video_url', $topic->video_url) }}"
-                       placeholder="https://www.youtube.com/watch?v=..."
-                       class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                @error('video_url')
+                <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube Video URLs</label>
+
+                <div id="video-list" class="space-y-2">
+                    @php
+                        $videoUrls = old('video_urls', $topic->videos->pluck('url')->all());
+                        if (empty($videoUrls)) { $videoUrls = ['']; }
+                    @endphp
+
+                    @foreach ($videoUrls as $i => $url)
+                        <div class="video-row flex gap-2">
+                            <input type="url" name="video_urls[]" value="{{ $url }}"
+                                placeholder="https://www.youtube.com/watch?v=..."
+                                class="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <button type="button" class="remove-video px-3 py-2 rounded-xl border border-red-300 text-red-600 hover:bg-red-50 transition">
+                                Remove
+                            </button>
+                        </div>
+                        @error("video_urls.$i")
+                            <p class="text-red-600 text-sm">{{ $message }}</p>
+                        @enderror
+                    @endforeach
+                </div>
+
+                <button type="button" id="add-video"
+                        class="mt-3 px-4 py-2 text-sm rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition">
+                    + Add another video
+                </button>
+
+                @error('video_urls')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Document (PDF or PPTX)</label>
-                <input type="file" name="document" accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-xl">
-                <p class="text-xs text-gray-500 mt-1">Uploading a new file replaces the current one. Max size: 10MB.</p>
+                <input type="file" name="document"
+                    accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-xl">
+                <p class="text-xs text-gray-500 mt-1">Uploading a new file replaces the current one. Max size: 1GB.</p>
                 @if($topic->file_name)
                     <p class="text-sm text-gray-700 mt-2">Current document: <span class="font-medium">{{ $topic->file_name }}</span></p>
                 @endif
@@ -87,4 +112,23 @@
         </form>
     </div>
 </div>
+<script>
+    const list = document.getElementById('video-list');
+
+    document.getElementById('add-video').addEventListener('click', () => {
+        const row = list.querySelector('.video-row').cloneNode(true);
+        row.querySelector('input').value = '';
+        list.appendChild(row);
+    });
+
+    list.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('remove-video')) return;
+        const rows = list.querySelectorAll('.video-row');
+        if (rows.length > 1) {
+            e.target.closest('.video-row').remove();
+        } else {
+            rows[0].querySelector('input').value = ''; // keep one empty field
+        }
+    });
+</script>
 @endsection
