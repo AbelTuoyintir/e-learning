@@ -12,6 +12,7 @@ use App\Models\DocumentHighlight;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -428,7 +429,7 @@ public function getMaterials(Course $course)
     }
 
     // Eager load all necessary relationships with their nested relationships
-    $course->load([
+    $courseRelations = [
         'modules' => function ($query) {
             $query->orderBy('order')
                 ->where('is_active', true);
@@ -442,7 +443,13 @@ public function getMaterials(Course $course)
         'modules.topics.progress' => function ($query) {
             $query->where('student_id', auth()->id());
         }
-    ]);
+    ];
+
+    if (Schema::hasTable('topic_videos')) {
+        $courseRelations[] = 'modules.topics.videos';
+    }
+
+    $course->load($courseRelations);
 
     // Module progression gating: module N is unlocked only if module (N-1)'s FINAL quiz is passed.
     // Assumption: each module has one or more quizzes of type='final'. If any of them passed, module unlocks.

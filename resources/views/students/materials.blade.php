@@ -134,41 +134,55 @@
                     @endforeach
 
                     <!-- Video URL -->
-                    @if($topic->video_url)
-                        <div class="mb-3">
+                    @php
+                        $topicVideos = collect();
+                        if ($topic->relationLoaded('videos') && $topic->videos->isNotEmpty()) {
+                            $topicVideos = $topic->videos;
+                        } elseif (!empty($topic->video_url)) {
+                            $topicVideos = collect([(object)[
+                                'url' => $topic->video_url,
+                                'youtube_embed_url' => $topic->youtube_embed_url
+                            ]]);
+                        }
+                    @endphp
+
+                    @if($topicVideos->isNotEmpty())
+                        <div class="mb-3 space-y-3">
                             <h5 class="font-medium text-gray-700 mb-2">Video Content:</h5>
-                            @if($topic->youtube_embed_url)
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <div class="relative w-full overflow-hidden rounded-lg bg-black" style="padding-top:56.25%;">
-                                        <iframe
-                                            src="{{ $topic->youtube_embed_url }}"
-                                            title="YouTube video player"
-                                            class="absolute inset-0 h-full w-full"
-                                            frameborder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                            referrerpolicy="strict-origin-when-cross-origin"
-                                            allowfullscreen>
-                                        </iframe>
+                            @foreach($topicVideos as $v)
+                                @if($v->youtube_embed_url)
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <div class="relative w-full overflow-hidden rounded-lg bg-black" style="padding-top:56.25%;">
+                                            <iframe
+                                                src="{{ $v->youtube_embed_url }}"
+                                                title="YouTube video player"
+                                                class="absolute inset-0 h-full w-full"
+                                                frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                referrerpolicy="strict-origin-when-cross-origin"
+                                                allowfullscreen>
+                                            </iframe>
+                                        </div>
+                                        <a href="{{ $v->url }}"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="mt-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                                            <i class="fas fa-external-link-alt mr-2"></i>
+                                            Open on YouTube
+                                        </a>
                                     </div>
-                                    <a href="{{ $topic->video_url }}"
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       class="mt-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                                        <i class="fas fa-external-link-alt mr-2"></i>
-                                        Open on YouTube
-                                    </a>
-                                </div>
-                            @else
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <a href="{{ $topic->video_url }}"
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center">
-                                        <i class="fas fa-external-link-alt mr-2"></i>
-                                        Watch Video (External Link)
-                                    </a>
-                                </div>
-                            @endif
+                                @else
+                                    <div class="bg-gray-50 p-4 rounded-lg">
+                                        <a href="{{ $v->url }}"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center">
+                                            <i class="fas fa-external-link-alt mr-2"></i>
+                                            Watch Video (External Link)
+                                        </a>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
                     @endif
                 </div>

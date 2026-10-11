@@ -38,6 +38,12 @@ class Topic extends Model
     public function contents(){
         return $this->hasMany(TopicContent::class);
     }
+
+    public function videos()
+    {
+        return $this->hasMany(TopicVideo::class)->orderBy('order');
+    }
+
     public function quiz(){
         return $this->morphOne(Quiz::class, 'related_to');
     }

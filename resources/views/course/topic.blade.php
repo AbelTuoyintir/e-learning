@@ -80,7 +80,7 @@
                   <p class="font-bold text-slate-200 group-hover:text-indigo-400 transition-colors topic-title font-heading">
                     {{ $topicItem->title }}
                   </p>
-                  @if($topicItem->video_url)
+                  @if($topicItem->video_url || ($topicItem->relationLoaded('videos') && $topicItem->videos->isNotEmpty()))
                     <p class="text-xs text-indigo-400/80 flex items-center gap-1 mt-0.5">
                       <i class="fab fa-youtube text-[10px]"></i> Video Included
                     </p>

@@ -7,6 +7,8 @@ use App\Models\Module;
 use App\Models\TopicContent;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -26,11 +28,16 @@ class TopicController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-       public function create(Module $module)
+    public function create(Module $module)
     {
+        $relations = ['module.course', 'contents', 'quiz.questions'];
+        if (Schema::hasTable('topic_videos')) {
+            $relations[] = 'videos';
+        }
+
         // Get existing topics for this module with their relationships
         $topics = Topic::where('module_id', $module->id)
-                      ->with(['module.course', 'contents', 'quiz.questions'])
+                      ->with($relations)
                       ->orderBy('order')
                       ->paginate(10);
 
@@ -79,6 +86,11 @@ class TopicController extends Controller
             }
 
             DB::transaction(function () use ($request, $filePath, $fileName) {
+                $urls = collect($request->input('video_urls', []))
+                    ->filter()   // drop empty inputs
+                    ->unique()
+                    ->values();
+
                 $topic = Topic::create([
                     'module_id' => $request->module_id,
                     'title'     => $request->title,
@@ -86,18 +98,16 @@ class TopicController extends Controller
                     'is_active' => $request->boolean('is_active', true),
                     'file_path' => $filePath,
                     'file_name' => $fileName,
+                    'video_url' => $urls->first(),
                 ]);
 
-                $urls = collect($request->input('video_urls', []))
-                    ->filter()   // drop empty inputs
-                    ->unique()
-                    ->values();
-
-                foreach ($urls as $index => $url) {
-                    $topic->videos()->create([
-                        'url'   => $url,
-                        'order' => $index,
-                    ]);
+                if (Schema::hasTable('topic_videos')) {
+                    foreach ($urls as $index => $url) {
+                        $topic->videos()->create([
+                            'url'   => $url,
+                            'order' => $index,
+                        ]);
+                    }
                 }
             });
 
@@ -130,7 +140,11 @@ class TopicController extends Controller
     public function edit(Topic $topic)
     {
         $modules = Module::where('is_active', true)->get();
-        $topic->load('contents', 'quiz.questions'); // Load relationships for editing
+        $relations = ['contents', 'quiz.questions'];
+        if (Schema::hasTable('topic_videos')) {
+            $relations[] = 'videos';
+        }
+        $topic->load($relations); // Load relationships for editing
         return view('course.editTopic', compact('topic', 'modules'));
     }
 
@@ -181,14 +195,17 @@ class TopicController extends Controller
             }
 
             DB::transaction(function () use ($request, $topic, $data) {
-                $topic->update($data);
-
                 $urls = collect($request->input('video_urls', []))
                     ->filter()->unique()->values();
 
-                $topic->videos()->delete();
-                foreach ($urls as $index => $url) {
-                    $topic->videos()->create(['url' => $url, 'order' => $index]);
+                $data['video_url'] = $urls->first();
+                $topic->update($data);
+
+                if (Schema::hasTable('topic_videos')) {
+                    $topic->videos()->delete();
+                    foreach ($urls as $index => $url) {
+                        $topic->videos()->create(['url' => $url, 'order' => $index]);
+                    }
                 }
             });
 
@@ -225,8 +242,11 @@ class TopicController extends Controller
         try {
             $this->deleteTopicFileIfExists($topic->file_path);
 
-            // Delete associated contents and questions
+            // Delete associated contents, videos, and questions
             $topic->contents()->delete();
+            if (Schema::hasTable('topic_videos')) {
+                $topic->videos()->delete();
+            }
             if ($topic->quiz) {
                 $topic->quiz->questions()->delete();
             }

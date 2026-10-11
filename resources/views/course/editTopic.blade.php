@@ -56,7 +56,14 @@
 
                 <div id="video-list" class="space-y-2">
                     @php
-                        $videoUrls = old('video_urls', $topic->videos->pluck('url')->all());
+                        $existingUrls = [];
+                        if ($topic->relationLoaded('videos') || method_exists($topic, 'videos')) {
+                            $existingUrls = $topic->videos?->pluck('url')->filter()->values()->all() ?? [];
+                        }
+                        if (empty($existingUrls) && !empty($topic->video_url)) {
+                            $existingUrls = [$topic->video_url];
+                        }
+                        $videoUrls = old('video_urls', $existingUrls);
                         if (empty($videoUrls)) { $videoUrls = ['']; }
                     @endphp
 
