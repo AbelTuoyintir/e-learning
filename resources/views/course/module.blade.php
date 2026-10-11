@@ -355,6 +355,19 @@
                     >
                 </div>
             </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">
+                    Quiz Marking Scheme
+                </label>
+                <select x-model="form.marking_scheme"
+                        class="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
+                    <option value="">Inherit Course Scheme</option>
+                    <option value="standard">Standard (+1 Correct, 0 Wrong, 0 Skipped)</option>
+                    <option value="penalty">Penalty (+1 Correct, -1 Wrong, 0 Skipped)</option>
+                    <option value="wicked">Wicked (+1 Correct, -1 Wrong, -0.5 Skipped)</option>
+                </select>
+            </div>
             
             <!-- Active Status Toggle -->
             <div class="glass-card rounded-2xl p-4 border border-slate-800">
@@ -428,7 +441,8 @@
                 title: '', 
                 order: 0, 
                 duration_minutes: 30, 
-                is_active: true 
+                is_active: true,
+                marking_scheme: ''
             },
 
             filteredModules() {
@@ -453,7 +467,8 @@
                         title: module.title,
                         order: module.order || 0,
                         duration_minutes: module.duration_minutes || 30,
-                        is_active: module.is_active
+                        is_active: module.is_active,
+                        marking_scheme: module.marking_scheme || ''
                     };
                 } else {
                     this.editMode = false;
@@ -474,7 +489,8 @@
                     title: '',
                     order: this.modules.length + 1,
                     duration_minutes: 30,
-                    is_active: true
+                    is_active: true,
+                    marking_scheme: ''
                 };
             },
 

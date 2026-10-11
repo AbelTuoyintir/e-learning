@@ -266,10 +266,21 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 font-heading">Category</label>
-                    <input type="text" name="category" placeholder="e.g. Computer Science"
-                           class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 font-heading">Category</label>
+                        <input type="text" name="category" placeholder="e.g. Computer Science"
+                               class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 font-heading">Quiz Marking Scheme</label>
+                        <select name="marking_scheme"
+                                class="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
+                            <option value="standard">Standard (+1 Correct, 0 Wrong, 0 Skipped)</option>
+                            <option value="penalty">Penalty (+1 Correct, -1 Wrong, 0 Skipped)</option>
+                            <option value="wicked">Wicked (+1 Correct, -1 Wrong, -0.5 Skipped)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">

@@ -65,6 +65,7 @@ class QuizController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'max_attempts' => 'nullable|integer|min:1',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
         ]);
 
         // Handle image upload if present
@@ -92,6 +93,7 @@ class QuizController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'passing_score' => 'nullable|integer|min:0|max:100',
             'max_attempts' => 'nullable|integer|min:1',
+            'marking_scheme' => 'nullable|string|in:standard,penalty,wicked',
         ]);
 
         // Handle new image upload
