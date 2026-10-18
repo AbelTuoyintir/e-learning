@@ -275,16 +275,45 @@ public function submit(Request $request, Quiz $quiz)
                 $lockedQuestionIds = array_values(array_map('intval', $request->input('locked_question_ids')));
             }
 
-            $questionsToScore = $quiz->questions;
             if ($lockedQuestionIds && !empty($lockedQuestionIds)) {
                 $questionsToScore = $quiz->questions()->whereIn('id', $lockedQuestionIds)->get();
+                // Retain order of locked question ids
+                $questionsToScore = $questionsToScore->sortBy(fn($q) => array_search($q->id, $lockedQuestionIds, true))->values();
 
                 \Log::debug('Scoring using locked_question_ids', [
                     'locked_question_ids' => $lockedQuestionIds,
                     'questionsToScore_ids' => $questionsToScore->pluck('id')->toArray(),
                 ]);
             } else {
-                \Log::debug('Scoring using all quiz questions', [
+                // Fallback: check if there's an in-progress or recent attempt with locked question_ids
+                $attempt = \App\Models\QuizAttempt::where('quiz_id', $quiz->id)
+                    ->where('user_id', Auth::id())
+                    ->where('status', 'in_progress')
+                    ->latest('started_at')
+                    ->first();
+
+                if ($attempt && is_array($attempt->question_ids) && !empty($attempt->question_ids)) {
+                    $attemptQIds = array_values(array_map('intval', $attempt->question_ids));
+                    $questionsToScore = $quiz->questions()->whereIn('id', $attemptQIds)->get();
+                    $questionsToScore = $questionsToScore->sortBy(fn($q) => array_search($q->id, $attemptQIds, true))->values();
+                } else {
+                    // Fallback to checking quiz distribution or question limit
+                    $distribution = $quiz->question_distribution;
+                    if (is_array($distribution) && !empty($distribution)) {
+                        $qIds = $this->selectQuestionIdsByDistribution($quiz, $distribution);
+                        $questionsToScore = $quiz->questions()->whereIn('id', $qIds)->get();
+                    } else {
+                        $limit = max((int) ($quiz->question_limit ?? 60), 1);
+                        $totalQuestionsInBank = $quiz->questions()->count();
+                        if ($totalQuestionsInBank > $limit) {
+                            $questionsToScore = $quiz->questions()->limit($limit)->get();
+                        } else {
+                            $questionsToScore = $quiz->questions;
+                        }
+                    }
+                }
+
+                \Log::debug('Scoring using fallback subset questions', [
                     'questionsToScore_ids' => $questionsToScore->pluck('id')->toArray(),
                 ]);
             }
@@ -359,11 +388,11 @@ public function submit(Request $request, Quiz $quiz)
 
             \Log::debug('Scoring complete', [
                 'score' => $score,
-                'total_questions' => $quiz->questions->count(),
-                'total_possible_points' => $quiz->questions->sum('points')
+                'total_questions' => $questionsToScore->count(),
+                'total_possible_points' => $questionsToScore->sum('points')
             ]);
 
-            $totalPossiblePoints = $quiz->questions->sum('points');
+            $totalPossiblePoints = $questionsToScore->sum('points');
             $percentage = $this->calculatePercentage($score, $totalPossiblePoints);
             $passed = $this->isPassed($percentage, $quiz);
             $attemptNumber = $this->getNextAttemptNumber($quiz->id, Auth::id());
@@ -772,8 +801,9 @@ public function results(Quiz $quiz)
     // Process result details
     $this->processResultDetails($result);
 
-    $totalQuestions = $result->quiz->questions()->count();
-    $percentage = $this->calculatePercentage($result->score, $totalQuestions);
+    $totalQuestions = is_array($result->details) ? count($result->details) : $result->quiz->questions()->count();
+    $totalPossible = $result->total_possible_points ?: $totalQuestions;
+    $percentage = $result->percentage ?? $this->calculatePercentage($result->score, $totalPossible);
 
     $sessionResult = [
         'details' => $result->details,
@@ -805,8 +835,9 @@ public function resultShow(Result $result)
     $this->processResultDetails($result);
 
     $quiz = $result->quiz;
-    $totalQuestions = $quiz->questions_count;
-    $percentage = $this->calculatePercentage($result->score, $totalQuestions);
+    $totalQuestions = is_array($result->details) ? count($result->details) : $quiz->questions_count;
+    $totalPossible = $result->total_possible_points ?: $totalQuestions;
+    $percentage = $result->percentage ?? $this->calculatePercentage($result->score, $totalPossible);
 
     $sessionResult = [
         'details' => $result->details,
