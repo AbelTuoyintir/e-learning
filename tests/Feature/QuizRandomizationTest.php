@@ -120,4 +120,63 @@ class QuizRandomizationTest extends TestCase
         $questions = $response->viewData('questions');
         $this->assertCount(25, $questions);
     }
+
+    public function test_student_is_graded_on_questions_attempted_not_full_bank()
+    {
+        $course = Course::create(['title' => 'Test Course']);
+        $student = Student::create([
+            'firstname' => 'Test',
+            'lastname' => 'Grading',
+            'email' => 'grading@example.com',
+            'password' => bcrypt('password')
+        ]);
+        Enrollment::create(['student_id' => $student->id, 'course_id' => $course->id]);
+
+        // Admin sets question_limit to 120 for a 300 question bank
+        $quiz = Quiz::create([
+            'title' => '300 Bank 120 Limit Quiz',
+            'course_id' => $course->id,
+            'quiz_type' => 'module_assessment',
+            'question_limit' => 120
+        ]);
+
+        for ($i = 1; $i <= 300; $i++) {
+            Question::create([
+                'quiz_id' => $quiz->id,
+                'question_text' => "Question $i",
+                'option_a' => 'A', 'option_b' => 'B', 'option_c' => 'C', 'option_d' => 'D',
+                'correct_option' => 'A',
+                'points' => 1
+            ]);
+        }
+
+        $this->actingAs($student, 'student');
+        $response = $this->get(route('quiz.start', $quiz));
+        $response->assertStatus(200);
+
+        $servedQuestions = $response->viewData('questions');
+        $this->assertCount(120, $servedQuestions);
+
+        $answers = [];
+        $lockedQuestionIds = [];
+        foreach ($servedQuestions as $q) {
+            $answers[$q->id] = 'A'; // All correct
+            $lockedQuestionIds[] = $q->id;
+        }
+
+        $submitResponse = $this->post(route('quiz.submit', $quiz), [
+            'answers' => $answers,
+            'locked_question_ids' => $lockedQuestionIds
+        ]);
+
+        $submitResponse->assertRedirect(route('quiz.results', $quiz->id));
+
+        $this->assertDatabaseHas('results', [
+            'student_id' => $student->id,
+            'quiz_id' => $quiz->id,
+            'score' => 120,
+            'total_possible_points' => 120,
+            'percentage' => 100.0,
+        ]);
+    }
 }

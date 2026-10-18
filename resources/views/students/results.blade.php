@@ -125,9 +125,10 @@
                         <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                             @foreach($results as $result)
                                 @php
-                                    $percentage = $result->quiz->questions->count() > 0 
-                                        ? ($result->score / $result->quiz->questions->count()) * 100 
-                                        : 0;
+                                    $totalForAttempt = $result->total_possible_points > 0
+                                        ? $result->total_possible_points
+                                        : $result->quiz->questions->count();
+                                    $percentage = $result->percentage ?? ($totalForAttempt > 0 ? ($result->score / $totalForAttempt) * 100 : 0);
                                     $isPassed = $result->passed ?? $percentage >= 70;
                                 @endphp
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150">
@@ -144,7 +145,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-semibold text-gray-900 dark:text-white">
-                                            {{ $result->score }} <span class="text-gray-400 font-normal">/ {{ $result->quiz->questions->count() }}</span>
+                                            {{ $result->score }} <span class="text-gray-400 font-normal">/ {{ (int) $totalForAttempt }}</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -193,9 +194,8 @@
                 <div class="h-64 flex items-end justify-between space-x-2">
                     @foreach($results->take(10) as $result)
                         @php
-                            $percentage = $result->quiz->questions->count() > 0 
-                                ? ($result->score / $result->quiz->questions->count()) * 100 
-                                : 0;
+                            $totalForAttempt = $result->total_possible_points > 0 ? $result->total_possible_points : $result->quiz->questions->count();
+                            $percentage = $result->percentage ?? ($totalForAttempt > 0 ? ($result->score / $totalForAttempt) * 100 : 0);
                             $height = max(4, $percentage);
                             $color = $percentage >= 70 ? 'bg-green-500' : ($percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500');
                         @endphp

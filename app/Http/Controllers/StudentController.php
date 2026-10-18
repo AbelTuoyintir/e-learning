@@ -357,13 +357,13 @@ public function submit(Request $request, Quiz $quiz)
                 $details[] = $this->prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter, $pointsEarned);
             }
 
+            $totalPossiblePoints = (float) $questionsToScore->sum('points');
+
             \Log::debug('Scoring complete', [
                 'score' => $score,
-                'total_questions' => $quiz->questions->count(),
-                'total_possible_points' => $quiz->questions->sum('points')
+                'total_questions' => $questionsToScore->count(),
+                'total_possible_points' => $totalPossiblePoints
             ]);
-
-            $totalPossiblePoints = $quiz->questions->sum('points');
             $percentage = $this->calculatePercentage($score, $totalPossiblePoints);
             $passed = $this->isPassed($percentage, $quiz);
             $attemptNumber = $this->getNextAttemptNumber($quiz->id, Auth::id());
@@ -772,8 +772,10 @@ public function results(Quiz $quiz)
     // Process result details
     $this->processResultDetails($result);
 
-    $totalQuestions = $result->quiz->questions()->count();
-    $percentage = $this->calculatePercentage($result->score, $totalQuestions);
+    $totalQuestions = $result->total_possible_points > 0
+        ? (int) $result->total_possible_points
+        : (is_array($result->details) ? count($result->details) : $result->quiz->questions()->count());
+    $percentage = $result->percentage ?? $this->calculatePercentage($result->score, $totalQuestions);
 
     $sessionResult = [
         'details' => $result->details,
@@ -805,8 +807,10 @@ public function resultShow(Result $result)
     $this->processResultDetails($result);
 
     $quiz = $result->quiz;
-    $totalQuestions = $quiz->questions_count;
-    $percentage = $this->calculatePercentage($result->score, $totalQuestions);
+    $totalQuestions = $result->total_possible_points > 0
+        ? (int) $result->total_possible_points
+        : (is_array($result->details) ? count($result->details) : $quiz->questions_count);
+    $percentage = $result->percentage ?? $this->calculatePercentage($result->score, $totalQuestions);
 
     $sessionResult = [
         'details' => $result->details,
