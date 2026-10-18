@@ -94,13 +94,13 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 @if($quiz->attempts_count < $quiz->max_attempts && (!$quiz->due_at || $quiz->due_at->isFuture()))
                                     <a href="{{ route('students.quiz.attempt', $quiz) }}"
-                                       class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition">
-                                        <i class="fas fa-play-circle mr-1"></i> Take Quiz
+                                       class="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold inline-flex items-center transition shadow-sm">
+                                        <i class="fas fa-play-circle mr-1.5"></i> Take Quiz
                                     </a>
                                 @else
                                     <button disabled
-                                       class="text-gray-400 bg-gray-100 px-3 py-1 rounded-lg cursor-not-allowed">
-                                        <i class="fas fa-ban mr-1"></i> Unavailable
+                                       class="text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg font-semibold inline-flex items-center cursor-not-allowed">
+                                        <i class="fas fa-ban mr-1.5"></i> Unavailable
                                     </button>
                                 @endif
                             </td>

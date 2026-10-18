@@ -111,11 +111,11 @@
 
         <!-- Question Bank Limit -->
         <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Question Bank Limit</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 font-heading">Maximum Questions for Student Assessment</label>
             <input type="number" name="question_limit" min="1" max="1000" required
                    value="{{ old('question_limit', $quiz->question_limit ?? 60) }}"
                    class="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700/90 rounded-2xl text-slate-100 text-sm focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500 transition font-medium">
-            <p class="text-[11px] text-slate-400 mt-1">Maximum questions this quiz can store (e.g., 60).</p>
+            <p class="text-[11px] text-slate-400 mt-1">Number of questions a student will answer out of the question bank (e.g., 60).</p>
         </div>
     </div>
 
