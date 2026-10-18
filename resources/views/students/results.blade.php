@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        @if($npm r->count() > 0)
+        @if($results->count() > 0)
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 transition-all hover:shadow-md">
