@@ -749,7 +749,7 @@ public function results(Quiz $quiz)
         'passed' => $result->passed,
     ];
 
-    return view('students.results', compact('quiz', 'result', 'sessionResult'));
+    return view('students.result', compact('quiz', 'result', 'sessionResult'));
 }
 
 public function resultShow(Result $result)
