@@ -176,10 +176,11 @@ public function showQuiz(Quiz $quiz)
         // Ensure question order follows locked ids.
         $questions = $questions->sortBy(fn($q) => array_search($q->id, $questionIdsLocked, true))->values();
     } else {
-        // Rule 1 & 2: Randomly select 60 questions if > 60, else all.
+        // Rule 1 & 2: Randomly select questions up to quiz question_limit (default 60).
+        $limit = max((int) ($quiz->question_limit ?? 60), 1);
         $totalQuestionsInBank = $quiz->questions()->count();
-        if ($totalQuestionsInBank > 60) {
-            $questions = $quiz->questions()->inRandomOrder()->limit(60)->get();
+        if ($totalQuestionsInBank > $limit) {
+            $questions = $quiz->questions()->inRandomOrder()->limit($limit)->get();
         } else {
             $questions = $quiz->questions()->inRandomOrder()->get();
         }

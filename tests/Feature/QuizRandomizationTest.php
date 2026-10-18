@@ -83,4 +83,41 @@ class QuizRandomizationTest extends TestCase
         $questions = $response->viewData('questions');
         $this->assertCount(60, $questions);
     }
+
+    public function test_quiz_respects_custom_admin_question_limit()
+    {
+        $course = Course::create(['title' => 'Test Course']);
+        $student = Student::create([
+            'firstname' => 'Test',
+            'lastname' => 'User',
+            'email' => 'test_custom@example.com',
+            'password' => bcrypt('password')
+        ]);
+        Enrollment::create(['student_id' => $student->id, 'course_id' => $course->id]);
+
+        // Admin sets question_limit to 25
+        $quiz = Quiz::create([
+            'title' => 'Custom Limit Quiz',
+            'course_id' => $course->id,
+            'quiz_type' => 'module_assessment',
+            'question_limit' => 25
+        ]);
+
+        // Question bank contains 80 questions
+        for ($i = 1; $i <= 80; $i++) {
+            Question::create([
+                'quiz_id' => $quiz->id,
+                'question_text' => "Question $i",
+                'option_a' => 'A', 'option_b' => 'B', 'option_c' => 'C', 'option_d' => 'D',
+                'correct_option' => 'A'
+            ]);
+        }
+
+        $this->actingAs($student, 'student');
+        $response = $this->get(route('quiz.start', $quiz));
+
+        $response->assertStatus(200);
+        $questions = $response->viewData('questions');
+        $this->assertCount(25, $questions);
+    }
 }
