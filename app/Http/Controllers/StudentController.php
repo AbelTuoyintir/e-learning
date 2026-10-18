@@ -240,7 +240,7 @@ public function submit(Request $request, Quiz $quiz)
     // Validate the request
     $validated = $request->validate([
         'answers' => 'required|array',
-        'answers.*' => 'nullable|string|in:A,B,C,D,a,b,c,d', // Added lowercase
+        'answers.*' => 'nullable|string',
     ]);
 
     \Log::debug('Validation passed', [
@@ -296,7 +296,7 @@ public function submit(Request $request, Quiz $quiz)
                     : '';
 
                 $isCorrect = false;
-                $userAnswerText = null;
+                $userAnswerText = $userAnswerRaw;
                 $pointsEarned = 0;
                 $userAnswerLetter = '';
 
@@ -304,7 +304,7 @@ public function submit(Request $request, Quiz $quiz)
                 $questionTypeNormalized = strtolower(trim((string) $question->type));
                 $enteredMcqOrTfBranch = in_array($questionTypeNormalized, ['mcq', 'true/false']);
                 if ($enteredMcqOrTfBranch) {
-                    $userAnswerLetter = strtoupper($userAnswerRaw);
+                    $userAnswerLetter = $this->normalizeUserAnswerLetter($userAnswerRaw);
                     $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
                     $hasAnswer = $this->isValidAnswer($userAnswerLetter);
                     $questionWeight = (float) ($question->points ?: 1);
@@ -330,10 +330,13 @@ public function submit(Request $request, Quiz $quiz)
                     }
 
                     $score += $pointsEarned;
+                } else {
+                    // For non-MCQ (e.g. Short Answer / Essay), convert text answer into letter presentation if needed
+                    $userAnswerLetter = $userAnswerRaw;
                 }
 
                 // Diagnostic log: one sample question to confirm grading branch + normalization (always log once)
-            static $loggedSample = false;
+                static $loggedSample = false;
                 if (!$loggedSample) {
                     $loggedSample = true;
                     \Log::debug('Scoring check (sample)', [
@@ -348,10 +351,6 @@ public function submit(Request $request, Quiz $quiz)
                         'points' => (int) $question->points,
                     ]);
                 }
-
-                // Short Answer and Essay are recorded but not auto-graded for now
-                $userAnswerText = $userAnswerRaw;
-
 
                 // Prepare answer details
                 $details[] = $this->prepareAnswerDetails($question, $userAnswerText, $isCorrect, $userAnswerLetter, $pointsEarned);
@@ -559,6 +558,31 @@ private function getOptionColumn($letter): string
     return $columnMap[$letter] ?? 'option_a'; // Default to option_a if invalid
 }
 
+private function normalizeUserAnswerLetter($value): string
+{
+    $normalized = strtoupper(trim((string) $value));
+    $normalized = str_replace([' ', '-'], '_', $normalized);
+
+    $map = [
+        'A' => 'A',
+        'B' => 'B',
+        'C' => 'C',
+        'D' => 'D',
+        'TRUE' => 'A',
+        'FALSE' => 'B',
+        'OPTION_A' => 'A',
+        'OPTION_B' => 'B',
+        'OPTION_C' => 'C',
+        'OPTION_D' => 'D',
+        '1' => 'A',
+        '2' => 'B',
+        '3' => 'C',
+        '4' => 'D',
+    ];
+
+    return $map[$normalized] ?? $normalized;
+}
+
 private function normalizeCorrectOptionLetter($value): string
 {
     $normalized = strtoupper(trim((string) $value));
@@ -569,6 +593,8 @@ private function normalizeCorrectOptionLetter($value): string
         'B' => 'B',
         'C' => 'C',
         'D' => 'D',
+        'TRUE' => 'A',
+        'FALSE' => 'B',
         'OPTION_A' => 'A',
         'OPTION_B' => 'B',
         'OPTION_C' => 'C',
@@ -587,7 +613,7 @@ private function normalizeCorrectOptionLetter($value): string
  */
 private function isValidAnswer($answer): bool
 {
-    return !empty($answer) && in_array($answer, ['A', 'B', 'C', 'D']);
+    return !empty($answer) && in_array(strtoupper($answer), ['A', 'B', 'C', 'D']);
 }
 
 /**
@@ -597,6 +623,13 @@ private function prepareAnswerDetails($question, $userAnswerText, $isCorrect, $u
 {
     $correctLetter = $this->normalizeCorrectOptionLetter($question->correct_option);
     $correctOptionColumn = $this->getOptionColumn($correctLetter);
+
+    $questionTypeNormalized = strtolower(trim((string) $question->type));
+    $isMcqOrTf = in_array($questionTypeNormalized, ['mcq', 'true/false']);
+
+    $isSkipped = $isMcqOrTf
+        ? (empty($userAnswerLetter) || !$this->isValidAnswer($userAnswerLetter))
+        : (trim((string) $userAnswerText) === '');
 
     return [
         'question_id'    => $question->id,
@@ -614,7 +647,7 @@ private function prepareAnswerDetails($question, $userAnswerText, $isCorrect, $u
         'is_correct'     => $isCorrect,
         'points'         => $question->points,
         'points_earned'  => $pointsEarned,
-        'skipped'        => empty($userAnswerLetter) || !$this->isValidAnswer($userAnswerLetter),
+        'skipped'        => $isSkipped,
     ];
 }
 
