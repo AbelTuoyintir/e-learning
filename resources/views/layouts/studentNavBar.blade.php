@@ -12,7 +12,7 @@
             darkMode: 'class'
         }
     </script>
-    <link rel="stylessheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         /* Toast animation */
@@ -42,19 +42,19 @@
 
                 <!-- Desktop Menu Items -->
                 <div class="hidden lg:flex items-center space-x-4">
-                    <a href="{{ route("students.dashboard") }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('students.dashboard') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
+                    <a href="{{ route("students.dashboard") }}" class="menu-item flex items-center px-3 py-2 rounded-md font-medium {{ request()->routeIs('students.dashboard') ? 'text-white bg-blue-800 dark:bg-gray-900 font-bold ring-1 ring-white/20' : 'text-blue-100 hover:bg-blue-500/80 dark:hover:bg-gray-700' }} transition">
                         <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                     </a>
-                    <a href="{{ route('students.courses') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('students.courses') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
+                    <a href="{{ route('students.courses') }}" class="menu-item flex items-center px-3 py-2 rounded-md font-medium {{ request()->routeIs('students.courses') ? 'text-white bg-blue-800 dark:bg-gray-900 font-bold ring-1 ring-white/20' : 'text-blue-100 hover:bg-blue-500/80 dark:hover:bg-gray-700' }} transition">
                         <i class="fas fa-book-open mr-2"></i>Courses
                     </a>
-                    <a href="{{ route('students.enrolledcourses') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('students.enrolledcourses') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
-                        <i class="fas fa-books mr-2"></i> My Courses
+                    <a href="{{ route('students.enrolledcourses') }}" class="menu-item flex items-center px-3 py-2 rounded-md font-medium {{ request()->routeIs('students.enrolledcourses') ? 'text-white bg-blue-800 dark:bg-gray-900 font-bold ring-1 ring-white/20' : 'text-blue-100 hover:bg-blue-500/80 dark:hover:bg-gray-700' }} transition">
+                        <i class="fas fa-book mr-2"></i> My Courses
                     </a>
-                    <a href="{{ route('students.quizzes') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('students.quizzes') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
+                    <a href="{{ route('students.quizzes') }}" class="menu-item flex items-center px-3 py-2 rounded-md font-medium {{ request()->routeIs('students.quizzes') ? 'text-white bg-blue-800 dark:bg-gray-900 font-bold ring-1 ring-white/20' : 'text-blue-100 hover:bg-blue-500/80 dark:hover:bg-gray-700' }} transition">
                         <i class="fas fa-tasks mr-2"></i>Quizzes
                     </a>
-                    <a href="{{ route('results.index') }}" class="menu-item flex items-center px-3 py-2 rounded-md {{ request()->routeIs('results.index') ? 'text-blue-600 bg-blue-50' : 'text-gray-200 hover:bg-blue-500' }} transition">
+                    <a href="{{ route('results.index') }}" class="menu-item flex items-center px-3 py-2 rounded-md font-medium {{ request()->routeIs('results.index') ? 'text-white bg-blue-800 dark:bg-gray-900 font-bold ring-1 ring-white/20' : 'text-blue-100 hover:bg-blue-500/80 dark:hover:bg-gray-700' }} transition">
                         <i class="fas fa-chart-bar mr-2"></i>Results
                     </a>
                 </div>

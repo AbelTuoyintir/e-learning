@@ -44,7 +44,7 @@
                     Refresh Page
                 </button>
                 <span class="text-slate-400 text-sm">or</span>
-                <button onclick="showContactInfo()" class="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition duration-200 font-semibold inline-flex items-center">
+                <button onclick="showContactInfo()" class="px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition duration-200 font-semibold inline-flex items-center shadow-sm">
                     <i class="fas fa-info-circle mr-2"></i>
                     Get Help
                 </button>
@@ -65,7 +65,7 @@
                     <i class="fas fa-times mr-2"></i>
                     Clear Search
                 </button>
-                <a href="{{ url()->current() }}" class="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition duration-200 font-semibold inline-flex items-center">
+                <a href="{{ url()->current() }}" class="px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition duration-200 font-semibold inline-flex items-center shadow-sm">
                     <i class="fas fa-list mr-2"></i>
                     View All Courses
                 </a>
@@ -77,7 +77,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach ($courses as $course)
             <!-- Course Card -->
-            <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
+            <div class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100 dark:border-gray-700">
                  @if($course->image)
                         <div class="h-48 overflow-hidden">
                             <img src="{{ asset('storage/' . $course->image) }}"
@@ -87,12 +87,12 @@
                     @endif
                 <div class="p-6">
                     <div class="flex">
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">{{ $course->title }}</h3>
+                        <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">{{ $course->title }}</h3>
                         @if($course->enrollments()->where('student_id', auth()->user()->id)->exists())
-                            <span class="ml-auto px-2 py-2 bg-green-100 rounded-lg text-sm text-green-600">Enrolled</span>
+                            <span class="ml-auto px-2 py-1 bg-green-100 dark:bg-green-900/40 rounded-lg text-xs font-bold text-green-700 dark:text-green-300">Enrolled</span>
                         @endif
                     </div>
-                    <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ $course->description ?? 'No description available' }}</p>
+                    <p class="text-slate-600 dark:text-slate-300 text-sm mb-4 line-clamp-2">{{ $course->description ?? 'No description available' }}</p>
                     <div class="mb-4">
                         @if((float) ($course->price ?? 0) > 0)
                             <span class="inline-flex items-center px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-sm font-semibold">

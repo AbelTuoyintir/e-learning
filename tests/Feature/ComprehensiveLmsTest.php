@@ -167,6 +167,85 @@ class ComprehensiveLmsTest extends TestCase
         ]);
     }
 
+    public function test_true_false_and_mcq_selections_are_captured_without_being_marked_as_skipped()
+    {
+        // Enroll student
+        Enrollment::create([
+            'student_id' => $this->student->id,
+            'course_id' => $this->course->id,
+            'payment_status' => 'free'
+        ]);
+
+        // MCQ question
+        $mcqQuestion = Question::create([
+            'quiz_id' => $this->quiz->id,
+            'question_text' => 'Laravel is a PHP framework.',
+            'option_a' => 'Yes',
+            'option_b' => 'No',
+            'option_c' => 'Maybe',
+            'option_d' => 'Not sure',
+            'correct_option' => 'A',
+            'points' => 5,
+            'type' => 'MCQ'
+        ]);
+
+        // True/False question
+        $tfQuestion = Question::create([
+            'quiz_id' => $this->quiz->id,
+            'question_text' => 'Blade is Laravel template engine.',
+            'option_a' => 'True',
+            'option_b' => 'False',
+            'option_c' => '',
+            'option_d' => '',
+            'correct_option' => 'A',
+            'points' => 5,
+            'type' => 'True/False'
+        ]);
+
+        // Skipped question
+        $skippedQuestion = Question::create([
+            'quiz_id' => $this->quiz->id,
+            'question_text' => 'Unanswered question?',
+            'option_a' => 'Opt A',
+            'option_b' => 'Opt B',
+            'option_c' => 'Opt C',
+            'option_d' => 'Opt D',
+            'correct_option' => 'A',
+            'points' => 5,
+            'type' => 'MCQ'
+        ]);
+
+        $this->actingAs($this->student, 'student');
+
+        // Submit quiz with answers for MCQ (A) and True/False (A, mapped from True/A)
+        $response = $this->post(route('quiz.submit', $this->quiz), [
+            'answers' => [
+                $mcqQuestion->id => 'A',
+                $tfQuestion->id => 'A',
+            ]
+        ]);
+
+        $response->assertRedirect(route('quiz.results', $this->quiz->id));
+
+        $result = Result::where('student_id', $this->student->id)->where('quiz_id', $this->quiz->id)->first();
+        $this->assertNotNull($result);
+
+        $details = json_decode($result->details, true);
+        $this->assertIsArray($details);
+
+        $mcqDetail = collect($details)->firstWhere('question_id', $mcqQuestion->id);
+        $tfDetail = collect($details)->firstWhere('question_id', $tfQuestion->id);
+        $skippedDetail = collect($details)->firstWhere('question_id', $skippedQuestion->id);
+
+        $this->assertFalse($mcqDetail['skipped']);
+        $this->assertTrue($mcqDetail['is_correct']);
+
+        $this->assertFalse($tfDetail['skipped']);
+        $this->assertTrue($tfDetail['is_correct']);
+
+        $this->assertTrue($skippedDetail['skipped']);
+    }
+
     public function test_module_attempt_policy_locks_after_four_failed_attempts()
     {
         // Enroll student
