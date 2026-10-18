@@ -116,18 +116,18 @@
                     <div class="space-y-4 mt-4">
                         @if($question->type === 'True/False')
                             <label class="option-item flex items-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group">
-                                <input type="radio" name="answers[{{ $question->id }}]" value="True" class="hidden">
-                                <div class="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center mr-4 group-hover:border-blue-500 transition-colors">
-                                    <div class="w-3 h-3 bg-blue-600 rounded-full opacity-0 transition-opacity check-dot"></div>
+                                <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400 font-bold mr-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    A
                                 </div>
+                                <input type="radio" name="answers[{{ $question->id }}]" value="A" class="hidden">
                                 <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">True</span>
                             </label>
                             
                             <label class="option-item flex items-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-2xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group">
-                                <input type="radio" name="answers[{{ $question->id }}]" value="False" class="hidden">
-                                <div class="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center mr-4 group-hover:border-blue-500 transition-colors">
-                                    <div class="w-3 h-3 bg-blue-600 rounded-full opacity-0 transition-opacity check-dot"></div>
+                                <div class="w-10 h-10 bg-slate-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-gray-400 font-bold mr-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    B
                                 </div>
+                                <input type="radio" name="answers[{{ $question->id }}]" value="B" class="hidden">
                                 <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">False</span>
                             </label>
                             
@@ -248,9 +248,21 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                submitQuiz();
+                autoSubmitOnTimeUp();
             }
         }, 1000);
+    }
+
+    function autoSubmitOnTimeUp() {
+        if (quizForm.dataset.submitted) return;
+        quizForm.dataset.submitted = 'true';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Time Up! Submitting...';
+        }
+        clearLocalStorage();
+        clearInterval(timerInterval);
+        quizForm.submit();
     }
     
     function updateTimerDisplay() {
